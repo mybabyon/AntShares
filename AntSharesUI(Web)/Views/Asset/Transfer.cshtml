@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "MyAsset";
+}
+<style>
+    .row div { padding-bottom:10px; }
+</style>
+
+<h2 class="page-header">资产转让</h2>
+<h5>选择资产</h5>
+<div class="row">
+    <div class="col-sm-6">
+        <select class="form-control">
+            <option value="1">小蚁股</option>
+            <option value="2">小蚁币</option>
+            <option value="3">股权</option>
+            <option value="4">货币</option>
+            <option value="4">其它</option>
+        </select>
+    </div>
+</div>
+
+<br />
+<h5>添加接收方</h5>
+<div class="row">
+    <div class="col-sm-6"><input class="form-control" type="text" placeholder="地址" /></div>
+    <div class="col-sm-3"><input class="form-control" type="text" placeholder="金额" /></div>
+    <div class="col-sm-3"><button class="btn btn-success">添加</button></div>
+</div>
+
+<br />
+<button class="btn btn-success">确认并广播</button>

@@ -6,26 +6,101 @@
 </style>
 
 <h2 class="page-header">资产转让</h2>
-<h5>选择资产</h5>
+<h5>选择资产类型</h5>
 <div class="row">
     <div class="col-sm-6">
-        <select class="form-control">
+        <select class="form-control" onchange="show(this.value)">
             <option value="1">小蚁股</option>
             <option value="2">小蚁币</option>
             <option value="3">股权</option>
             <option value="4">货币</option>
-            <option value="4">其它</option>
+            <option value="5">其它</option>
         </select>
     </div>
 </div>
 
-<br />
-<h5>添加接收方</h5>
-<div class="row">
-    <div class="col-sm-6"><input class="form-control" type="text" placeholder="地址" /></div>
-    <div class="col-sm-3"><input class="form-control" type="text" placeholder="金额" /></div>
-    <div class="col-sm-3"><button class="btn btn-success">添加</button></div>
+<h5 id="asset_title" class="slect2" style="display:none">选择资产</h5>
+<div class="row slect2" id="equity" style="display:none">
+    <div class="col-sm-6">
+        <select class="form-control">
+            <option value="1">A企业股份</option>
+            <option value="2">B企业股份</option>
+            <option value="2">C企业股份</option>
+        </select>
+    </div>
 </div>
 
-<br />
+<div class="row slect2" id="coin" style="display:none">
+    <div class="col-sm-6">
+        <select class="form-control">
+            <option value="1">A货币</option>
+            <option value="2">B货币</option>
+            <option value="2">C货币</option>
+        </select>
+    </div>
+</div>
+
+<div class="row slect2" id="others" style="display:none">
+    <div class="col-sm-6">
+        <select class="form-control">
+            <option value="1">A资产</option>
+            <option value="2">B资产</option>
+            <option value="2">C资产</option>
+        </select>
+    </div>
+</div>
+
+<h5>添加接收方</h5>
+<div class="row output">
+    <div class="col-sm-6"><input class="form-control" type="text" placeholder="地址" /></div>
+    <div class="col-sm-3"><input class="form-control" type="text" placeholder="金额" /></div>
+</div>
+
+<div id="t_output" class="row output" style="display:none">
+    <div class="col-sm-6"><input class="form-control" type="text" placeholder="地址" /></div>
+    <div class="col-sm-3"><input class="form-control" type="text" placeholder="金额" /></div>
+    <div class="col-sm-3">
+        <button onclick="remove_output(this)" class="btn btn-danger">删除</button>
+    </div>
+</div>
+<a href="javascript:" onclick="add_output()">添加多个输出</a>
+<br /><br />
+
 <button class="btn btn-success">确认并广播</button>
+
+@section scripts
+{
+    <script>
+        function add_output()
+        {
+            
+            var clone = $("#t_output").clone();
+            clone.css("display", "block");
+            clone.removeAttr("id");
+            clone.insertAfter($(".output:last"));
+        }
+
+        function remove_output(obj)
+        {
+            $(obj).parent().parent().remove();
+        }
+
+        function show(value)
+        {
+            $(".slect2").hide();
+            if (value == 3) {
+                $("#equity").show();
+            }
+            if (value == 4) {
+                $("#coin").show();
+            }
+            if (value == 5) {
+                $("#others").show();
+            }
+            if (value >= 3)
+            {
+                $("#asset_title").show();
+            }
+        }
+    </script>
+}

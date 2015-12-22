@@ -4,13 +4,13 @@
     ViewData["Title"] = "创建钱包";
 }
 
-<form asp-action="Open" method="post" class="form-horizontal">
+<form asp-action="Upload" method="post" class="form-horizontal" enctype="multipart/form-data">
     <fieldset>
         <h2 class="page-header">打开钱包</h2>
         <div class="form-group">
             <label class="col-sm-4 control-label">选择钱包文件</label>
             <div class="col-sm-6">
-                <input id="wallet_file" asp-for="Name" class="form-control" autocomplete="off" type="file" placeholder="钱包名称">
+                <input id="wallet" name="wallet" asp-for="Name" class="form-control" autocomplete="off" type="file" placeholder="钱包名称">
                 <span asp-validation-for="Name" class="text-danger" />
             </div>
         </div>
@@ -35,12 +35,15 @@
         //初始化fileinput控件
         //http://plugins.krajee.com/file-input
         //http://www.cnblogs.com/wuhuacong/p/4774396.html
-        $("#wallet_file").fileinput({
+        $("#wallet").fileinput({
                 language: 'zh',
                 allowedFileExtensions: ['db3'],
                 previewFileIcon: "<i class='glyphicon glyphicon-king'></i>",
-                showUpload: false
+                //uploadUrl: "~/Wallet/Upload"
             });
 
     </script>
+    <script src="~/lib/jquery-validation/jquery.validate.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
 }

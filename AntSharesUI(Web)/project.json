@@ -35,7 +35,11 @@
   },
 
   "frameworks": {
-    "dnx46": { }
+    "dnx46": {
+      "dependencies": {
+        "AntSharesCore": "1.0.0-*"
+      }
+    }
   },
 
   "exclude": [

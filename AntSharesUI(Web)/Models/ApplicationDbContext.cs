@@ -20,5 +20,7 @@ namespace AntSharesUI_Web_.Models
         public DbSet<Wallet> Wallet { get; set; }
         public DbSet<Personal> Personal { get; set; }
         public DbSet<Asset> Asset { get; set; }
+        public DbSet<People> People { get; set; }
+        public DbSet<Advanced> Advanced { get; set; }
     }
 }

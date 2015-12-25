@@ -1,0 +1,24 @@
+﻿@model AntSharesUI_Web_.Models.Advanced
+
+@{
+    ViewData["Title"] = "签名";
+}
+<style>
+    
+</style>
+
+<h2 class="page-header">文本签名</h2>
+<textarea rows="5" class="form-control withripple" placeholder="要签名的文本"></textarea>
+<br />
+<select class="form-control">
+    <option value="1">地址1</option>
+    <option value="2">地址2</option>
+    <option value="2">地址3</option>
+</select>
+<br />
+<button class="btn btn-raised btn-success">签名</button>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/jquery.validate.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}

@@ -51,22 +51,25 @@
 </div>
 
 <h5>添加接收方</h5>
-<div class="row output">
-    <div class="col-sm-6"><input class="form-control" type="text" placeholder="地址" /></div>
-    <div class="col-sm-3"><input class="form-control" type="text" placeholder="金额" /></div>
-</div>
-
-<div id="t_output" class="row output" style="display:none">
-    <div class="col-sm-6"><input class="form-control" type="text" placeholder="地址" /></div>
-    <div class="col-sm-3"><input class="form-control" type="text" placeholder="金额" /></div>
-    <div class="col-sm-3">
-        <button onclick="remove_output(this)" class="btn btn-danger">删除</button>
+<div class="output-div">
+    <div class="row output">
+        <div class="col-sm-6"><input class="form-control" type="text" placeholder="地址" /></div>
+        <div class="col-sm-3"><input class="form-control" type="text" placeholder="金额" /></div>
     </div>
+
+    <div id="t_output" class="row output" style="display:none">
+        <div class="col-sm-6"><input class="form-control" type="text" placeholder="地址" /></div>
+        <div class="col-sm-3"><input class="form-control" type="text" placeholder="金额" /></div>
+        <div class="col-sm-3">
+            <a onclick="remove_output(this)" class="btn withripple delete">×</a>
+        </div>
+    </div>
+
 </div>
-<a href="javascript:" onclick="add_output()">添加多个输出</a>
+<a href="javascript:" class="btn withripple add" title="添加输出" onclick="add_output()">+</a>
 <br /><br />
 
-<button class="btn btn-success">确认并广播</button>
+<button class="btn withripple btn-success">确认并广播</button>
 
 @section scripts
 {

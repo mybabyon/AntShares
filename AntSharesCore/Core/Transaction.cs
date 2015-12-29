@@ -12,6 +12,7 @@ namespace AntShares.Core
     public abstract class Transaction : Inventory, ISignable
     {
         public readonly TransactionType Type;
+        public TransactionAttribute[] Attributes;
         public TransactionInput[] Inputs;
         public TransactionOutput[] Outputs;
         public Script[] Scripts;
@@ -71,7 +72,9 @@ namespace AntShares.Core
             Scripts = reader.ReadSerializableArray<Script>();
         }
 
-        protected abstract void DeserializeExclusiveData(BinaryReader reader);
+        protected virtual void DeserializeExclusiveData(BinaryReader reader)
+        {
+        }
 
         public static Transaction DeserializeFrom(byte[] value)
         {
@@ -104,6 +107,7 @@ namespace AntShares.Core
         private void DeserializeUnsignedWithoutType(BinaryReader reader)
         {
             DeserializeExclusiveData(reader);
+            Attributes = reader.ReadSerializableArray<TransactionAttribute>();
             Inputs = reader.ReadSerializableArray<TransactionInput>();
             TransactionInput[] inputs = GetAllInputs().ToArray();
             for (int i = 1; i < inputs.Length; i++)
@@ -121,7 +125,17 @@ namespace AntShares.Core
         public virtual UInt160[] GetScriptHashesForVerifying()
         {
             if (References == null) throw new InvalidOperationException();
-            return Inputs.Select(p => References[p].ScriptHash).OrderBy(p => p).ToArray();
+            HashSet<UInt160> hashes = new HashSet<UInt160>(Inputs.Select(p => References[p].ScriptHash));
+            foreach (var group in Outputs.GroupBy(p => p.AssetId))
+            {
+                RegisterTransaction tx = Blockchain.Default.GetTransaction(group.Key) as RegisterTransaction;
+                if (tx == null) throw new InvalidOperationException();
+                if (tx.AssetType == AssetType.Share)
+                {
+                    hashes.UnionWith(group.Select(p => p.ScriptHash));
+                }
+            }
+            return hashes.OrderBy(p => p).ToArray();
         }
 
         public IEnumerable<TransactionResult> GetTransactionResults()
@@ -152,12 +166,15 @@ namespace AntShares.Core
             writer.Write(Scripts);
         }
 
-        protected abstract void SerializeExclusiveData(BinaryWriter writer);
+        protected virtual void SerializeExclusiveData(BinaryWriter writer)
+        {
+        }
 
         void ISignable.SerializeUnsigned(BinaryWriter writer)
         {
             writer.Write((byte)Type);
             SerializeExclusiveData(writer);
+            writer.Write(Attributes);
             writer.Write(Inputs);
             writer.Write(Outputs);
         }

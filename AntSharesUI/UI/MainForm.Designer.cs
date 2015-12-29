@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.Windows.Forms.ListViewGroup listViewGroup1 = new System.Windows.Forms.ListViewGroup("unchecked", System.Windows.Forms.HorizontalAlignment.Left);
+            System.Windows.Forms.ListViewGroup listViewGroup2 = new System.Windows.Forms.ListViewGroup("checked", System.Windows.Forms.HorizontalAlignment.Left);
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.钱包WToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.创建钱包数据库NToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -53,9 +55,12 @@
             this.关于AntSharesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ContractListView = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.创建新地址NToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.导入私钥IToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.创建智能合约SToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.多方签名MToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.查看私钥VToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.复制到剪贴板CToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -71,10 +76,9 @@
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.listView2 = new System.Windows.Forms.ListView();
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.创建智能合约SToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.多方签名MToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.menuStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -93,7 +97,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(7, 3, 0, 3);
-            this.menuStrip1.Size = new System.Drawing.Size(616, 27);
+            this.menuStrip1.Size = new System.Drawing.Size(756, 27);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -163,19 +167,19 @@
             // 转账TToolStripMenuItem
             // 
             this.转账TToolStripMenuItem.Name = "转账TToolStripMenuItem";
-            this.转账TToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.转账TToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
             this.转账TToolStripMenuItem.Text = "转账(&T)...";
             this.转账TToolStripMenuItem.Click += new System.EventHandler(this.转账TToolStripMenuItem_Click);
             // 
             // toolStripSeparator5
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(149, 6);
+            this.toolStripSeparator5.Size = new System.Drawing.Size(121, 6);
             // 
             // 签名SToolStripMenuItem
             // 
             this.签名SToolStripMenuItem.Name = "签名SToolStripMenuItem";
-            this.签名SToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.签名SToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
             this.签名SToolStripMenuItem.Text = "签名(&S)...";
             this.签名SToolStripMenuItem.Click += new System.EventHandler(this.签名SToolStripMenuItem_Click);
             // 
@@ -192,14 +196,14 @@
             // 注册资产RToolStripMenuItem
             // 
             this.注册资产RToolStripMenuItem.Name = "注册资产RToolStripMenuItem";
-            this.注册资产RToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.注册资产RToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
             this.注册资产RToolStripMenuItem.Text = "注册资产(&R)...";
             this.注册资产RToolStripMenuItem.Click += new System.EventHandler(this.注册资产RToolStripMenuItem_Click);
             // 
             // 资产分发IToolStripMenuItem
             // 
             this.资产分发IToolStripMenuItem.Name = "资产分发IToolStripMenuItem";
-            this.资产分发IToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.资产分发IToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
             this.资产分发IToolStripMenuItem.Text = "发行资产(&I)...";
             this.资产分发IToolStripMenuItem.Click += new System.EventHandler(this.资产分发IToolStripMenuItem_Click);
             // 
@@ -267,7 +271,7 @@
             this.ContractListView.HideSelection = false;
             this.ContractListView.Location = new System.Drawing.Point(3, 3);
             this.ContractListView.Name = "ContractListView";
-            this.ContractListView.Size = new System.Drawing.Size(602, 335);
+            this.ContractListView.Size = new System.Drawing.Size(793, 511);
             this.ContractListView.TabIndex = 1;
             this.ContractListView.UseCompatibleStateImageBehavior = false;
             this.ContractListView.View = System.Windows.Forms.View.Details;
@@ -276,6 +280,11 @@
             // 
             this.columnHeader1.Text = "地址";
             this.columnHeader1.Width = 300;
+            // 
+            // columnHeader4
+            // 
+            this.columnHeader4.Text = "类型";
+            this.columnHeader4.Width = 270;
             // 
             // contextMenuStrip1
             // 
@@ -295,7 +304,7 @@
             // 
             this.创建新地址NToolStripMenuItem.Enabled = false;
             this.创建新地址NToolStripMenuItem.Name = "创建新地址NToolStripMenuItem";
-            this.创建新地址NToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
+            this.创建新地址NToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
             this.创建新地址NToolStripMenuItem.Text = "创建新地址(&N)";
             this.创建新地址NToolStripMenuItem.Click += new System.EventHandler(this.创建新地址NToolStripMenuItem_Click);
             // 
@@ -303,20 +312,36 @@
             // 
             this.导入私钥IToolStripMenuItem.Enabled = false;
             this.导入私钥IToolStripMenuItem.Name = "导入私钥IToolStripMenuItem";
-            this.导入私钥IToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
+            this.导入私钥IToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
             this.导入私钥IToolStripMenuItem.Text = "导入私钥(&I)...";
             this.导入私钥IToolStripMenuItem.Click += new System.EventHandler(this.导入私钥IToolStripMenuItem_Click);
+            // 
+            // 创建智能合约SToolStripMenuItem
+            // 
+            this.创建智能合约SToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.多方签名MToolStripMenuItem});
+            this.创建智能合约SToolStripMenuItem.Enabled = false;
+            this.创建智能合约SToolStripMenuItem.Name = "创建智能合约SToolStripMenuItem";
+            this.创建智能合约SToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
+            this.创建智能合约SToolStripMenuItem.Text = "创建智能合约(&S)";
+            // 
+            // 多方签名MToolStripMenuItem
+            // 
+            this.多方签名MToolStripMenuItem.Name = "多方签名MToolStripMenuItem";
+            this.多方签名MToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
+            this.多方签名MToolStripMenuItem.Text = "多方签名(&M)...";
+            this.多方签名MToolStripMenuItem.Click += new System.EventHandler(this.多方签名MToolStripMenuItem_Click);
             // 
             // toolStripSeparator6
             // 
             this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(153, 6);
+            this.toolStripSeparator6.Size = new System.Drawing.Size(160, 6);
             // 
             // 查看私钥VToolStripMenuItem
             // 
             this.查看私钥VToolStripMenuItem.Enabled = false;
             this.查看私钥VToolStripMenuItem.Name = "查看私钥VToolStripMenuItem";
-            this.查看私钥VToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
+            this.查看私钥VToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
             this.查看私钥VToolStripMenuItem.Text = "查看私钥(&V)";
             this.查看私钥VToolStripMenuItem.Click += new System.EventHandler(this.查看私钥VToolStripMenuItem_Click);
             // 
@@ -326,7 +351,7 @@
             this.复制到剪贴板CToolStripMenuItem.Name = "复制到剪贴板CToolStripMenuItem";
             this.复制到剪贴板CToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
             this.复制到剪贴板CToolStripMenuItem.ShowShortcutKeys = false;
-            this.复制到剪贴板CToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
+            this.复制到剪贴板CToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
             this.复制到剪贴板CToolStripMenuItem.Text = "复制到剪贴板(&C)";
             this.复制到剪贴板CToolStripMenuItem.Click += new System.EventHandler(this.复制到剪贴板CToolStripMenuItem_Click);
             // 
@@ -334,7 +359,7 @@
             // 
             this.删除DToolStripMenuItem.Enabled = false;
             this.删除DToolStripMenuItem.Name = "删除DToolStripMenuItem";
-            this.删除DToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
+            this.删除DToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
             this.删除DToolStripMenuItem.Text = "删除(&D)...";
             this.删除DToolStripMenuItem.Click += new System.EventHandler(this.删除DToolStripMenuItem_Click);
             // 
@@ -345,9 +370,9 @@
             this.lbl_height,
             this.toolStripStatusLabel4,
             this.lbl_count_node});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 398);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 520);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(616, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(756, 22);
             this.statusStrip1.SizingGrip = false;
             this.statusStrip1.TabIndex = 2;
             this.statusStrip1.Text = "statusStrip1";
@@ -379,7 +404,7 @@
             // timer1
             // 
             this.timer1.Enabled = true;
-            this.timer1.Interval = 1000;
+            this.timer1.Interval = 500;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // tabControl1
@@ -390,7 +415,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 27);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(616, 371);
+            this.tabControl1.Size = new System.Drawing.Size(756, 493);
             this.tabControl1.TabIndex = 3;
             // 
             // tabPage1
@@ -399,7 +424,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 26);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(608, 341);
+            this.tabPage1.Size = new System.Drawing.Size(799, 517);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "账户";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -410,7 +435,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 26);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(608, 341);
+            this.tabPage2.Size = new System.Drawing.Size(748, 463);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "资产";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -419,15 +444,25 @@
             // 
             this.listView2.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader2,
-            this.columnHeader3});
+            this.columnHeader6,
+            this.columnHeader3,
+            this.columnHeader5});
             this.listView2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listView2.FullRowSelect = true;
             this.listView2.GridLines = true;
+            listViewGroup1.Header = "unchecked";
+            listViewGroup1.Name = "unchecked";
+            listViewGroup2.Header = "checked";
+            listViewGroup2.Name = "checked";
+            this.listView2.Groups.AddRange(new System.Windows.Forms.ListViewGroup[] {
+            listViewGroup1,
+            listViewGroup2});
             this.listView2.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.listView2.HideSelection = false;
             this.listView2.Location = new System.Drawing.Point(3, 3);
             this.listView2.Name = "listView2";
-            this.listView2.Size = new System.Drawing.Size(602, 335);
+            this.listView2.ShowGroups = false;
+            this.listView2.Size = new System.Drawing.Size(742, 457);
             this.listView2.TabIndex = 2;
             this.listView2.UseCompatibleStateImageBehavior = false;
             this.listView2.View = System.Windows.Forms.View.Details;
@@ -435,39 +470,28 @@
             // columnHeader2
             // 
             this.columnHeader2.Text = "资产";
-            this.columnHeader2.Width = 300;
+            this.columnHeader2.Width = 160;
+            // 
+            // columnHeader6
+            // 
+            this.columnHeader6.Text = "类型";
+            this.columnHeader6.Width = 100;
             // 
             // columnHeader3
             // 
             this.columnHeader3.Text = "余额";
             this.columnHeader3.Width = 150;
             // 
-            // 创建智能合约SToolStripMenuItem
+            // columnHeader5
             // 
-            this.创建智能合约SToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.多方签名MToolStripMenuItem});
-            this.创建智能合约SToolStripMenuItem.Enabled = false;
-            this.创建智能合约SToolStripMenuItem.Name = "创建智能合约SToolStripMenuItem";
-            this.创建智能合约SToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
-            this.创建智能合约SToolStripMenuItem.Text = "创建智能合约(&S)";
-            // 
-            // 多方签名MToolStripMenuItem
-            // 
-            this.多方签名MToolStripMenuItem.Name = "多方签名MToolStripMenuItem";
-            this.多方签名MToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
-            this.多方签名MToolStripMenuItem.Text = "多方签名(&M)...";
-            this.多方签名MToolStripMenuItem.Click += new System.EventHandler(this.多方签名MToolStripMenuItem_Click);
-            // 
-            // columnHeader4
-            // 
-            this.columnHeader4.Text = "类型";
-            this.columnHeader4.Width = 270;
+            this.columnHeader5.Text = "发行者";
+            this.columnHeader5.Width = 296;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(616, 420);
+            this.ClientSize = new System.Drawing.Size(756, 542);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
@@ -540,6 +564,8 @@
         private System.Windows.Forms.ToolStripMenuItem 多方签名MToolStripMenuItem;
         private System.Windows.Forms.ColumnHeader columnHeader4;
         private System.Windows.Forms.ListView ContractListView;
+        private System.Windows.Forms.ColumnHeader columnHeader5;
+        private System.Windows.Forms.ColumnHeader columnHeader6;
     }
 }
 

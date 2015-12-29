@@ -3,6 +3,7 @@ using AntShares.Cryptography;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security;
 using System.Security.Cryptography;
 using System.Threading;
@@ -47,10 +48,12 @@ namespace AntShares.Wallets
                     rng.GetNonZeroBytes(iv);
                     rng.GetNonZeroBytes(masterKey);
                 }
+                Version current_version = Assembly.GetExecutingAssembly().GetName().Version;
                 BuildDatabase();
                 SaveStoredData("PasswordHash", passwordKey.Sha256());
                 SaveStoredData("IV", iv);
                 SaveStoredData("MasterKey", masterKey.AesEncrypt(passwordKey, iv));
+                SaveStoredData("Version", new[] { current_version.Major, current_version.Minor, current_version.Build, current_version.Revision }.Select(p => BitConverter.GetBytes(p)).SelectMany(p => p).ToArray());
                 SaveStoredData("Height", BitConverter.GetBytes(current_height));
                 ProtectedMemory.Protect(masterKey, MemoryProtectionScope.SameProcess);
             }
@@ -368,9 +371,15 @@ namespace AntShares.Wallets
 
         protected abstract IEnumerable<UnspentCoin> LoadUnspentCoins(bool is_change);
 
-        public SignatureContext MakeTransaction(TransactionOutput[] outputs, Fixed8 fee)
+        public T MakeTransaction<T>(TransactionOutput[] outputs, Fixed8 fee) where T : Transaction, new()
         {
-            var pay_total = outputs.GroupBy(p => p.AssetId, (k, g) => new
+            T tx = new T
+            {
+                Attributes = new TransactionAttribute[0],
+                Outputs = outputs
+            };
+            fee += tx.SystemFee;
+            var pay_total = (typeof(T) == typeof(IssueTransaction) ? new TransactionOutput[0] : outputs).GroupBy(p => p.AssetId, (k, g) => new
             {
                 AssetId = k,
                 Value = g.Sum(p => p.Value)
@@ -416,12 +425,9 @@ namespace AntShares.Wallets
                     });
                 }
             }
-            return new SignatureContext(new ContractTransaction
-            {
-                Attributes = new TransactionAttribute[0],
-                Inputs = coins.Values.SelectMany(p => p.Unspents).Select(p => p.Input).ToArray(),
-                Outputs = outputs_new.ToArray()
-            });
+            tx.Inputs = coins.Values.SelectMany(p => p.Unspents).Select(p => p.Input).ToArray();
+            tx.Outputs = outputs_new.ToArray();
+            return tx;
         }
 
         protected abstract void OnProcessNewBlock(IEnumerable<TransactionInput> spent, IEnumerable<UnspentCoin> unspent);

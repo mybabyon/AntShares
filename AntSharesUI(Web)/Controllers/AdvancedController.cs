@@ -14,5 +14,18 @@ namespace AntSharesUI_Web_.Controllers
         {
             return View();
         }
+
+        // GET: Advanced/Regist
+        public IActionResult Regist()
+        {
+            return View();
+        }
+
+        // GET: Advanced/Regist
+        public IActionResult Publish()
+        {
+            return View();
+        }
+
     }
 }

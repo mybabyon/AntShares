@@ -1,0 +1,67 @@
+﻿@model AntSharesUI_Web_.Models.Advanced
+
+@{
+    ViewData["Title"] = "签名";
+}
+<style>
+    .row div { padding-bottom: 10px; }
+    .check-label { line-height:2.3 }
+    #check_input { display:none }
+</style>
+
+<form method="post" class="form-horizontal" autocomplete="off">
+    <fieldset>
+        <h2 class="page-header">注册资产</h2>
+        <h5>选择资产类型</h5>
+        <div class="row">
+            <div class="col-sm-6">
+                <select class="form-control">
+                    <option value="1">股权</option>
+                    <option value="2">货币</option>
+                    <option value="3">其它</option>
+                </select>
+            </div>
+        </div>
+
+        <h5>资产名称</h5>
+        <div class="row">
+            <div class="col-sm-6">
+                <input class="form-control" placeholder="输入资产名称" />
+            </div>
+        </div>
+
+        <h5>总量限制</h5>
+        <div class="row">
+            <div class="col-sm-2">
+                <label class="check-label"><input type="checkbox" onchange="show_input()" class="form-control" />总量有限</label>
+            </div>
+            <div id="check_input" class="col-sm-4">
+                <input class="form-control" type="number" placeholder="输入总量" />
+            </div>
+        </div>
+
+        <h5>选择管理员地址</h5>
+        <div class="row">
+            <div class="col-sm-6">
+                <select class="form-control">
+                    <option value="1">AbcdXweW6trsVwcBSUYrK69u4cBhDg4ZJF</option>
+                    <option value="2">ANttyFkVZxGh93TmjgkiFe1TgS3csGfhJD</option>
+                    <option value="3">ANTiGwJG34ifXREByGufja75DF3b8Hzcdm</option>
+                </select>
+            </div>
+        </div>
+        <br />
+        <button class="btn btn-raised btn-success">确认注册</button>
+    </fieldset>
+</form>
+
+@section Scripts {
+    <script>
+        function show_input()
+        {
+            $("#check_input").toggle();
+        }
+    </script>
+    <script src="~/lib/jquery-validation/jquery.validate.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}

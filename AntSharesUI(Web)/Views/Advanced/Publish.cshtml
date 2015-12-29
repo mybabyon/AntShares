@@ -10,51 +10,16 @@
 </style>
 <form method="post" class="form-horizontal" autocomplete="off">
     <fieldset>
-        <h2 class="page-header">资产转让</h2>
-        <h5>选择资产类型</h5>
-        <div class="row">
-            <div class="col-sm-6">
-                <select class="form-control" onchange="show(this.value)">
-                    <option value="1">小蚁股</option>
-                    <option value="2">小蚁币</option>
-                    <option value="3">股权</option>
-                    <option value="4">货币</option>
-                    <option value="5">其它</option>
-                </select>
-            </div>
-        </div>
-
-        <h5 id="asset_title" class="slect2" style="display:none">选择资产</h5>
-        <div class="row slect2" id="equity" style="display:none">
+        <h2 class="page-header">发行资产</h2>
+        <h5 id="asset_title" class="slect2">选择资产</h5>
+        <div class="row" id="equity">
             <div class="col-sm-6">
                 <select class="form-control">
-                    <option value="1">A企业股份</option>
-                    <option value="2">B企业股份</option>
-                    <option value="2">C企业股份</option>
+                    <option value="1">星球大战电影票</option>
+                    <option value="2">可口可乐代金券</option>
                 </select>
             </div>
         </div>
-
-        <div class="row slect2" id="coin" style="display:none">
-            <div class="col-sm-6">
-                <select class="form-control">
-                    <option value="1">A货币</option>
-                    <option value="2">B货币</option>
-                    <option value="2">C货币</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="row slect2" id="others" style="display:none">
-            <div class="col-sm-6">
-                <select class="form-control">
-                    <option value="1">A资产</option>
-                    <option value="2">B资产</option>
-                    <option value="2">C资产</option>
-                </select>
-            </div>
-        </div>
-
         <h5>添加接收方</h5>
         <div class="output-div">
             <div class="row output">
@@ -97,24 +62,6 @@
             $(obj).parent().parent().fadeOut(500);
             setTimeout(function () { $(obj).parent().parent().remove(); }, 500)
             
-        }
-
-        function show(value)
-        {
-            $(".slect2").hide();
-            if (value == 3) {
-                $("#equity").fadeIn();
-            }
-            if (value == 4) {
-                $("#coin").fadeIn();
-            }
-            if (value == 5) {
-                $("#others").fadeIn();
-            }
-            if (value >= 3)
-            {
-                $("#asset_title").fadeIn();
-            }
         }
     </script>
 }

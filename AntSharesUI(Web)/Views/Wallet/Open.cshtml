@@ -4,13 +4,13 @@
     ViewData["Title"] = "创建钱包";
 }
 
-<form asp-action="Upload" method="post" class="form-horizontal" enctype="multipart/form-data">
+<form asp-action="Upload" method="post" class="form-horizontal" enctype="multipart/form-data" autocomplete="off">
     <fieldset>
         <h2 class="page-header">打开钱包</h2>
         <div class="form-group">
             <label class="col-sm-4 control-label">选择钱包文件</label>
             <div class="col-sm-6">
-                <input id="wallet" name="wallet" asp-for="Name" class="form-control" autocomplete="off" type="file" placeholder="钱包名称">
+                <input id="wallet" name="wallet" asp-for="Name" class="form-control" type="file" placeholder="钱包名称">
                 <span asp-validation-for="Name" class="text-danger" />
             </div>
         </div>

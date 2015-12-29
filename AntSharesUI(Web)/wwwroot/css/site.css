@@ -71,10 +71,4 @@ fieldset { overflow-x:hidden }
 
 .nopadding { padding:0!important }
 
-.btn.add { background-color: #e91e63; border-radius:50%; padding:0 10px; color:white; font-size: 28px; box-shadow:#777 0px 1px 5px; position:relative; left:28px; top:-22px }
-
-.btn.delete { background:#e51c23;  border-radius:50%; color:white; font-size: 14px; box-shadow:#777 0px 1px 5px; }
-
-.output-div { background-color:#f0f0f0; padding:10px 0 20px 0; margin:0 3px; border-radius:4px; box-shadow:#555 0px 0px 2px; }
-
-.output { padding:5px 20px !important; box-shadow:none; }
+input[type=checkbox], input[type=checkbox]:focus { width:22px; height:22px; margin:6px 12px 0 6px; outline:none; float:left }

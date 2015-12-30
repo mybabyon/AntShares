@@ -11,12 +11,6 @@ namespace AntSharesUI_Web_.Controllers
 {
     public class WalletController : Controller
     {
-        // GET: Wallet/MyWallet
-        public IActionResult MyWallet()
-        {
-            ViewBag.Addresses = new string[] { "AbcdXweW6trsVwcBSUYrK69u4cBhDg4ZJF", "Abcdm9wpAgyYr3KHvKweGov5U3VJLmtB8W", "ANttyFkVZxGh93TmjgkiFe1TgS3csGfhJD" };
-            return View();
-        }
 
         //http://www.cnblogs.com/redmoon/p/4601133.html
         [HttpPost]
@@ -31,7 +25,7 @@ namespace AntSharesUI_Web_.Controllers
                     {
                         var filePath = "WalletFile.db3";
                         await wallet.SaveAsAsync(filePath);
-                        return RedirectToAction("MyWallet");
+                        return Redirect("~/Personal/Account");
                     }
                     else
                     {

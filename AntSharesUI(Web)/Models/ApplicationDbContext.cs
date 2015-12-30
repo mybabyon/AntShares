@@ -18,7 +18,7 @@ namespace AntSharesUI_Web_.Models
             // Add your customizations after calling base.OnModelCreating(builder);
         }
         public DbSet<Wallet> Wallet { get; set; }
-        public DbSet<Personal> Personal { get; set; }
+        public DbSet<Account> Personal { get; set; }
         public DbSet<Asset> Asset { get; set; }
         public DbSet<People> People { get; set; }
         public DbSet<Advanced> Advanced { get; set; }

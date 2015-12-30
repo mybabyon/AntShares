@@ -22,7 +22,7 @@ namespace AntSharesUI_Web_.Controllers
         }
 
         // GET: Advanced/Regist
-        public IActionResult Publish()
+        public IActionResult Issue()
         {
             return View();
         }

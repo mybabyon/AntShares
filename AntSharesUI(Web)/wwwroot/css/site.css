@@ -72,3 +72,5 @@ fieldset { overflow-x:hidden }
 .nopadding { padding:0!important }
 
 input[type=checkbox], input[type=checkbox]:focus { width:22px; height:22px; margin:6px 12px 0 6px; outline:none; float:left }
+
+.help-block { background-color:#e1f5fe; border-radius:4px; padding:10px; position:absolute; bottom:0; width:100% }

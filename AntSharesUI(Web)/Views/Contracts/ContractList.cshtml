@@ -1,0 +1,36 @@
+﻿@{
+    ViewData["Title"] = "Index";
+}
+<style>
+    .contract { padding: 0; }
+    .contract li { margin-bottom: 10px; list-style: none; }
+    .contract li span { background-color: #f0f0f0; border-radius: 4px; padding: 6px 10px; letter-spacing: 1px; width: 50%; vertical-align: middle; word-break:break-all; display: inline-block; }
+    .contract li .btn { margin-left: 5px; padding:5px 12px }
+    .contractdiv { padding:0; margin-bottom:10px }
+</style>
+<h2 class="page-header">合约管理</h2>
+<div class="row nomargin">
+    <div class="col-md-12 contractdiv">
+        <a class="btn withripple btn-success">创建 m-of-n 合约</a>
+        <a class="btn withripple btn-info">创建自定义合约</a>
+        <a class="btn withripple btn-primary">导入合约</a>
+    </div>
+    <ul class="col-sm-12 contract">    
+        <li>
+            <span>AbcdY4PwNoNtWFsezzoTBS8int3ZVAttQd</span>
+            <button class="btn withripple btn-success">导出</button>
+            <a href="javascript:" class="btn withripple btn-info">详情</a>
+            <button class="btn withripple btn-danger">删除</button>
+        </li>
+    </ul>
+</div>
+<a asp-controller="Accounts" asp-action="AccountList">转到账户管理</a>
+
+<div class="help-block">
+    合约是一段规定某一笔钱如何支付的脚本，A可以约定必须由收款人B和担保人C同时签名才能支配某笔比特币（担保交易），
+    也可以约定B、C、D中任意两人签名就能支配（联名账户）；
+    A可以约定B必须在一年后才能动用某笔比特币（延时支付），
+    也可以约定任何人都能支配（撒钱）或者都不能支配（烧钱）。
+    通过这套内置的脚本编程语言，你可以灵活地编写出各种各样的约定从而实现智能合约。
+    <a href="javascript:">了解更多</a>
+</div>

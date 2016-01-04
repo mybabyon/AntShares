@@ -24,7 +24,19 @@ namespace AntSharesUI_Web_.Controllers
         }
 
         // GET: Accounts/Create
-        public IActionResult Create(int id)
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        // GET: Accounts/Import
+        public IActionResult Import()
+        {
+            return View();
+        }
+
+        // GET: Accounts/Certification?id=1
+        public IActionResult Certification(int id)
         {
             return View();
         }

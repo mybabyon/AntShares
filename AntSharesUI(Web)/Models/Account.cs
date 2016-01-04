@@ -13,5 +13,7 @@ namespace AntSharesUI_Web_.Models
         [Required(ErrorMessage = "账户名不能为空")]
         public string Name { get; set; }
 
+        [Required(ErrorMessage = "私钥不能为空")]
+        public string PrivateKey { get; set; }
     }
 }

@@ -22,5 +22,6 @@ namespace AntSharesUI_Web_.Models
         public DbSet<Asset> Asset { get; set; }
         public DbSet<People> People { get; set; }
         public DbSet<Advanced> Advanced { get; set; }
+        public DbSet<Contract> Contract { get; set; }
     }
 }

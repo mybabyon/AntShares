@@ -15,7 +15,7 @@
     .asset4 { border-left:4px solid #e71e02 }
     .asset5 { border-left:4px solid #ef4bef }
 
-    .asset1 .clearfix  { background-color:#89c997; border-bottom-right-radius:4px }
+    .asset1 .clearfix { background-color:#89c997; border-bottom-right-radius:4px }
     .asset2 .clearfix { background-color:#97bff4; border-bottom-right-radius:4px }
     .asset3 .clearfix { background-color:#fff799; border-bottom-right-radius:4px }
     .asset4 .clearfix { background-color:#f29b76; border-bottom-right-radius:4px }
@@ -23,36 +23,36 @@
 
 </style>
 <h2 class="page-header">我的资产</h2>
-<div class="row">
+<div class="row nomargin">
     <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
         <div class="asset asset1">
             <div>小蚁股</div>
-            <div class="clearfix">10000<a href="Details?id=1">查看详情</a></div>
+            <div class="clearfix">10000<a asp-action="ANS">查看详情</a></div>
             
         </div>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
         <div class="asset asset2">
             <div>小蚁币</div>
-            <div class="clearfix">1632.0128<a href="Details?id=2">查看详情</a></div>
+            <div class="clearfix">1632.0128<a asp-action="ANC">查看详情</a></div>
         </div>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
         <div class="asset asset3">
             <div>股权</div>
-            <div class="clearfix">2家<a href="Details?id=3">查看详情</a></div>
+            <div class="clearfix">2家<a asp-action="Equity">查看详情</a></div>
         </div>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
         <div class="asset asset4">
             <div>货币</div>
-            <div class="clearfix">3种<a href="Details?id=4">查看详情</a></div>
+            <div class="clearfix">3种<a asp-action="Coin">查看详情</a></div>
         </div>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
         <div class="asset asset5">
             <div>其它</div>
-            <div class="clearfix"><a href="Details?id=5">查看详情</a></div>
+            <div class="clearfix"><a asp-action="Others">查看详情</a></div>
         </div>
     </div>
 </div>

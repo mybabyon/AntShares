@@ -15,12 +15,35 @@ namespace AntSharesUI_Web_.Controllers
             return View();
         }
 
-        // GET: Asset/Details?id=1
-        public IActionResult Details(int id)
+        // GET: Asset/ANS
+        public IActionResult ANS()
         {
             return View();
         }
 
+        // GET: Asset/ANC
+        public IActionResult ANC()
+        {
+            return View();
+        }
+
+        // GET: Asset/Equity
+        public IActionResult Equity()
+        {
+            return View();
+        }
+
+        // GET: Asset/Coin
+        public IActionResult Coin()
+        {
+            return View();
+        }
+
+        // GET: Asset/Others
+        public IActionResult Others()
+        {
+            return View();
+        }
         // GET: Asset/Transfer
         public IActionResult Transfer()
         {

@@ -1,7 +1,9 @@
 ﻿using AntShares.Core.Scripts;
 using AntShares.Cryptography;
 using AntShares.IO;
+using AntShares.IO.Json;
 using AntShares.Network;
+using AntShares.Wallets;
 using System;
 using System.IO;
 using System.Linq;
@@ -73,6 +75,7 @@ namespace AntShares.Core
             Height = reader.ReadUInt32();
             Nonce = reader.ReadUInt64();
             NextMiner = reader.ReadSerializable<UInt160>();
+            if (reader.ReadByte() != 1) throw new FormatException();
             Script = reader.ReadSerializable<Script>();
             Transactions = new Transaction[reader.ReadVarInt()];
             for (int i = 0; i < Transactions.Length; i++)
@@ -127,7 +130,7 @@ namespace AntShares.Core
                 block.Height = reader.ReadUInt32();
                 block.Nonce = reader.ReadUInt64();
                 block.NextMiner = reader.ReadSerializable<UInt160>();
-                block.Script = reader.ReadSerializable<Script>();
+                reader.ReadByte(); block.Script = reader.ReadSerializable<Script>();
                 if (txSelector == null)
                 {
                     block.Transactions = new Transaction[0];
@@ -161,7 +164,6 @@ namespace AntShares.Core
                 writer.Write(Height);
                 writer.Write(Nonce);
                 writer.Write(NextMiner);
-                writer.Write(Script);
                 return ms.ToArray();
             }
         }
@@ -189,7 +191,7 @@ namespace AntShares.Core
             writer.Write(Height);
             writer.Write(Nonce);
             writer.Write(NextMiner);
-            writer.Write(Script);
+            writer.Write((byte)1); writer.Write(Script);
             writer.Write(Transactions);
         }
 
@@ -204,6 +206,22 @@ namespace AntShares.Core
             writer.Write(NextMiner);
         }
 
+        public JObject ToJson()
+        {
+            JObject json = new JObject();
+            json["hash"] = Hash.ToString();
+            json["version"] = Version;
+            json["previousblockhash"] = PrevBlock.ToString();
+            json["merkleroot"] = MerkleRoot.ToString();
+            json["time"] = Timestamp;
+            json["height"] = Height;
+            json["nonce"] = Nonce;
+            json["nextminer"] = Wallet.ToAddress(NextMiner);
+            json["script"] = Script.ToJson();
+            json["tx"] = Transactions.Select(p => p.ToJson()).ToArray();
+            return json;
+        }
+
         public byte[] Trim()
         {
             using (MemoryStream ms = new MemoryStream())
@@ -216,7 +234,7 @@ namespace AntShares.Core
                 writer.Write(Height);
                 writer.Write(Nonce);
                 writer.Write(NextMiner);
-                writer.Write(Script);
+                writer.Write((byte)1); writer.Write(Script);
                 writer.Write(Transactions.Select(p => p.Hash).ToArray());
                 writer.Flush();
                 return ms.ToArray();
@@ -258,7 +276,11 @@ namespace AntShares.Core
                 Fixed8 amount_sysfee = transactions.Sum(p => p.SystemFee);
                 Fixed8 amount_netfee = amount_in - amount_out - amount_sysfee;
                 Fixed8 quantity = Blockchain.Default.GetQuantityIssued(Blockchain.AntCoin.Hash);
-                Fixed8 gen = antshares.Length == 0 ? Fixed8.Zero : Fixed8.FromDecimal((Blockchain.AntCoin.Amount - (quantity - amount_sysfee)).ToDecimal() * Blockchain.GenerationFactor);
+                Fixed8 gen = Fixed8.Zero;
+                if (Height % Blockchain.MintingInterval == 0 && antshares.Length > 0)
+                {
+                    gen = Fixed8.FromDecimal((Blockchain.AntCoin.Amount - (quantity - amount_sysfee)).ToDecimal() * Blockchain.GenerationFactor);
+                }
                 GenerationTransaction tx_gen = Transactions.OfType<GenerationTransaction>().First();
                 if (tx_gen.Outputs.Sum(p => p.Value) != amount_netfee + gen)
                     return false;

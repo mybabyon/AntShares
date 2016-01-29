@@ -1,4 +1,4 @@
-﻿using AntShares.Miner;
+﻿using AntShares.Shell;
 
 namespace AntShares
 {
@@ -6,7 +6,7 @@ namespace AntShares
     {
         static void Main(string[] args)
         {
-            new MinerService().Run(args);
+            new MainService().Run(args);
         }
     }
 }

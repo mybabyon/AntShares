@@ -1,5 +1,5 @@
 ﻿using AntShares.Core;
-using AntShares.Cryptography.X509;
+using AntShares.Cryptography;
 using AntShares.Implementations.Wallets.EntityFramework;
 using AntShares.IO;
 using AntShares.Properties;
@@ -30,7 +30,8 @@ namespace AntShares.UI
         {
             ContractListView.Items.Add(new ListViewItem(new[] { contract.Address, contract.GetType().ToString() })
             {
-                Name = contract.Address
+                Name = contract.Address,
+                Tag = contract
             }).Selected = selected;
         }
 
@@ -325,13 +326,27 @@ namespace AntShares.UI
             }
         }
 
-        private void 导入私钥IToolStripMenuItem_Click(object sender, EventArgs e)
+        private void importWIFToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (ImportPrivateKeyDialog dialog = new ImportPrivateKeyDialog())
             {
                 if (dialog.ShowDialog() != DialogResult.OK) return;
                 ContractListView.SelectedIndices.Clear();
                 Account account = Program.CurrentWallet.Import(dialog.WIF);
+                foreach (Contract contract in Program.CurrentWallet.GetContracts(account.PublicKeyHash))
+                {
+                    AddContractToListView(contract, true);
+                }
+            }
+        }
+
+        private void importCertificateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (SelectCertificateDialog dialog = new SelectCertificateDialog())
+            {
+                if (dialog.ShowDialog() != DialogResult.OK) return;
+                ContractListView.SelectedIndices.Clear();
+                Account account = Program.CurrentWallet.Import(dialog.SelectedCertificate);
                 foreach (Contract contract in Program.CurrentWallet.GetContracts(account.PublicKeyHash))
                 {
                     AddContractToListView(contract, true);
@@ -358,9 +373,9 @@ namespace AntShares.UI
 
         private void 查看私钥VToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            UInt160 scriptHash = Wallet.ToScriptHash(ContractListView.SelectedItems[0].Text);
-            Account account = Program.CurrentWallet.GetAccountByScriptHash(scriptHash);
-            using (ViewPrivateKeyDialog dialog = new ViewPrivateKeyDialog(account, scriptHash))
+            Contract contract = (Contract)ContractListView.SelectedItems[0].Tag;
+            Account account = Program.CurrentWallet.GetAccountByScriptHash(contract.ScriptHash);
+            using (ViewPrivateKeyDialog dialog = new ViewPrivateKeyDialog(account, contract.ScriptHash))
             {
                 dialog.ShowDialog();
             }
@@ -375,12 +390,11 @@ namespace AntShares.UI
         {
             if (MessageBox.Show("删除地址后，这些地址中的资产将永久性地丢失，确认要继续吗？", "删除地址确认", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
                 return;
-            string[] addresses = ContractListView.SelectedItems.OfType<ListViewItem>().Select(p => p.Name).ToArray();
-            foreach (string address in addresses)
+            Contract[] contracts = ContractListView.SelectedItems.OfType<ListViewItem>().Select(p => (Contract)p.Tag).ToArray();
+            foreach (Contract contract in contracts)
             {
-                ContractListView.Items.RemoveByKey(address);
-                UInt160 scriptHash = Wallet.ToScriptHash(address);
-                Program.CurrentWallet.DeleteContract(scriptHash);
+                ContractListView.Items.RemoveByKey(contract.Address);
+                Program.CurrentWallet.DeleteContract(contract.ScriptHash);
             }
             balance_changed = true;
         }

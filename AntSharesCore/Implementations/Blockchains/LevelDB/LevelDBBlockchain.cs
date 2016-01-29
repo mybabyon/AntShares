@@ -38,7 +38,7 @@ namespace AntShares.Implementations.Blockchains.LevelDB
             Version version;
             Slice value;
             db = DB.Open(path);
-            if (db.TryGet(ReadOptions.Default, SliceBuilder.Begin(DataEntryPrefix.CFG_Version), out value) && Version.TryParse(value.ToString(), out version) && version >= Version.Parse("0.3.5834.28142"))
+            if (db.TryGet(ReadOptions.Default, SliceBuilder.Begin(DataEntryPrefix.CFG_Version), out value) && Version.TryParse(value.ToString(), out version) && version >= Version.Parse("0.4"))
             {
                 ReadOptions options = new ReadOptions { FillCache = false };
                 value = db.Get(options, SliceBuilder.Begin(DataEntryPrefix.SYS_CurrentBlock));
@@ -216,18 +216,6 @@ namespace AntShares.Implementations.Blockchains.LevelDB
             }
         }
 
-        public override Block GetBlock(uint height)
-        {
-            Block block = base.GetBlock(height);
-            if (block != null) return block;
-            if (current_block_height < height) return null;
-            lock (header_chain)
-            {
-                if (header_index.Count <= height) return null;
-                return GetBlockInternal(header_index[(int)height], ReadOptions.Default);
-            }
-        }
-
         public override Block GetBlock(UInt256 hash)
         {
             Block block = base.GetBlock(hash);
@@ -236,6 +224,18 @@ namespace AntShares.Implementations.Blockchains.LevelDB
                 block = GetBlockInternal(hash, ReadOptions.Default);
             }
             return block;
+        }
+
+        public override UInt256 GetBlockHash(uint height)
+        {
+            UInt256 hash = base.GetBlockHash(height);
+            if (hash != null) return hash;
+            if (current_block_height < height) return null;
+            lock (header_chain)
+            {
+                if (header_index.Count <= height) return null;
+                return header_index[(int)height];
+            }
         }
 
         private Block GetBlockInternal(UInt256 hash, ReadOptions options)

@@ -33,7 +33,7 @@ namespace AntShares.Services
             }
         }
 
-        protected internal abstract void OnStart();
+        protected internal abstract void OnStart(string[] args);
 
         protected internal abstract void OnStop();
 
@@ -69,46 +69,38 @@ namespace AntShares.Services
         {
             if (Environment.UserInteractive)
             {
-                if (args.Length > 0)
+                if (args.Length > 0 && args[0] == "/install")
                 {
-                    switch (args[0])
+                    string arguments = string.Format("create {0} start= auto binPath= \"{1}\"", ServiceName, Process.GetCurrentProcess().MainModule.FileName);
+                    if (!string.IsNullOrEmpty(Depends))
                     {
-                        case "/install":
-                            {
-                                string arguments = string.Format("create {0} start= auto binPath= \"{1}\"", ServiceName, Process.GetCurrentProcess().MainModule.FileName);
-                                if (!string.IsNullOrEmpty(Depends))
-                                {
-                                    arguments += string.Format(" depend= {0}", Depends);
-                                }
-                                Process process = Process.Start(new ProcessStartInfo
-                                {
-                                    Arguments = arguments,
-                                    FileName = Path.Combine(Environment.SystemDirectory, "sc.exe"),
-                                    RedirectStandardOutput = true,
-                                    UseShellExecute = false
-                                });
-                                process.WaitForExit();
-                                Console.Write(process.StandardOutput.ReadToEnd());
-                            }
-                            break;
-                        case "/uninstall":
-                            {
-                                Process process = Process.Start(new ProcessStartInfo
-                                {
-                                    Arguments = string.Format("delete {0}", ServiceName),
-                                    FileName = Path.Combine(Environment.SystemDirectory, "sc.exe"),
-                                    RedirectStandardOutput = true,
-                                    UseShellExecute = false
-                                });
-                                process.WaitForExit();
-                                Console.Write(process.StandardOutput.ReadToEnd());
-                            }
-                            break;
+                        arguments += string.Format(" depend= {0}", Depends);
                     }
+                    Process process = Process.Start(new ProcessStartInfo
+                    {
+                        Arguments = arguments,
+                        FileName = Path.Combine(Environment.SystemDirectory, "sc.exe"),
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false
+                    });
+                    process.WaitForExit();
+                    Console.Write(process.StandardOutput.ReadToEnd());
+                }
+                else if (args.Length > 0 && args[0] == "/uninstall")
+                {
+                    Process process = Process.Start(new ProcessStartInfo
+                    {
+                        Arguments = string.Format("delete {0}", ServiceName),
+                        FileName = Path.Combine(Environment.SystemDirectory, "sc.exe"),
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false
+                    });
+                    process.WaitForExit();
+                    Console.Write(process.StandardOutput.ReadToEnd());
                 }
                 else
                 {
-                    OnStart();
+                    OnStart(args);
                     RunConsole();
                     OnStop();
                 }

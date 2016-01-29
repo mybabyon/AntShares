@@ -13,8 +13,8 @@
 <div class="row nomargin">
     <div class="col-sm-12 wallet-name">
         <div>钱包名称：wallet1.db3</div><br />
-        <a href="~/Accounts/Create" class="btn withripple btn-success">创建账户</a>
-        <a href="~/Accounts/Import" class="btn withripple btn-info">导入私钥</a>
+        <a href="~/Account/Create" class="btn withripple btn-success">创建账户</a>
+        <a href="~/Account/Import" class="btn withripple btn-info">导入私钥</a>
     </div>
     <ul class="col-sm-12 account">
         @for (int i = 0; i < ViewBag.Accounts.Length; i++)
@@ -22,8 +22,8 @@
             <li>
                 <span>@ViewBag.Accounts[i]</span>
                 @*<a class="btn withripple btn-primary">导出</a>*@
-                <a href="~/Accounts/Account?id=1" class="btn withripple btn-info">详情</a>
-                <a href="~/Accounts/Certification?id=1" class="btn withripple btn-success">认证</a>
+                <a href="~/Account/Account?id=1" class="btn withripple btn-info">详情</a>
+                <a href="~/Account/Certification?id=1" class="btn withripple btn-success">认证</a>
                 @*<button class="btn withripple btn-danger">删除</button>*@
             </li>
         }

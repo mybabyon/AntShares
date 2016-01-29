@@ -1,16 +1,15 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("AntSharesUI_Web_")]
+[assembly: AssemblyTitle("AntShares")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("AntSharesUI_Web_")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyProduct("AntShares")]
+[assembly: AssemblyCopyright("© AntShares Project 2015 Released under the MIT license")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

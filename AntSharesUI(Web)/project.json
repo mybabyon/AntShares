@@ -30,16 +30,11 @@
   },
 
   "commands": {
-    "web": "Microsoft.AspNet.Server.Kestrel",
-    "ef": "EntityFramework.Commands"
+    "web": "Microsoft.AspNet.Server.Kestrel"
   },
 
   "frameworks": {
-    "dnx46": {
-      "dependencies": {
-        "AntSharesCore": "1.0.0-*"
-      }
-    }
+    "dnx46": {}
   },
 
   "exclude": [

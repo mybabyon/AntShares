@@ -1,0 +1,1 @@
+﻿AntShares = AntShares || {};

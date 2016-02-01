@@ -15,13 +15,6 @@ namespace AntSharesUI_Web_.Controllers
             return View();
         }
 
-        [HttpPost]
-        public IActionResult textAction(string name)
-        {
-            string a = name;
-            return null;
-        }
-
         public IActionResult About()
         {
             ViewData["Message"] = "Your application description page.";

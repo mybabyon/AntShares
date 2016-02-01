@@ -9,8 +9,8 @@ namespace AntSharesUI_Web_.Controllers
     public class PeopleController : Controller
     {
 
-        // GET: People/PeopleList
-        public IActionResult PeopleList()
+        // GET: People/Index
+        public IActionResult Index()
         {
             return View();
         }

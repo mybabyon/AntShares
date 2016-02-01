@@ -1,5 +1,6 @@
 ﻿/// <autosync enabled="true" />
 /// <reference path="../gulpfile.js" />
+/// <reference path="js/antshares.js" />
 /// <reference path="js/fileinput.min.js" />
 /// <reference path="js/fileinput_locale_zh.js" />
 /// <reference path="js/jquery.mmenu.min.all.js" />

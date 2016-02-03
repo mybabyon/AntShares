@@ -11,7 +11,7 @@
         </header>
         <iframe name="frame_body" src="Wallet/Open"></iframe>
         <footer>
-            高度：1021/65536 连接数：7
+            高度：<span id="lbl_height">0</span>/0 连接数：0
         </footer>
     </div>
     <nav id="menu" class="mm-theme-dark">
@@ -82,12 +82,13 @@
 
 @section scripts
 {
-    <script>
+    <script type="text/javascript">
         //初始化侧边栏
         $(function ()
         {
             var slidingSubmenus = false;
-            if (slidingSubmenus) {
+            if (slidingSubmenus)
+            {
                 $(".my-title").remove();
             }
             $('nav#menu').mmenu({
@@ -99,17 +100,19 @@
                     add: true,
                     title: "小蚁-AntShares"
                 },
-                navbars : [{
+                navbars: [{
                     position: 'top'
                 }, {
                     position: 'bottom',
-                    content: ['<a class="withripple" target="blank" href="https://www.antshares.com">www.antshares.com</a>']
+                    content: ['<a class="withripple" target="blank" href="https://www.antshares.com/">www.antshares.com</a>']
                 }]
             });
         });
+        void function ()
+        {
+            var rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
+            var result = rpc.Call("getblockcount", []);
+            $("#lbl_height").text(result - 1);
+        }();
     </script>
-
 }
-
-
-

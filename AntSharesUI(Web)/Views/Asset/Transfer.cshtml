@@ -1,0 +1,129 @@
+﻿@{
+    ViewData["Title"] = "MyAsset";
+}
+<style>
+    .row div { padding-bottom:10px; }
+    .btn.add { background-color: #e91e63; border-radius:50%; padding:0 10px; color:white; font-size: 28px; box-shadow:#777 0px 1px 5px; position:relative; left:28px; top:-22px }
+    .btn.delete { background:#e51c23;  border-radius:50%; color:white; font-size: 14px; box-shadow:#777 0px 1px 5px; }
+    .output-div { background-color:#f0f0f0; padding:10px 0 20px 0; margin:0 3px; border-radius:4px; box-shadow:#555 0px 0px 2px; }
+    .output { padding:5px 20px !important; box-shadow:none; }
+    .value { line-height: 2; font-size: 16px; padding: 2px 10px; color: rgb(237, 28, 36); font-weight: bold; }
+
+</style>
+<form method="post" class="form-horizontal" autocomplete="off">
+    <fieldset>
+        <h2 class="page-header">资产转让</h2>
+        <h5>选择资产类型</h5>
+        <div class="row">
+            <div class="col-sm-6">
+                <select class="form-control" onchange="show(this.value)">
+                    <option value="1">小蚁股</option>
+                    <option value="2">小蚁币</option>
+                    <option value="3">股权</option>
+                    <option value="4">货币</option>
+                    <option value="5">其它</option>
+                </select>
+            </div>
+        </div>
+
+        <h5 id="asset_title" class="slect2" style="display:none">选择资产</h5>
+        <div class="row slect2" id="equity" style="display:none">
+            <div class="col-sm-6">
+                <select class="form-control">
+                    <option value="1">A企业股份</option>
+                    <option value="2">B企业股份</option>
+                    <option value="2">C企业股份</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row slect2" id="coin" style="display:none">
+            <div class="col-sm-6">
+                <select class="form-control">
+                    <option value="1">A货币</option>
+                    <option value="2">B货币</option>
+                    <option value="2">C货币</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row slect2" id="others" style="display:none">
+            <div class="col-sm-6">
+                <select class="form-control">
+                    <option value="1">A资产</option>
+                    <option value="2">B资产</option>
+                    <option value="2">C资产</option>
+                </select>
+            </div>
+        </div>
+        <div>最大可转让<span class="value">1234.23</span></div>
+        <h5>添加接收方</h5>
+        <div class="output-div">
+            <div class="row output">
+                <div class="col-xs-7"><input class="form-control" type="text" placeholder="地址" /></div>
+                <div class="col-xs-3"><input class="form-control" type="text" placeholder="金额" /></div>
+            </div>
+
+            <div id="t_output" class="row output" style="display:none">
+                <div class="col-xs-7"><input class="form-control" type="text" placeholder="地址" /></div>
+                <div class="col-xs-3"><input class="form-control" type="text" placeholder="金额" /></div>
+                <div class="col-xs-2">
+                    <a onclick="remove_output(this)" class="btn withripple delete">×</a>
+                </div>
+            </div>
+
+        </div>
+        <a href="javascript:" class="btn withripple add" title="添加输出" onclick="add_output()">+</a>
+        <br /><br />
+
+        <button class="btn withripple btn-success">确认并广播</button>
+    </fieldset>
+</form>
+
+<div class="help-block">
+    指定所有参与方的交易，并可以根据参与交易的资产类型判断是否要求对方确认接受。对方可以选择确认接受（签名）或拒绝（忽略）。目前只有转让股权需要对方签名。
+    <a href="javascript:">了解更多</a>
+    <a class="x" href="javascript:" onclick="hide_note(this)" title="隐藏说明">x</a>
+</div>
+
+@section scripts
+{
+    <script>
+        function add_output()
+        {
+            
+            var clone = $("#t_output").clone();
+            clone.css("display", "block");
+            clone.removeAttr("id");
+            clone.css("display", "none");
+            clone.insertAfter($(".output:last"));
+            clone.fadeIn();
+        }
+
+        function remove_output(obj)
+        {
+            $(obj).parent().parent().fadeOut(500);
+            setTimeout(function () { $(obj).parent().parent().remove(); }, 500)
+            
+        }
+
+        function show(value)
+        {
+            $(".slect2").hide();
+            if (value == 3) {
+                $("#equity").fadeIn();
+            }
+            if (value == 4) {
+                $("#coin").fadeIn();
+            }
+            if (value == 5) {
+                $("#others").fadeIn();
+            }
+            if (value >= 3)
+            {
+                $("#asset_title").fadeIn();
+            }
+        }
+
+    </script>
+}

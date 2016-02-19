@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "Address";
+}
+<style>
+    .seckey { display:none; background-color: #f0f0f0; margin:10px 0; border-radius: 4px; padding: 6px 10px; letter-spacing: 1px; word-break: break-all; vertical-align: middle; }
+    .pubkey { background-color: #f0f0f0; margin:10px 0; border-radius: 4px; padding: 6px 10px; letter-spacing: 1px; word-break: break-all; vertical-align: middle; display: inline-block; }
+    .account-name { font-weight:bold }
+    .showseckey { cursor:pointer }
+</style>
+<h2 class="page-header">账户详情</h2>
+<div class="account-name">我常用的账户</div>
+<br />
+<div class="row">
+    <div class="col-xs-6">
+        <span>公钥</span><br />
+        <div class="pubkey"> 04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235 </div>
+    </div>
+    <div class="col-xs-6">
+        <a class="showseckey" onclick="showseckey(this)">显示私钥</a><br />
+        <div class="seckey"> WIF： L1tRSPTFbNrFaUHUtgfMY7GUXshdadtjPJhUXiTqoCnCW6BmiS4C <br />
+            HEX：8b439e2eef9baa026e5c1b366fdbec41a4ed7015dc7b94dd8a64cc7a257b384a <br /><span>您的私钥打死都不能告诉别人哦</span> </div>
+        
+    </div>
+
+</div>
+<a asp-action="Index">返回账户列表</a>
+
+<div class="help-block">
+    这里显示的是您的一组公私钥对，您的私钥可以操纵您的资产，请妥善保管，如果您放弃该账户中的所有资产，您可以 <a href="javascript:">删除账户</a>
+    <a class="x" href="javascript:" onclick="hide_note(this)" title="隐藏说明">x</a>
+</div>
+@section scripts
+{
+    <script>
+        function showseckey(obj)
+        {
+            $(".seckey").toggle();
+            if ($(obj).text() == "显示私钥")
+                $(obj).text("隐藏私钥");
+            else
+                $(obj).text("显示私钥");
+        }
+    </script>
+}

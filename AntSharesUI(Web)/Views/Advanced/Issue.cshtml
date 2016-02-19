@@ -1,0 +1,74 @@
+﻿@{
+    ViewData["Title"] = "MyAsset";
+}
+<style>
+    .row div { padding-bottom:10px; }
+    .btn.add { background-color: #e91e63; border-radius:50%; padding:0 10px; color:white; font-size: 28px; box-shadow:#777 0px 1px 5px; position:relative; left:28px; top:-22px }
+    .btn.delete { background:#e51c23;  border-radius:50%; color:white; font-size: 14px; box-shadow:#777 0px 1px 5px; }
+    .output-div { background-color:#f0f0f0; padding:10px 0 20px 0; margin:0 3px; border-radius:4px; box-shadow:#555 0px 0px 2px; }
+    .output { padding:5px 20px !important; box-shadow:none; }
+</style>
+<form method="post" class="form-horizontal" autocomplete="off">
+    <fieldset>
+        <h2 class="page-header">发行资产</h2>
+        <h5 id="asset_title" class="slect2">选择资产</h5>
+        <div class="row" id="equity">
+            <div class="col-sm-6">
+                <select class="form-control">
+                    <option value="1">星球大战电影票</option>
+                    <option value="2">可口可乐代金券</option>
+                </select>
+            </div>
+        </div>
+        <h5>添加接收方</h5>
+        <div class="output-div">
+            <div class="row output">
+                <div class="col-xs-7"><input class="form-control" type="text" placeholder="地址" /></div>
+                <div class="col-xs-3"><input class="form-control" type="text" placeholder="金额" /></div>
+            </div>
+
+            <div id="t_output" class="row output" style="display:none">
+                <div class="col-xs-7"><input class="form-control" type="text" placeholder="地址" /></div>
+                <div class="col-xs-3"><input class="form-control" type="text" placeholder="金额" /></div>
+                <div class="col-xs-2">
+                    <a onclick="remove_output(this)" class="btn withripple delete">×</a>
+                </div>
+            </div>
+
+        </div>
+        <a href="javascript:" class="btn withripple add" title="添加输出" onclick="add_output()">+</a>
+        <br /><br />
+
+        <button class="btn withripple btn-success">确认并广播</button>
+    </fieldset>
+</form>
+
+<div class="help-block">
+    在注册资产所设定的总量上限范围内，进行从无到有的发行，在任意发行人指定的地址中生成该资产。资产发行可以一次性完成，也可以在任意时间内分批完成。如果发行股权需要对方签名接收
+    <a href="javascript:">了解更多</a>
+    <a class="x" href="javascript:" onclick="hide_note(this)" title="隐藏说明">x</a>
+</div>
+
+
+@section scripts
+{
+    <script>
+        function add_output()
+        {
+            
+            var clone = $("#t_output").clone();
+            clone.css("display", "block");
+            clone.removeAttr("id");
+            clone.css("display", "none");
+            clone.insertAfter($(".output:last"));
+            clone.fadeIn();
+        }
+
+        function remove_output(obj)
+        {
+            $(obj).parent().parent().fadeOut(500);
+            setTimeout(function () { $(obj).parent().parent().remove(); }, 500)
+            
+        }
+    </script>
+}

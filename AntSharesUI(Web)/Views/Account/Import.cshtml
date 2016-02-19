@@ -1,0 +1,32 @@
+﻿@model AntSharesUI_Web_.Models.Account
+
+@{
+    ViewData["Title"] = "创建账户";
+}
+
+<form asp-action="Import" method="post" class="form-horizontal" autocomplete="off">
+    <fieldset>
+        <h2 class="page-header">导入账户</h2>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">输入私钥</label>
+            <div class="col-sm-6">
+                <input asp-for="PrivateKey" class="form-control" type="text" placeholder="输入私钥，要求WIF格式">
+                <span asp-validation-for="PrivateKey" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-4 col-md-push-4 col-sm-push-4">
+                <button type="submit" class="btn btn-success">导入账户</button>
+            </div>
+        </div>
+    </fieldset>
+</form>
+
+<div>
+    <a asp-action="Index">返回账户列表</a>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/jquery.validate.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}

@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "账户管理";
+}
+<style>
+    .account { padding: 0; }
+    .account li { margin-bottom: 10px; list-style: none; }
+    .account li span { background-color: #f0f0f0; border-radius: 4px; padding: 6px 10px; letter-spacing: 1px; width: 50%; word-break: break-all; vertical-align: middle; display: inline-block; }
+    .account li .btn { margin-left: 5px; padding: 5px 12px; }
+    .wallet-name { padding: 0; margin-bottom: 10px; }
+</style>
+
+<h2 class="page-header">账户管理</h2>
+<div class="row nomargin">
+    <div class="col-sm-12 wallet-name">
+        <div>钱包名称：wallet1.db3</div><br />
+        <a href="~/Account/Create" class="btn withripple btn-success">创建账户</a>
+        <a href="~/Account/Import" class="btn withripple btn-info">导入私钥</a>
+    </div>
+    <ul class="col-sm-12 account">
+        @for (int i = 0; i < ViewBag.Accounts.Length; i++)
+        {
+            <li>
+                <span>@ViewBag.Accounts[i]</span>
+                @*<a class="btn withripple btn-primary">导出</a>*@
+                <a href="~/Account/Account?id=1" class="btn withripple btn-info">详情</a>
+                <a href="~/Account/Certification?id=1" class="btn withripple btn-success">认证</a>
+                @*<button class="btn withripple btn-danger">删除</button>*@
+            </li>
+        }
+    </ul>
+</div>
+
+
+<div class="help-block">
+    账户是指一个公私钥对。最基本的账户由一个公私钥组成，其账户地址就是其 1-of-1 多重签名地址。更高级的设计中，账户可以由两个公钥组成，这两个公钥所生成的 2-of-2 多重签名的地址为账户地址。
+    <a href="javascript:">了解更多</a>
+    <a class="x" href="javascript:" onclick="hide_note(this)" title="隐藏说明">x</a>
+</div>

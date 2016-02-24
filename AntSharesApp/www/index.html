@@ -540,7 +540,7 @@
         void function ()
         {
             var rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
-            var result = rpc.Call("getblockcount", []);
+            var result = rpc.call("getblockcount", []);
             $("#lbl_height").text(result - 1);
         }();
     </script>

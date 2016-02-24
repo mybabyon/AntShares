@@ -65,9 +65,9 @@
             {
                 let max = Math.max(this._bits.length, other._bits.length);
                 for (let i = max - 1; i >= 0; i--)
-                    if ((this._bits[i] | 0) > (other._bits[i] | 0))
+                    if ((this._bits[i] || 0) > (other._bits[i] || 0))
                         return 1;
-                    else if ((this._bits[i] | 0) < (other._bits[i] | 0))
+                    else if ((this._bits[i] || 0) < (other._bits[i] || 0))
                         return -1;
                 return 0;
             }
@@ -83,7 +83,7 @@
             {
                 let max = Math.max(this._bits.length, other._bits.length);
                 for (let i = 0; i < max; i++)
-                    if ((this._bits[i] | 0) != (other._bits[i] | 0))
+                    if ((this._bits[i] || 0) != (other._bits[i] || 0))
                         return false;
                 return true;
             }
@@ -91,6 +91,7 @@
 
         public leftShift(shift: number): UintVariable
         {
+            if (shift == 0) return this;
             let shift_units = shift >>> 5;
             shift = shift & 0x1f;
             let bits = new Uint32Array(this._bits.length);
@@ -127,6 +128,7 @@
 
         public rightShift(shift: number): UintVariable
         {
+            if (shift == 0) return this;
             let shift_units = shift >>> 5;
             shift = shift & 0x1f;
             let bits = new Uint32Array(this._bits.length);

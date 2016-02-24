@@ -131,7 +131,7 @@
             let overflow = false;
             for (let i = 0; i < bits_r.length; i++)
             {
-                let r = (bits_x[i] | 0) + (bits_y[i] | 0);
+                let r = (bits_x[i] || 0) + (bits_y[i] || 0);
                 if (overflow) r++;
                 bits_r[i] = r;
                 overflow = r > 0xffffffff;
@@ -148,9 +148,9 @@
             let bits_y = y._bits || new Uint32Array([Math.abs(y._sign)]);
             let max_length = Math.max(bits_x.length, bits_y.length);
             for (let i = max_length - 1; i >= 0; i--)
-                if ((bits_x[i] | 0) > (bits_y[i] | 0))
+                if ((bits_x[i] || 0) > (bits_y[i] || 0))
                     return 1;
-                else if ((bits_x[i] | 0) < (bits_y[i] | 0))
+                else if ((bits_x[i] || 0) < (bits_y[i] || 0))
                     return -1;
             return 0;
         }
@@ -182,11 +182,96 @@
             return result;
         }
 
+        public leftShift(shift: number): BigInteger
+        {
+            if (shift == 0) return this;
+            let shift_units = shift >>> 5;
+            shift = shift & 0x1f;
+            let bits_this = this._bits || new Uint32Array([Math.abs(this._sign)]);
+            let bits_new = new Uint32Array(bits_this.length + shift_units + 1);
+            for (let i = shift_units; i < bits_new.length; i++)
+                if (shift == 0)
+                    bits_new[i] = bits_this[i - shift_units];
+                else
+                    bits_new[i] = bits_this[i - shift_units] << shift | bits_this[i - shift_units - 1] >>> (32 - shift);
+            let bi_new = new BigInteger(new Uint8Array(bits_new.buffer));
+            if (this._sign < 0)
+                bi_new._sign = -bi_new._sign;
+            return bi_new;
+        }
+
+        public static multiply(x: number | BigInteger, y: number | BigInteger): BigInteger
+        {
+            let bi_x = typeof x === "number" ? new BigInteger(x) : x;
+            let bi_y = typeof y === "number" ? new BigInteger(y) : y;
+            if (bi_x._sign == 0) return bi_x;
+            if (bi_y._sign == 0) return bi_y;
+            if (bi_x._sign == 1 && bi_x._bits == null) return bi_y;
+            if (bi_x._sign == -1 && bi_x._bits == null) return bi_y.negate();
+            if (bi_y._sign == 1 && bi_y._bits == null) return bi_x;
+            if (bi_y._sign == -1 && bi_y._bits == null) return bi_x.negate();
+            let bits_x: Uint16Array, bits_y: Uint16Array;
+            if (bi_x._bits == null)
+            {
+                let abs = Math.abs(bi_x._sign);
+                if (abs <= 0xffff)
+                    bits_x = new Uint16Array([abs]);
+                else
+                    bits_x = new Uint16Array([abs & 0xffff, abs >>> 16]);
+            }
+            else
+            {
+                bits_x = new Uint16Array(bi_x._bits.buffer, bi_x._bits.byteOffset, bi_x._bits.length * 2);
+            }
+            if (bi_y._bits == null)
+            {
+                let abs = Math.abs(bi_y._sign);
+                if (abs <= 0xffff)
+                    bits_y = new Uint16Array([abs]);
+                else
+                    bits_y = new Uint16Array([abs & 0xffff, abs >>> 16]);
+            }
+            else
+            {
+                bits_y = new Uint16Array(bi_y._bits.buffer, bi_y._bits.byteOffset, bi_y._bits.length * 2);
+            }
+            let bi_new = new BigInteger(0);
+            for (let i = 0; i < bits_x.length; i++)
+                for (let j = 0; j < bits_y.length; j++)
+                {
+                    let bi = new BigInteger(bits_x[i] * bits_y[j]);
+                    bi_new = BigInteger.add(bi_new, bi.leftShift((i + j) * 16));
+                }
+            if ((bi_x._sign > 0) != (bi_y._sign > 0))
+                bi_new._sign = -bi_new._sign;
+            return bi_new;
+        }
+
         public negate(): BigInteger
         {
             let bi_new = new BigInteger();
             bi_new._sign = -this._sign;
             bi_new._bits = this._bits;
+            return bi_new;
+        }
+
+        public rightShift(shift: number): BigInteger
+        {
+            if (shift == 0) return this;
+            let shift_units = shift >>> 5;
+            shift = shift & 0x1f;
+            let bits_this = this._bits || new Uint32Array([Math.abs(this._sign)]);
+            if (bits_this.length <= shift_units)
+                return new BigInteger(0);
+            let bits_new = new Uint32Array(bits_this.length - shift_units);
+            for (let i = 0; i < bits_new.length; i++)
+                if (shift == 0)
+                    bits_new[i] = bits_this[i + shift_units];
+                else
+                    bits_new[i] = bits_this[i + shift_units] >>> shift | bits_this[i + shift_units + 1] << (32 - shift);
+            let bi_new = new BigInteger(new Uint8Array(bits_new.buffer));
+            if (this._sign < 0)
+                bi_new._sign = -bi_new._sign;
             return bi_new;
         }
 

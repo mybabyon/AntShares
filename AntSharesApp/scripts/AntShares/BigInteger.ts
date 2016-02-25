@@ -338,7 +338,7 @@
             let bits_x = bi_x.toUint16Array(), bits_y = bi_y.toUint16Array();
             let bits_r = new Uint16Array(bits_x.length + bits_y.length + 1);
             BigInteger.multiplyInternal(bits_x, bits_y, bits_r);
-            let bi_new = new BigInteger(new Uint8Array(bits_r));
+            let bi_new = new BigInteger(new Uint8Array(bits_r.buffer));
             if ((bi_x._sign > 0) != (bi_y._sign > 0))
                 bi_new._sign = -bi_new._sign;
             return bi_new;
@@ -366,6 +366,37 @@
             let bi_new = new BigInteger();
             bi_new._sign = -this._sign;
             bi_new._bits = this._bits;
+            return bi_new;
+        }
+
+        public static pow(value: number | BigInteger, exponent: number): BigInteger
+        {
+            let bi_v = typeof value === "number" ? new BigInteger(value) : value;
+            if (exponent < 0 || exponent > 0x7fffffff) throw new RangeError();
+            if (exponent == 0) return BigInteger.One;
+            if (exponent == 1) return bi_v;
+            if (bi_v._bits == null)
+            {
+                if (bi_v._sign == 1) return bi_v;
+                if (bi_v._sign == -1) return (exponent & 1) != 0 ? bi_v : BigInteger.One;
+                if (bi_v._sign == 0) return bi_v;
+            }
+            let h: number;
+            for (let i = 31; i >= 0; i--)
+                if ((exponent & (1 << i)) != 0)
+                {
+                    h = i;
+                    break;
+                }
+            let bi_new = BigInteger.One;
+            for (let i = 0; i <= h; i++)
+            {
+                let e = 1 << i;
+                if (e > 1)
+                    bi_v = BigInteger.multiply(bi_v, bi_v);
+                if ((exponent & e) != 0)
+                    bi_new = BigInteger.multiply(bi_v, bi_new);
+            }
             return bi_new;
         }
 

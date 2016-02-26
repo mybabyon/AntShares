@@ -149,14 +149,14 @@
             return 0;
         }
 
-        private static divide(x: number | BigInteger, y: number | BigInteger): BigInteger
+        public static divide(x: number | BigInteger, y: number | BigInteger): BigInteger
         {
             let bi_x = typeof x === "number" ? new BigInteger(x) : x;
             let bi_y = typeof y === "number" ? new BigInteger(y) : y;
             return BigInteger.divRem(bi_x, bi_y).result;
         }
 
-        private static divRem(x: number | BigInteger, y: number | BigInteger): { result: BigInteger, remainder: BigInteger }
+        public static divRem(x: number | BigInteger, y: number | BigInteger): { result: BigInteger, remainder: BigInteger }
         {
             let bi_x = typeof x === "number" ? new BigInteger(x) : x;
             let bi_y = typeof y === "number" ? new BigInteger(y) : y;
@@ -291,6 +291,11 @@
                 result.exp -= 1075;
             }
             return result;
+        }
+
+        public isZero(): boolean
+        {
+            return this._sign == 0;
         }
 
         public leftShift(shift: number): BigInteger
@@ -448,6 +453,14 @@
                 borrow = s < 0;
             }
             return borrow;
+        }
+
+        public toInt32(): number
+        {
+            if (this._bits == null)
+                return this._sign;
+            else
+                return this._sign * (this._bits[0] & 0x7fffffff);
         }
 
         public toString(radix = 10): string

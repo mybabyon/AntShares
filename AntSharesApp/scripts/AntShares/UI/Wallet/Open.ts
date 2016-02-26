@@ -2,9 +2,9 @@
 {
     export class Open extends TabBase
     {
-        protected init(target: Element): void
+        protected oncreate(): void
         {
-            $(target).find("button").click(this.OnOpenButtonClick);
+            $(this.target).find("button").click(this.OnOpenButtonClick);
         }
 
         private OnOpenButtonClick()

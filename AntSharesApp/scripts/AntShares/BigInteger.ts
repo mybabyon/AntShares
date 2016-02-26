@@ -24,7 +24,7 @@
             return BigInteger._zero || (BigInteger._zero = new BigInteger(0));
         }
 
-        constructor(value?: number | string | Uint8Array, radix = 10)
+        constructor(value: number | string | Uint8Array)
         {
             if (typeof value === "number")
             {
@@ -68,36 +68,7 @@
             }
             else if (typeof value === "string")
             {
-                if (radix < 2 || radix > 36) throw new RangeError();
-                let l: number;
-                if (radix == 2) l = 16;
-                else if (radix == 3) l = 10;
-                else if (radix == 4) l = 8;
-                else if (radix <= 6) l = 6;
-                else if (radix <= 9) l = 5;
-                else if (radix <= 16) l = 4;
-                else if (radix < 256) l = 3;
-                let buf_result = new ArrayBuffer(Math.ceil(value.length / l) * 2 + 2);
-                let bits_result16 = new Uint16Array(buf_result, 0, Math.ceil(value.length / l));
-                let bits_result32 = new Uint32Array(buf_result, 0, Math.floor(buf_result.byteLength / 4));
-                let bits_radix = new Uint16Array([radix]);
-                let bits_t16 = new Uint16Array(bits_result16.length + 1);
-                let bits_t32 = new Uint32Array(bits_t16.buffer, 0, Math.floor(bits_t16.length / 2));
-                let bits_a = new Uint32Array(1);
-                let first = value.charCodeAt(0);
-                let withsign = first == 0x2b || first == 0x2d;
-                let sign = first == 0x2d ? -1 : +1;
-                for (let i = withsign ? 1 : 0; i < value.length; i++)
-                {
-                    bits_a[0] = value.charCodeAt(i);
-                    if (bits_a[0] >= 0x30 && bits_a[0] <= 0x39) bits_a[0] -= 0x30;
-                    else if (bits_a[0] >= 0x41 && bits_a[0] <= 0x5a) bits_a[0] -= 0x37;
-                    else if (bits_a[0] >= 0x61 && bits_a[0] <= 0x7a) bits_a[0] -= 0x57;
-                    else throw new RangeError();
-                    BigInteger.multiplyInternal(bits_result16, bits_radix, bits_t16);
-                    BigInteger.addInternal(bits_t32, bits_a, bits_result32);
-                }
-                this.fromUint8Array(new Uint8Array(buf_result), sign);
+                this.fromString(value);
             }
             else if (value instanceof Uint8Array)
             {
@@ -135,6 +106,42 @@
             }
             if (carry)
                 r[max_length] = 1;
+        }
+
+        public bitLength(): number
+        {
+            if (this._bits == null)
+                return this.bitLengthInternal(Math.abs(this._sign));
+            else
+                return (this._bits.length - 1) * 32 + this.bitLengthInternal(this._bits[this._bits.length - 1] | 0);
+        }
+
+        private bitLengthInternal(w: number): number
+        {
+            return (w < 1 << 15 ? (w < 1 << 7
+                ? (w < 1 << 3 ? (w < 1 << 1
+                    ? (w < 1 << 0 ? (w < 0 ? 32 : 0) : 1)
+                    : (w < 1 << 2 ? 2 : 3)) : (w < 1 << 5
+                        ? (w < 1 << 4 ? 4 : 5)
+                        : (w < 1 << 6 ? 6 : 7)))
+                : (w < 1 << 11
+                    ? (w < 1 << 9 ? (w < 1 << 8 ? 8 : 9) : (w < 1 << 10 ? 10 : 11))
+                    : (w < 1 << 13 ? (w < 1 << 12 ? 12 : 13) : (w < 1 << 14 ? 14 : 15)))) : (w < 1 << 23 ? (w < 1 << 19
+                        ? (w < 1 << 17 ? (w < 1 << 16 ? 16 : 17) : (w < 1 << 18 ? 18 : 19))
+                        : (w < 1 << 21 ? (w < 1 << 20 ? 20 : 21) : (w < 1 << 22 ? 22 : 23))) : (w < 1 << 27
+                            ? (w < 1 << 25 ? (w < 1 << 24 ? 24 : 25) : (w < 1 << 26 ? 26 : 27))
+                            : (w < 1 << 29 ? (w < 1 << 28 ? 28 : 29) : (w < 1 << 30 ? 30 : 31)))));
+        }
+
+        public static compare(x: number | BigInteger, y: number | BigInteger): number
+        {
+            let bi_x = typeof x === "number" ? new BigInteger(x) : x;
+            let bi_y = typeof y === "number" ? new BigInteger(y) : y;
+            if (bi_x._sign >= 0 && bi_y._sign < 0) return 1;
+            if (bi_x._sign < 0 && bi_y._sign >= 0) return -1;
+            let c = BigInteger.compareAbs(bi_x, bi_y);
+            if (bi_x._sign < 0) c = -c;
+            return c;
         }
 
         private static compareAbs(x: BigInteger, y: BigInteger): number
@@ -199,8 +206,63 @@
             return { result: result, remainder: remainder };
         }
 
-        private fromUint8Array(arr: Uint8Array, sign?: number): void
+        public static fromString(str: string, radix = 10): BigInteger
         {
+            let bi = Object.create(BigInteger.prototype) as BigInteger;
+            bi.fromString(str, radix);
+            return bi;
+        }
+
+        private fromString(str: string, radix = 10): void
+        {
+            if (radix < 2 || radix > 36) throw new RangeError();
+            let l: number;
+            if (radix == 2) l = 16;
+            else if (radix == 3) l = 10;
+            else if (radix == 4) l = 8;
+            else if (radix <= 6) l = 6;
+            else if (radix <= 9) l = 5;
+            else if (radix <= 16) l = 4;
+            else if (radix < 256) l = 3;
+            let buf_result = new ArrayBuffer(Math.ceil(str.length / l) * 2 + 2);
+            let bits_result16 = new Uint16Array(buf_result, 0, Math.ceil(str.length / l));
+            let bits_result32 = new Uint32Array(buf_result, 0, Math.floor(buf_result.byteLength / 4));
+            let bits_radix = new Uint16Array([radix]);
+            let bits_t16 = new Uint16Array(bits_result16.length + 1);
+            let bits_t32 = new Uint32Array(bits_t16.buffer, 0, Math.floor(bits_t16.length / 2));
+            let bits_a = new Uint32Array(1);
+            let first = str.charCodeAt(0);
+            let withsign = first == 0x2b || first == 0x2d;
+            let sign = first == 0x2d ? -1 : +1;
+            for (let i = withsign ? 1 : 0; i < str.length; i++)
+            {
+                bits_a[0] = str.charCodeAt(i);
+                if (bits_a[0] >= 0x30 && bits_a[0] <= 0x39) bits_a[0] -= 0x30;
+                else if (bits_a[0] >= 0x41 && bits_a[0] <= 0x5a) bits_a[0] -= 0x37;
+                else if (bits_a[0] >= 0x61 && bits_a[0] <= 0x7a) bits_a[0] -= 0x57;
+                else throw new RangeError();
+                BigInteger.multiplyInternal(bits_result16, bits_radix, bits_t16);
+                BigInteger.addInternal(bits_t32, bits_a, bits_result32);
+            }
+            this.fromUint8Array(new Uint8Array(buf_result), sign);
+        }
+
+        public static fromUint8Array(arr: Uint8Array, sign = 1, littleEndian = true): BigInteger
+        {
+            let bi = Object.create(BigInteger.prototype) as BigInteger;
+            bi.fromUint8Array(arr, sign, littleEndian);
+            return bi;
+        }
+
+        private fromUint8Array(arr: Uint8Array, sign = 1, littleEndian = true): void
+        {
+            if (!littleEndian)
+            {
+                let arr_new = new Uint8Array(arr.length + (4 - arr.length % 4) % 4);
+                for (let i = 0; i < arr.length; i++)
+                    arr_new[arr.length - 1 - i] = arr[i];
+                arr = arr_new;
+            }
             let actual_length = BigInteger.getActualLength(arr);
             if (actual_length == 0)
             {
@@ -293,6 +355,25 @@
             return result;
         }
 
+        public getLowestSetBit(): number
+        {
+            if (this._sign == 0) return -1;
+            let b: number;
+            let w = 0;
+            if (this._bits == null)
+            {
+                b = Math.abs(this._sign);
+            }
+            else
+            {
+                while (this._bits[w] == 0) w++;
+                b = this._bits[w];
+            }
+            for (let x = 0; x < 32; x++)
+                if ((b[w] & 1 << x) > 0)
+                    return x + w * 32;
+        }
+
         public isZero(): boolean
         {
             return this._sign == 0;
@@ -365,7 +446,7 @@
 
         public negate(): BigInteger
         {
-            let bi_new = new BigInteger();
+            let bi_new = Object.create(BigInteger.prototype) as BigInteger;
             bi_new._sign = -this._sign;
             bi_new._bits = this._bits;
             return bi_new;
@@ -453,6 +534,21 @@
                 borrow = s < 0;
             }
             return borrow;
+        }
+
+        public testBit(n: number): boolean
+        {
+            let units = n >>> 5;
+            n = n & 0x1f;
+            if (this._bits == null)
+            {
+                if (units > 0 || n > 30) return false;
+                return (Math.abs(this._sign) & (1 << n)) != 0;
+            }
+            else
+            {
+                return (this._bits[units] & (1 << n)) != 0;
+            }
         }
 
         public toInt32(): number

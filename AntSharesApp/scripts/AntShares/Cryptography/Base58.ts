@@ -28,10 +28,7 @@
 
         public static Encode(input: Uint8Array): string
         {
-            let buffer = new Uint8Array(input.length);
-            for (let i = 0; i < buffer.length; i++)
-                buffer[i] = input[buffer.length - 1 - i];
-            let value = new BigInteger(buffer);
+            let value = BigInteger.fromUint8Array(input, 1, false);
             let s = "";
             while (!value.isZero())
             {

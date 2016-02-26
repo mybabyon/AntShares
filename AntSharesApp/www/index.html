@@ -530,13 +530,6 @@
             //uploadUrl: "~/Wallet/Upload"
         });
 
-        $('.tab-trigger').click(function ()
-        {
-            event.preventDefault();
-            $('.content>.tab-content>.tab-pane').removeClass("active");
-            $($(this).attr("href")).addClass("active");
-        });
-
         void function ()
         {
             var rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");

@@ -24,7 +24,7 @@
             return BigInteger._zero || (BigInteger._zero = new BigInteger(0));
         }
 
-        constructor(value?: number | string | Uint8Array, radix?: number)
+        constructor(value?: number | string | Uint8Array, radix = 10)
         {
             if (typeof value === "number")
             {
@@ -68,7 +68,6 @@
             }
             else if (typeof value === "string")
             {
-                if (radix == null) radix = 10;
                 if (radix < 2 || radix > 36) throw new RangeError();
                 let l: number;
                 if (radix == 2) l = 16;
@@ -186,7 +185,7 @@
                 if (borrow)
                 {
                     bits_result[offset]--;
-                    BigInteger.fillArray(bits_sub32, 0);
+                    bits_sub32.fill(0);
                     bits_sub.set(bits_y, offset);
                     BigInteger.addInternal(bits_rem32, bits_sub32, bits_rem32);
                 }
@@ -198,12 +197,6 @@
             if (bi_x._sign < 0)
                 remainder._sign = -remainder._sign;
             return { result: result, remainder: remainder };
-        }
-
-        private static fillArray<T>(arr: ArrayLike<T>, value: T): void
-        {
-            for (let i = 0; i < arr.length; i++)
-                arr[i] = value;
         }
 
         private fromUint8Array(arr: Uint8Array, sign?: number): void
@@ -346,12 +339,15 @@
 
         private static multiplyInternal(x: Uint16Array, y: Uint16Array, r: Uint16Array): void
         {
-            BigInteger.fillArray(r, 0);
+            r.fill(0);
             let view = new DataView(r.buffer, r.byteOffset, r.byteLength);
             for (let i = 0; i < x.length; i++)
+            {
+                if (x[i] == 0) continue;
                 for (let j = 0; j < y.length; j++)
                 {
                     let r32 = x[i] * y[j];
+                    if (r32 == 0) continue;
                     let offset = (i + j) * 2;
                     do
                     {
@@ -359,6 +355,7 @@
                         view.setUint32(offset, r32, true);
                     } while ((r32 > 0xffffffff) && (r32 = 1) && (offset += 4));
                 }
+            }
         }
 
         public negate(): BigInteger
@@ -453,10 +450,9 @@
             return borrow;
         }
 
-        public toString(radix?: number): string
+        public toString(radix = 10): string
         {
             if (this._sign == 0) return "0";
-            if (radix == null) radix = 10;
             if (radix < 2 || radix > 36) throw new RangeError();
             let s = "";
             for (let bi: BigInteger = this; bi._sign != 0;)

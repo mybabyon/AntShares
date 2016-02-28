@@ -93,6 +93,11 @@
             return bi_new;
         }
 
+        public add(other: number | BigInteger): BigInteger
+        {
+            return BigInteger.add(this, other);
+        }
+
         private static addInternal(x: Uint32Array, y: Uint32Array, r: Uint32Array)
         {
             let max_length = Math.max(x.length, y.length)
@@ -111,12 +116,12 @@
         public bitLength(): number
         {
             if (this._bits == null)
-                return this.bitLengthInternal(Math.abs(this._sign));
+                return BigInteger.bitLengthInternal(Math.abs(this._sign));
             else
-                return (this._bits.length - 1) * 32 + this.bitLengthInternal(this._bits[this._bits.length - 1] | 0);
+                return (this._bits.length - 1) * 32 + BigInteger.bitLengthInternal(this._bits[this._bits.length - 1] | 0);
         }
 
-        private bitLengthInternal(w: number): number
+        private static bitLengthInternal(w: number): number
         {
             return (w < 1 << 15 ? (w < 1 << 7
                 ? (w < 1 << 3 ? (w < 1 << 1
@@ -144,6 +149,11 @@
             return c;
         }
 
+        public compare(other: number | BigInteger): number
+        {
+            return BigInteger.compare(this, other);
+        }
+
         private static compareAbs(x: BigInteger, y: BigInteger): number
         {
             let bits_x = x.toUint32Array(), bits_y = y.toUint32Array();
@@ -161,6 +171,11 @@
             let bi_x = typeof x === "number" ? new BigInteger(x) : x;
             let bi_y = typeof y === "number" ? new BigInteger(y) : y;
             return BigInteger.divRem(bi_x, bi_y).result;
+        }
+
+        public divide(other: number | BigInteger): BigInteger
+        {
+            return BigInteger.divide(this, other);
         }
 
         public static divRem(x: number | BigInteger, y: number | BigInteger): { result: BigInteger, remainder: BigInteger }
@@ -204,6 +219,25 @@
             if (bi_x._sign < 0)
                 remainder._sign = -remainder._sign;
             return { result: result, remainder: remainder };
+        }
+
+        public static equals(x: number | BigInteger, y: number | BigInteger): boolean
+        {
+            let bi_x = typeof x === "number" ? new BigInteger(x) : x;
+            let bi_y = typeof y === "number" ? new BigInteger(y) : y;
+            if (bi_x._sign != bi_y._sign) return false;
+            if ((bi_x._bits == null) != (bi_y._bits == null)) return false;
+            if ((bi_x._bits == null) && (bi_y._bits == null)) return true;
+            if (bi_x._bits.length != bi_y._bits.length) return false;
+            for (let i = 0; i < bi_x._bits.length; i++)
+                if (bi_x._bits[i] != bi_y._bits[i])
+                    return false;
+            return true;
+        }
+
+        public equals(other: number | BigInteger): boolean
+        {
+            return BigInteger.equals(this, other);
         }
 
         public static fromString(str: string, radix = 10): BigInteger
@@ -401,7 +435,64 @@
         {
             let bi_x = typeof x === "number" ? new BigInteger(x) : x;
             let bi_y = typeof y === "number" ? new BigInteger(y) : y;
-            return BigInteger.divRem(bi_x, bi_y).remainder;
+            let bi_new = BigInteger.divRem(bi_x, bi_y).remainder;
+            if (bi_new._sign < 0)
+                bi_new = BigInteger.add(bi_new, bi_y);
+            return bi_new;
+        }
+
+        public mod(other: number | BigInteger): BigInteger
+        {
+            return BigInteger.mod(this, other);
+        }
+
+        public static modInverse(value: number | BigInteger, modulus: number | BigInteger): BigInteger
+        {
+            let a = typeof value === "number" ? new BigInteger(value) : value;
+            let n = typeof modulus === "number" ? new BigInteger(modulus) : modulus;
+            let i = n, v = BigInteger.Zero, d = BigInteger.One;
+            while (a._sign > 0)
+            {
+                let t = BigInteger.divRem(i, a);
+                let x = d;
+                i = a;
+                a = t.remainder;
+                d = v.subtract(t.result.multiply(x));
+                v = x;
+            }
+            return BigInteger.mod(v, n);
+        }
+
+        public modInverse(modulus: number | BigInteger): BigInteger
+        {
+            return BigInteger.modInverse(this, modulus);
+        }
+
+        public static modPow(value: number | BigInteger, exponent: number | BigInteger, modulus: number | BigInteger): BigInteger
+        {
+            let bi_v = typeof value === "number" ? new BigInteger(value) : value;
+            let bi_e = typeof exponent === "number" ? new BigInteger(exponent) : exponent;
+            let bi_m = typeof modulus === "number" ? new BigInteger(modulus) : modulus;
+            if (bi_e._sign < 0 || bi_m._sign == 0) throw new RangeError();
+            if (Math.abs(bi_m._sign) == 1 && bi_m._bits == null) return BigInteger.Zero;
+            let h = bi_e.bitLength();
+            let bi_new = BigInteger.One;
+            for (let i = 0; i < h; i++)
+            {
+                if (i > 0)
+                    bi_v = BigInteger.multiply(bi_v, bi_v);
+                bi_v = bi_v.remainder(bi_m);
+                if (bi_e.testBit(i))
+                    bi_new = BigInteger.multiply(bi_v, bi_new).remainder(bi_m);
+            }
+            if (bi_new._sign < 0)
+                bi_new = BigInteger.add(bi_new, bi_m);
+            return bi_new;
+        }
+
+        public modPow(exponent: number | BigInteger, modulus: number | BigInteger): BigInteger
+        {
+            return BigInteger.modPow(this, exponent, modulus);
         }
 
         public static multiply(x: number | BigInteger, y: number | BigInteger): BigInteger
@@ -421,6 +512,11 @@
             if ((bi_x._sign > 0) != (bi_y._sign > 0))
                 bi_new._sign = -bi_new._sign;
             return bi_new;
+        }
+
+        public multiply(other: number | BigInteger): BigInteger
+        {
+            return BigInteger.multiply(this, other);
         }
 
         private static multiplyInternal(x: Uint16Array, y: Uint16Array, r: Uint16Array): void
@@ -464,15 +560,9 @@
                 if (bi_v._sign == -1) return (exponent & 1) != 0 ? bi_v : BigInteger.One;
                 if (bi_v._sign == 0) return bi_v;
             }
-            let h: number;
-            for (let i = 31; i >= 0; i--)
-                if ((exponent & (1 << i)) != 0)
-                {
-                    h = i;
-                    break;
-                }
+            let h = BigInteger.bitLengthInternal(exponent);
             let bi_new = BigInteger.One;
-            for (let i = 0; i <= h; i++)
+            for (let i = 0; i < h; i++)
             {
                 let e = 1 << i;
                 if (e > 1)
@@ -481,6 +571,33 @@
                     bi_new = BigInteger.multiply(bi_v, bi_new);
             }
             return bi_new;
+        }
+
+        public pow(exponent: number): BigInteger
+        {
+            return BigInteger.pow(this, exponent);
+        }
+
+        public static random(bitLength: number): BigInteger
+        {
+            if (bitLength == 0) return BigInteger.Zero;
+            let bytes = new Uint8Array(Math.ceil(bitLength / 8));
+            for (let i = 0; i < bytes.length; i++)
+                bytes[i] = Math.random() * 256;
+            bytes[bytes.length - 1] &= 0xff >>> (8 - bitLength % 8);
+            return new BigInteger(bytes);
+        }
+
+        public static remainder(x: number | BigInteger, y: number | BigInteger): BigInteger
+        {
+            let bi_x = typeof x === "number" ? new BigInteger(x) : x;
+            let bi_y = typeof y === "number" ? new BigInteger(y) : y;
+            return BigInteger.divRem(bi_x, bi_y).remainder;
+        }
+
+        public remainder(other: number | BigInteger): BigInteger
+        {
+            return BigInteger.remainder(this, other);
         }
 
         public rightShift(shift: number): BigInteger
@@ -521,6 +638,11 @@
             if (bi_x._sign < 0)
                 bi_new._sign = -bi_new._sign;
             return bi_new;
+        }
+
+        public subtract(other: number | BigInteger): BigInteger
+        {
+            return BigInteger.subtract(this, other);
         }
 
         private static subtractInternal(x: Uint32Array, y: Uint32Array, r: Uint32Array): boolean

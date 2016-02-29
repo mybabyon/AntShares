@@ -201,16 +201,23 @@
             for (let i = bits_x.length - 1; i >= bits_y.length - 1; i--)
             {
                 let offset = i - bits_y.length + 1;
-                bits_result[offset] = Math.floor(view_rem.getUint32(i * 2, true) / bits_y[bits_y.length - 1]);
-                BigInteger.multiplyInternal(bits_y, bits_result.subarray(offset, offset + 1), bits_sub.subarray(offset));
-                let borrow = BigInteger.subtractInternal(bits_rem32, bits_sub32, bits_rem32);
-                if (borrow)
+                let max = Math.floor(view_rem.getUint32(i * 2, true) / bits_y[bits_y.length - 1]);
+                if (max > 0xffff) max = 0xffff;
+                let min = 0;
+                while (min != max)
                 {
-                    bits_result[offset]--;
+                    bits_result[offset] = Math.ceil((min + max) / 2);
                     bits_sub32.fill(0);
-                    bits_sub.set(bits_y, offset);
-                    BigInteger.addInternal(bits_rem32, bits_sub32, bits_rem32);
+                    BigInteger.multiplyInternal(bits_y, bits_result.subarray(offset, offset + 1), bits_sub.subarray(offset));
+                    if (BigInteger.subtractInternal(bits_rem32, bits_sub32, bits_sub32))
+                        max = bits_result[offset] - 1;
+                    else
+                        min = bits_result[offset];
                 }
+                bits_result[offset] = min;
+                bits_sub32.fill(0);
+                BigInteger.multiplyInternal(bits_y, bits_result.subarray(offset, offset + 1), bits_sub.subarray(offset));
+                BigInteger.subtractInternal(bits_rem32, bits_sub32, bits_rem32);
             }
             let result = new BigInteger(new Uint8Array(bits_result.buffer));
             if (!sign_result)
@@ -408,6 +415,14 @@
                     return x + w * 32;
         }
 
+        public isEven(): boolean
+        {
+            if (this._bits == null)
+                return (this._sign & 1) == 0;
+            else
+                return (this._bits[0] & 1) == 0;
+        }
+
         public isZero(): boolean
         {
             return this._sign == 0;
@@ -578,12 +593,19 @@
             return BigInteger.pow(this, exponent);
         }
 
-        public static random(bitLength: number): BigInteger
+        public static random(bitLength: number, rng?: RandomSource): BigInteger
         {
             if (bitLength == 0) return BigInteger.Zero;
             let bytes = new Uint8Array(Math.ceil(bitLength / 8));
-            for (let i = 0; i < bytes.length; i++)
-                bytes[i] = Math.random() * 256;
+            if (rng == null)
+            {
+                for (let i = 0; i < bytes.length; i++)
+                    bytes[i] = Math.random() * 256;
+            }
+            else
+            {
+                rng.getRandomValues(bytes);
+            }
             bytes[bytes.length - 1] &= 0xff >>> (8 - bitLength % 8);
             return new BigInteger(bytes);
         }
@@ -618,6 +640,11 @@
             if (this._sign < 0)
                 bi_new._sign = -bi_new._sign;
             return bi_new;
+        }
+
+        public sign(): number
+        {
+            return this._sign == 0 ? 0 : this._sign > 0 ? +1 : -1;
         }
 
         public static subtract(x: number | BigInteger, y: number | BigInteger): BigInteger

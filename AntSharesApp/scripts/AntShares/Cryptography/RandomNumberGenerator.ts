@@ -1,18 +1,6 @@
-﻿interface Touch
+﻿namespace AntShares.Cryptography
 {
-    radiusX: number;
-    radiusY: number;
-    force: number;
-}
-
-interface Window
-{
-    msCrypto: Crypto;
-}
-
-namespace AntShares.Cryptography
-{
-    class RandomNumberGenerator
+    export class RandomNumberGenerator
     {
         private static _entropy: number[] = [];
         private static _strength = 0;
@@ -48,7 +36,7 @@ namespace AntShares.Cryptography
             if (RandomNumberGenerator._key == null)
             {
                 let data = new Float64Array(RandomNumberGenerator._entropy);
-                RandomNumberGenerator._key = new Uint8Array(data.buffer).hash256();
+                RandomNumberGenerator._key = new Uint8Array(Sha256.computeHash(data));
             }
             let aes = new Aes(RandomNumberGenerator._key, RandomNumberGenerator.getRandomBuffer(16));
             let dst = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
@@ -110,21 +98,4 @@ namespace AntShares.Cryptography
             RandomNumberGenerator._stopped = true;
         }
     }
-
-    (() =>
-    {
-        let getRandomValues: (array: ArrayBufferView) => ArrayBufferView;
-        if (window.crypto && window.crypto.getRandomValues) return;
-        if (window.msCrypto && window.msCrypto.getRandomValues)
-        {
-            getRandomValues = array => window.msCrypto.getRandomValues(array);
-        }
-        else
-        {
-            RandomNumberGenerator.startCollectors();
-            getRandomValues = RandomNumberGenerator.getRandomValues;
-        }
-        if (!window.crypto) window.crypto = { subtle: null, getRandomValues: getRandomValues };
-        if (!window.crypto.getRandomValues) window.crypto.getRandomValues = getRandomValues;
-    })();
 }

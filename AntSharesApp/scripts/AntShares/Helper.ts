@@ -66,17 +66,17 @@ namespace AntShares
         return s;
     }
 
-    Int8Array.prototype.fill = fillArray;
-    Int16Array.prototype.fill = fillArray;
-    Int32Array.prototype.fill = fillArray;
-    Uint8Array.prototype.fill = fillArray;
-    Uint16Array.prototype.fill = fillArray;
-    Uint32Array.prototype.fill = fillArray;
+    Int8Array.prototype.fill = Int8Array.prototype.fill || fillArray;
+    Int16Array.prototype.fill = Int16Array.prototype.fill || fillArray;
+    Int32Array.prototype.fill = Int32Array.prototype.fill || fillArray;
+    Uint8Array.prototype.fill = Uint8Array.prototype.fill || fillArray;
+    Uint16Array.prototype.fill = Uint16Array.prototype.fill || fillArray;
+    Uint32Array.prototype.fill = Uint32Array.prototype.fill || fillArray;
 
-    Int8Array.prototype.reverse = reverseArray;
-    Int16Array.prototype.reverse = reverseArray;
-    Int32Array.prototype.reverse = reverseArray;
-    Uint8Array.prototype.reverse = reverseArray;
-    Uint16Array.prototype.reverse = reverseArray;
-    Uint32Array.prototype.reverse = reverseArray;
+    Int8Array.prototype.reverse = Int8Array.prototype.reverse || reverseArray;
+    Int16Array.prototype.reverse = Int16Array.prototype.reverse || reverseArray;
+    Int32Array.prototype.reverse = Int32Array.prototype.reverse || reverseArray;
+    Uint8Array.prototype.reverse = Uint8Array.prototype.reverse || reverseArray;
+    Uint16Array.prototype.reverse = Uint16Array.prototype.reverse || reverseArray;
+    Uint32Array.prototype.reverse = Uint32Array.prototype.reverse || reverseArray;
 }

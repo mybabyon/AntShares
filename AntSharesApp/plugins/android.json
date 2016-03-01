@@ -6,6 +6,13 @@
     "config_munge": {
         "files": {}
     },
-    "installed_plugins": {},
+    "installed_plugins": {
+        "cordova-plugin-file": {
+            "PACKAGE_NAME": "com.antshares.app"
+        },
+        "cordova-plugin-file-transfer": {
+            "PACKAGE_NAME": "com.antshares.app"
+        }
+    },
     "dependent_plugins": {}
 }

@@ -488,6 +488,7 @@
         </nav>
     </div>
 
+    <script src="lib/jQuery.mmenu/dist/core/js/hammer.js"></script>
     <script src="lib/jquery/dist/jquery.min.js"></script>
     <script src="lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
@@ -495,7 +496,7 @@
     <script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="lib/bootstrap-fileinput/js/fileinput.min.js"></script>
     <script src="lib/bootstrap-fileinput/js/fileinput_locale_zh.js"></script>
-
+    <script src="lib/jQuery.mmenu/dist/core/js/jquery.mmenu.dragclose.min.js"></script>
     <!-- Cordova 引用，它在生成应用程序时添加到其中。 -->
     <script src="cordova.js"></script>
     <script src="scripts/platformOverrides.js"></script>
@@ -511,6 +512,8 @@
             navbar: {
                 title: '菜单'
             },
+            dragOpen: { open: true },
+            dragClose: { close: true },
             navbars: [{
                 position: 'top',
                 content: ['title']
@@ -519,7 +522,7 @@
                 content: ['<a target="blank" href="https://www.antshares.com/">www.antshares.com</a>']
             }]
         });
-
+        
         //初始化fileinput控件
         //http://plugins.krajee.com/file-input
         //http://www.cnblogs.com/wuhuacong/p/4774396.html

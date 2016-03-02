@@ -25,7 +25,7 @@
             let l = data.byteLength / 4 + 2; // length (in 32-bit integers) of data + ‘1’ + appended length
             let N = Math.ceil(l / 16);  // number of 16-integer-blocks required to hold 'l' ints
             let M = new Array<Uint32Array>(N);
-            let view = data instanceof Uint8Array ? data : data instanceof ArrayBuffer ? new Uint8Array(data) : new Uint8Array((data as ArrayBufferView).buffer, (data as ArrayBufferView).byteOffset, data.byteLength);
+            let view = Uint8Array.fromArrayBuffer(data);
 
             for (let i = 0; i < N; i++)
             {

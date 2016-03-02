@@ -1,4 +1,10 @@
-﻿interface Crypto
+﻿interface Algorithm
+{
+    iv?: ArrayBuffer | ArrayBufferView;
+    length?: number;
+}
+
+interface Crypto
 {
     webkitSubtle?: SubtleCrypto;
 }

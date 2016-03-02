@@ -9,12 +9,6 @@
     "installed_plugins": {
         "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "AntShares"
-        },
-        "cordova-plugin-file": {
-            "PACKAGE_NAME": "AntShares"
-        },
-        "cordova-plugin-file-transfer": {
-            "PACKAGE_NAME": "AntShares"
         }
     },
     "dependent_plugins": {}

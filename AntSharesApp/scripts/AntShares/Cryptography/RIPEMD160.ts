@@ -159,10 +159,8 @@
 
         public static computeHash(data: ArrayBuffer | ArrayBufferView): ArrayBuffer
         {
-            let view = data instanceof Uint8Array ? data : data instanceof ArrayBuffer ? new Uint8Array(data) : new Uint8Array((data as ArrayBufferView).buffer, (data as ArrayBufferView).byteOffset, data.byteLength);
-
             let H = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0];
-            let m = RIPEMD160.bytesToWords(view);
+            let m = RIPEMD160.bytesToWords(Uint8Array.fromArrayBuffer(data));
             let nBitsLeft = data.byteLength * 8;
             let nBitsTotal = data.byteLength * 8;
 

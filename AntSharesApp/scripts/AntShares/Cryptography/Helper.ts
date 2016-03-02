@@ -1,4 +1,6 @@
-﻿interface String
+﻿/// <reference path="RandomNumberGenerator.ts"/>
+
+interface String
 {
     base58Decode(): Uint8Array;
 }
@@ -33,31 +35,123 @@ namespace AntShares.Cryptography
     if (window.crypto.subtle == null && window.msCrypto)
     {
         window.crypto.subtle = {
-            decrypt: (a, b, c) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.decrypt(a, b, c); op.finish(); resolve(op.result); }),
-            deriveBits: (a, b, c) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.deriveBits(a, b, c); op.finish(); resolve(op.result); }),
-            deriveKey: (a, b, c, d, e) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.deriveKey(a, b, c, d, e); op.finish(); resolve(op.result); }),
-            digest: (a, b) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.digest(a, b); op.finish(); resolve(op.result); }),
-            encrypt: (a, b, c) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.encrypt(a, b, c); op.finish(); resolve(op.result); }),
-            exportKey: (a, b) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.exportKey(a, b); op.finish(); resolve(op.result); }),
+            decrypt: (a, b, c) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.decrypt(a, b, c); op.oncomplete = () => resolve(op.result); op.onerror = e => reject(e); }),
+            deriveBits: (a, b, c) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.deriveBits(a, b, c); op.oncomplete = () => resolve(op.result); op.onerror = e => reject(e); }),
+            deriveKey: (a, b, c, d, e) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.deriveKey(a, b, c, d, e); op.oncomplete = () => resolve(op.result); op.onerror = e => reject(e); }),
+            digest: (a, b) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.digest(a, b); op.oncomplete = () => resolve(op.result); op.onerror = e => reject(e); }),
+            encrypt: (a, b, c) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.encrypt(a, b, c); op.oncomplete = () => resolve(op.result); op.onerror = e => reject(e); }),
+            exportKey: (a, b) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.exportKey(a, b); op.oncomplete = () => resolve(op.result); op.onerror = e => reject(e); }),
             generateKey: (a, b, c) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.generateKey(a, b, c); op.oncomplete = () => resolve(op.result); op.onerror = e => reject(e); }),
-            importKey: (a, b, c, d, e) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.importKey(a, b, c, d, e); op.finish(); resolve(op.result); }),
-            sign: (a, b, c) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.sign(a, b, c); op.finish(); resolve(op.result); }),
-            unwrapKey: (a, b, c, d, e, f, g) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.unwrapKey(a, b, c, d, e, f, g); op.finish(); resolve(op.result); }),
-            verify: (a, b, c, d) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.verify(a, b, c, d); op.finish(); resolve(op.result); }),
-            wrapKey: (a, b, c, d) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.wrapKey(a, b, c, d); op.finish(); resolve(op.result); }),
+            importKey: (a, b, c, d, e) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.importKey(a, b, c, d, e); op.oncomplete = () => resolve(op.result); op.onerror = e => reject(e); }),
+            sign: (a, b, c) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.sign(a, b, c); op.oncomplete = () => resolve(op.result); op.onerror = e => reject(e); }),
+            unwrapKey: (a, b, c, d, e, f, g) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.unwrapKey(a, b, c, d, e, f, g); op.oncomplete = () => resolve(op.result); op.onerror = e => reject(e); }),
+            verify: (a, b, c, d) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.verify(a, b, c, d); op.oncomplete = () => resolve(op.result); op.onerror = e => reject(e); }),
+            wrapKey: (a, b, c, d) => new Promise((resolve, reject) => { let op = window.msCrypto.subtle.wrapKey(a, b, c, d); op.oncomplete = () => resolve(op.result); op.onerror = e => reject(e); }),
         };
     }
     if (window.crypto.subtle == null)
     {
         window.crypto.subtle = {
-            decrypt: null,
+            decrypt: (algorithm, key, data) => new Promise((resolve, reject) =>
+            {
+                if (typeof algorithm === "string" || algorithm.name != "AES-CBC" || !algorithm.iv || algorithm.iv.byteLength != 16 || data.byteLength % 16 != 0)
+                {
+                    reject(new RangeError());
+                    return;
+                }
+                try
+                {
+                    let aes = new Aes((key as any).export(), (algorithm as Algorithm).iv);
+                    resolve(aes.decrypt(data));
+                }
+                catch (e)
+                {
+                    reject(e);
+                }
+            }),
             deriveBits: null,
             deriveKey: null,
-            digest: (algorithm, data) => new Promise<ArrayBuffer>((resolve, reject) => { if (getAlgorithmName(algorithm) == "SHA-256") resolve(Sha256.computeHash(data)); else reject(new Error()); }),
-            encrypt: null,
-            exportKey: null,
-            generateKey: null,
-            importKey: null,
+            digest: (algorithm, data) => new Promise((resolve, reject) =>
+            {
+                if (getAlgorithmName(algorithm) != "SHA-256")
+                {
+                    reject(new RangeError());
+                    return;
+                }
+                try
+                {
+                    resolve(Sha256.computeHash(data));
+                }
+                catch (e)
+                {
+                    reject(e);
+                }
+            }),
+            encrypt: (algorithm, key, data) => new Promise((resolve, reject) =>
+            {
+                if (typeof algorithm === "string" || algorithm.name != "AES-CBC" || !algorithm.iv || algorithm.iv.byteLength != 16)
+                {
+                    reject(new RangeError());
+                    return;
+                }
+                try
+                {
+                    let aes = new Aes((key as AesCryptoKey).export(), (algorithm as Algorithm).iv);
+                    resolve(aes.encrypt(data));
+                }
+                catch (e)
+                {
+                    reject(e);
+                }
+            }),
+            exportKey: (format, key) => new Promise((resolve, reject) =>
+            {
+                if (format != "raw" || !(key instanceof AesCryptoKey))
+                {
+                    reject(new RangeError());
+                    return;
+                }
+                try
+                {
+                    resolve((key as AesCryptoKey).export().buffer);
+                }
+                catch (e)
+                {
+                    reject(e);
+                }
+            }),
+            generateKey: (algorithm, extractable, keyUsages) => new Promise((resolve, reject) =>
+            {
+                if (typeof algorithm === "string" || algorithm.name != "AES-CBC" || (algorithm.length != 128 && algorithm.length != 192 && algorithm.length != 256))
+                {
+                    reject(new RangeError());
+                    return;
+                }
+                try
+                {
+                    resolve(AesCryptoKey.create(algorithm.length));
+                }
+                catch (e)
+                {
+                    reject(e);
+                }
+            }),
+            importKey: (format, keyData, algorithm, extractable, keyUsages) => new Promise((resolve, reject) =>
+            {
+                if (format != "raw" || getAlgorithmName(algorithm) != "AES-CBC")
+                {
+                    reject(new RangeError());
+                    return;
+                }
+                try
+                {
+                    resolve(AesCryptoKey.import(keyData));
+                }
+                catch (e)
+                {
+                    reject(e);
+                }
+            }),
             sign: null,
             unwrapKey: null,
             verify: null,

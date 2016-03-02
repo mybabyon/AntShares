@@ -22,14 +22,6 @@
                 RandomNumberGenerator.stopCollectors();
         }
 
-        private static getRandomBuffer(length: number): Uint8Array
-        {
-            let buffer = new Uint8Array(length);
-            for (let i = 0; i < length; i++)
-                buffer[i] = Math.random() * 256;
-            return buffer;
-        }
-
         public static getRandomValues(array: ArrayBufferView): ArrayBufferView
         {
             if (RandomNumberGenerator._strength < 256) throw new Error();
@@ -38,14 +30,23 @@
                 let data = new Float64Array(RandomNumberGenerator._entropy);
                 RandomNumberGenerator._key = new Uint8Array(Sha256.computeHash(data));
             }
-            let aes = new Aes(RandomNumberGenerator._key, RandomNumberGenerator.getRandomBuffer(16));
+            let aes = new Aes(RandomNumberGenerator._key, RandomNumberGenerator.getWeakRandomValues(16));
+            let src = new Uint8Array(16);
             let dst = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
             for (let i = 0; i < dst.length; i += 16)
             {
-                let buffer = aes.encrypt(RandomNumberGenerator.getRandomBuffer(16));
-                Array.copy(buffer, 0, dst, i, Math.min(dst.length - i, 16));
+                aes.encryptBlock(RandomNumberGenerator.getWeakRandomValues(16), src);
+                Array.copy(src, 0, dst, i, Math.min(dst.length - i, 16));
             }
             return array;
+        }
+
+        private static getWeakRandomValues(array: number | Uint8Array): Uint8Array
+        {
+            let buffer = typeof array === "number" ? new Uint8Array(array) : array;
+            for (let i = 0; i < buffer.length; i++)
+                buffer[i] = Math.random() * 256;
+            return buffer;
         }
 
         private static processDeviceMotionEvent(event: DeviceMotionEvent): void

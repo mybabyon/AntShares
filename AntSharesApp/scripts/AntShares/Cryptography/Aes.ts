@@ -39,16 +39,16 @@
             return "CBC";
         }
 
-        constructor(key: Uint8Array, iv: Uint8Array)
+        constructor(key: ArrayBuffer | ArrayBufferView, iv: ArrayBuffer | ArrayBufferView)
         {
-            var rounds = Aes.numberOfRounds[key.length];
+            var rounds = Aes.numberOfRounds[key.byteLength];
             if (rounds == null)
             {
-                throw new Error('invalid key size (must be length 16, 24 or 32)');
+                throw new RangeError('invalid key size (must be length 16, 24 or 32)');
             }
-            if (iv.length != 16)
+            if (iv.byteLength != 16)
             {
-                throw new Error('initialation vector iv must be of length 16');
+                throw new RangeError('initialation vector iv must be of length 16');
             }
 
             for (var i = 0; i <= rounds; i++)
@@ -58,10 +58,10 @@
             }
 
             var roundKeyCount = (rounds + 1) * 4;
-            var KC = key.length / 4;
+            var KC = key.byteLength / 4;
 
             // convert the key into ints
-            var tk = Aes.convertToInt32(key);
+            var tk = Aes.convertToInt32(Uint8Array.fromArrayBuffer(key));
 
             // copy values into round key arrays
             var index;
@@ -138,7 +138,7 @@
                 }
             }
 
-            this._lastCipherblock.set(iv);
+            this._lastCipherblock.set(Uint8Array.fromArrayBuffer(iv));
         }
 
         private static convertToInt32(bytes)
@@ -156,12 +156,21 @@
             return result;
         }
 
-        public decrypt(ciphertext: Uint8Array): Uint8Array
+        public decrypt(ciphertext: ArrayBuffer | ArrayBufferView): ArrayBuffer
         {
-            if (ciphertext.length != 16)
-            {
-                throw new Error('ciphertext must be a block of size 16');
-            }
+            if (ciphertext.byteLength == 0 || ciphertext.byteLength % 16 != 0)
+                throw new RangeError();
+            let plaintext = new Uint8Array(ciphertext.byteLength);
+            let ciphertext_view = Uint8Array.fromArrayBuffer(ciphertext);
+            for (let i = 0; i < ciphertext_view.length; i += 16)
+                this.decryptBlock(ciphertext_view.subarray(i, i + 16), plaintext.subarray(i, i + 16));
+            return plaintext.buffer.slice(0, plaintext.length - plaintext[plaintext.length - 1]);
+        }
+
+        public decryptBlock(ciphertext: Uint8Array, plaintext: Uint8Array): void
+        {
+            if (ciphertext.length != 16 || plaintext.length != 16)
+                throw new RangeError();
 
             var rounds = this._Kd.length - 1;
             var a = [0, 0, 0, 0];
@@ -188,7 +197,6 @@
             }
 
             // the last round is special
-            var plaintext = new Uint8Array(16);
             for (var i = 0; i < 4; i++)
             {
                 let tt = this._Kd[rounds][i];
@@ -204,16 +212,28 @@
             }
 
             Array.copy(ciphertext, 0, this._lastCipherblock, 0, ciphertext.length);
-
-            return plaintext;
         }
 
-        public encrypt(plaintext: Uint8Array): Uint8Array
+        public encrypt(plaintext: ArrayBuffer | ArrayBufferView): ArrayBuffer
         {
-            if (plaintext.length != 16)
-            {
-                throw new Error('plaintext must be a block of size 16');
-            }
+            let block_count = Math.ceil((plaintext.byteLength + 1) / 16);
+            let ciphertext = new Uint8Array(block_count * 16);
+            let plaintext_view = Uint8Array.fromArrayBuffer(plaintext);
+            for (let i = 0; i < block_count - 1; i++)
+                this.encryptBlock(plaintext_view.subarray(i * 16, (i + 1) * 16), ciphertext.subarray(i * 16, (i + 1) * 16));
+            let padding = ciphertext.length - plaintext.byteLength;
+            let final_block = new Uint8Array(16);
+            final_block.fill(padding);
+            if (padding < 16)
+                Array.copy(plaintext_view, ciphertext.length - 16, final_block, 0, 16 - padding);
+            this.encryptBlock(final_block, ciphertext.subarray(ciphertext.length - 16));
+            return ciphertext.buffer;
+        }
+
+        public encryptBlock(plaintext: Uint8Array, ciphertext: Uint8Array): void
+        {
+            if (plaintext.length != 16 || ciphertext.length != 16)
+                throw new RangeError();
 
             var precipherblock = new Uint8Array(plaintext.length);
             for (var i = 0; i < precipherblock.length; i++)
@@ -246,7 +266,6 @@
             }
 
             // the last round is special
-            let ciphertext = new Uint8Array(16);
             for (var i = 0; i < 4; i++)
             {
                 let tt = this._Ke[rounds][i];
@@ -257,8 +276,6 @@
             }
 
             Array.copy(ciphertext, 0, this._lastCipherblock, 0, ciphertext.length);
-
-            return ciphertext;
         }
     }
 }

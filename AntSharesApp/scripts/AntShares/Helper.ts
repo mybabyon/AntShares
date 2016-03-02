@@ -13,6 +13,11 @@ interface Uint8Array
     toHexString(): string;
 }
 
+interface Uint8ArrayConstructor
+{
+    fromArrayBuffer(buffer: ArrayBuffer | ArrayBufferView): Uint8Array
+}
+
 namespace AntShares
 {
     Array.copy = function <T>(src: ArrayLike<T>, srcOffset: number, dst: ArrayLike<T>, dstOffset: number, count: number): void
@@ -34,6 +39,17 @@ namespace AntShares
         return this;
     }
 
+    Uint8Array.fromArrayBuffer = function (buffer: ArrayBuffer | ArrayBufferView): Uint8Array
+    {
+        if (buffer instanceof Uint8Array) return buffer;
+        else if (buffer instanceof ArrayBuffer) return new Uint8Array(buffer);
+        else
+        {
+            let view = buffer as ArrayBufferView;
+            return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+        }
+    }
+
     String.prototype.hexToBytes = function (): Uint8Array
     {
         if ((this.length & 1) != 0) throw new RangeError();
@@ -53,6 +69,21 @@ namespace AntShares
             this[length - 1 - i] = swap;
         }
         return this;
+    }
+
+    ArrayBuffer.prototype.slice = ArrayBuffer.prototype.slice || function (begin: number, end = this.byteLength): ArrayBuffer
+    {
+        if (begin < 0) begin += this.byteLength;
+        if (begin < 0) begin = 0;
+        if (end < 0) end += this.byteLength;
+        if (end > this.byteLength) end = this.byteLength;
+        let length = end - begin;
+        if (length < 0) length = 0;
+        let src = new Uint8Array(this);
+        let dst = new Uint8Array(length);
+        for (let i = 0; i < length; i++)
+            dst[i] = src[i + begin];
+        return dst.buffer;
     }
 
     Uint8Array.prototype.toHexString = function (): string

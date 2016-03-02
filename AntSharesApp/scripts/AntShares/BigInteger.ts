@@ -193,11 +193,9 @@
             let bits_x = bi_x.toUint16Array(), bits_y = bi_y.toUint16Array();
             let bits_result = new Uint16Array(bits_x.length - bits_y.length + 1);
             let bits_rem = new Uint16Array(bits_x.length + 1);
-            let bits_rem32 = new Uint32Array(bits_rem.buffer, 0, Math.ceil(bits_x.length / 2));
             bits_rem.set(bits_x);
             let view_rem = new DataView(bits_rem.buffer);
             let bits_sub = new Uint16Array(bits_x.length + 1);
-            let bits_sub32 = new Uint32Array(bits_sub.buffer, 0, Math.ceil(bits_x.length / 2));
             for (let i = bits_x.length - 1; i >= bits_y.length - 1; i--)
             {
                 let offset = i - bits_y.length + 1;
@@ -207,17 +205,17 @@
                 while (min != max)
                 {
                     bits_result[offset] = Math.ceil((min + max) / 2);
-                    bits_sub32.fill(0);
+                    bits_sub.fill(0);
                     BigInteger.multiplyInternal(bits_y, bits_result.subarray(offset, offset + 1), bits_sub.subarray(offset));
-                    if (BigInteger.subtractInternal(bits_rem32, bits_sub32, bits_sub32))
+                    if (BigInteger.subtractInternal(bits_rem, bits_sub, bits_sub))
                         max = bits_result[offset] - 1;
                     else
                         min = bits_result[offset];
                 }
                 bits_result[offset] = min;
-                bits_sub32.fill(0);
+                bits_sub.fill(0);
                 BigInteger.multiplyInternal(bits_y, bits_result.subarray(offset, offset + 1), bits_sub.subarray(offset));
-                BigInteger.subtractInternal(bits_rem32, bits_sub32, bits_rem32);
+                BigInteger.subtractInternal(bits_rem, bits_sub, bits_rem);
             }
             let result = new BigInteger(new Uint8Array(bits_result.buffer));
             if (!sign_result)
@@ -672,7 +670,7 @@
             return BigInteger.subtract(this, other);
         }
 
-        private static subtractInternal(x: Uint32Array, y: Uint32Array, r: Uint32Array): boolean
+        private static subtractInternal(x: ArrayLike<number>, y: ArrayLike<number>, r: ArrayLike<number>): boolean
         {
             let borrow = false;
             for (let i = 0; i < x.length; i++)

@@ -4,30 +4,8 @@
 
     export class ECDsa
     {
-        private privateKey: Uint8Array;
-        private publicKey: ECPoint;
-        private curve: ECCurve;
-
-        constructor(key: Uint8Array | ECPoint, curve?: ECCurve)
+        constructor(private key: ECDsaCryptoKey)
         {
-            if (key instanceof Uint8Array)
-            {
-                if (key.length == 32)
-                {
-                    this.privateKey = key;
-                    this.publicKey = ECPoint.multiply(curve.G, key);
-                }
-                else
-                {
-                    this.publicKey = ECPoint.fromUint8Array(key, curve);
-                }
-                this.curve = curve;
-            }
-            else if (key instanceof ECPoint)
-            {
-                this.publicKey = key;
-                this.curve = key.curve;
-            }
         }
 
         private static calculateE(n: BigInteger, message: Uint8Array): BigInteger
@@ -41,11 +19,22 @@
             return trunc;
         }
 
+        public static generateKey(curve: ECCurve): { privateKey: ECDsaCryptoKey, publicKey: ECDsaCryptoKey }
+        {
+            let prikey = new Uint8Array(32);
+            window.crypto.getRandomValues(prikey);
+            let pubkey = ECPoint.multiply(curve.G, prikey);
+            return {
+                privateKey: new ECDsaCryptoKey(pubkey, prikey),
+                publicKey: new ECDsaCryptoKey(pubkey)
+            };
+        }
+
         public sign(message: Uint8Array): Signature
         {
-            if (this.privateKey == null) throw new Error();
-            let e = ECDsa.calculateE(this.curve.N, message);
-            let d = BigInteger.fromUint8Array(this.privateKey, 1, false);
+            if (this.key.privateKey == null) throw new Error();
+            let e = ECDsa.calculateE(this.key.publicKey.curve.N, message);
+            let d = BigInteger.fromUint8Array(this.key.privateKey, 1, false);
             let r: BigInteger, s: BigInteger;
             do
             {
@@ -54,18 +43,18 @@
                 {
                     do
                     {
-                        k = BigInteger.random(this.curve.N.bitLength(), window.crypto);
+                        k = BigInteger.random(this.key.publicKey.curve.N.bitLength(), window.crypto);
                     }
-                    while (k.sign() == 0 || k.compare(this.curve.N) >= 0);
-                    let p = ECPoint.multiply(this.curve.G, k);
+                    while (k.sign() == 0 || k.compare(this.key.publicKey.curve.N) >= 0);
+                    let p = ECPoint.multiply(this.key.publicKey.curve.G, k);
                     let x = p.x.value;
-                    r = x.mod(this.curve.N);
+                    r = x.mod(this.key.publicKey.curve.N);
                 }
                 while (r.sign() == 0);
-                s = k.modInverse(this.curve.N).multiply(e.add(d.multiply(r))).mod(this.curve.N);
-                if (s.compare(this.curve.N.divide(2)) > 0)
+                s = k.modInverse(this.key.publicKey.curve.N).multiply(e.add(d.multiply(r))).mod(this.key.publicKey.curve.N);
+                if (s.compare(this.key.publicKey.curve.N.divide(2)) > 0)
                 {
-                    s = this.curve.N.subtract(s);
+                    s = this.key.publicKey.curve.N.subtract(s);
                 }
             }
             while (s.sign() == 0);
@@ -98,14 +87,14 @@
 
         public verify(message: Uint8Array, r: BigInteger, s: BigInteger): boolean
         {
-            if (r.sign() < 1 || s.sign() < 1 || r.compare(this.curve.N) >= 0 || s.compare(this.curve.N) >= 0)
+            if (r.sign() < 1 || s.sign() < 1 || r.compare(this.key.publicKey.curve.N) >= 0 || s.compare(this.key.publicKey.curve.N) >= 0)
                 return false;
-            let e = ECDsa.calculateE(this.curve.N, message);
-            let c = s.modInverse(this.curve.N);
-            let u1 = e.multiply(c).mod(this.curve.N);
-            let u2 = r.multiply(c).mod(this.curve.N);
-            let point = ECDsa.sumOfTwoMultiplies(this.curve.G, u1, this.publicKey, u2);
-            let v = point.x.value.mod(this.curve.N);
+            let e = ECDsa.calculateE(this.key.publicKey.curve.N, message);
+            let c = s.modInverse(this.key.publicKey.curve.N);
+            let u1 = e.multiply(c).mod(this.key.publicKey.curve.N);
+            let u2 = r.multiply(c).mod(this.key.publicKey.curve.N);
+            let point = ECDsa.sumOfTwoMultiplies(this.key.publicKey.curve.G, u1, this.key.publicKey, u2);
+            let v = point.x.value.mod(this.key.publicKey.curve.N);
             return v.equals(r);
         }
     }

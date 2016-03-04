@@ -9,19 +9,16 @@
 
     export class AesCryptoKey extends CryptoKey
     {
-        private _key_bytes: Uint8Array;
-
-        constructor(length: number)
+        constructor(private _key_bytes: Uint8Array)
         {
-            super("secret", true, { name: "AES-CBC", length: length }, ["encrypt", "decrypt"]);
+            super("secret", true, { name: "AES-CBC", length: _key_bytes.length * 8 }, ["encrypt", "decrypt"]);
         }
 
         public static create(length: number): AesCryptoKey
         {
             if (length != 128 && length != 192 && length != 256)
                 throw new RangeError();
-            let key = new AesCryptoKey(length);
-            key._key_bytes = new Uint8Array(length / 8);
+            let key = new AesCryptoKey(new Uint8Array(length / 8));
             window.crypto.getRandomValues(key._key_bytes);
             return key;
         }
@@ -35,9 +32,15 @@
         {
             if (keyData.byteLength != 16 && keyData.byteLength != 24 && keyData.byteLength != 32)
                 throw new RangeError();
-            let key = new AesCryptoKey(keyData.byteLength * 8);
-            key._key_bytes = Uint8Array.fromArrayBuffer(keyData);
-            return key;
+            return new AesCryptoKey(Uint8Array.fromArrayBuffer(keyData));
+        }
+    }
+
+    export class ECDsaCryptoKey extends CryptoKey
+    {
+        constructor(public publicKey: ECPoint, public privateKey?: Uint8Array)
+        {
+            super(privateKey == null ? "public" : "private", true, { name: "ECDSA", namedCurve: "P-256" }, [privateKey == null ? "verify" : "sign"]);
         }
     }
 }

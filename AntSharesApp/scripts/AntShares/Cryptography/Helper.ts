@@ -3,17 +3,42 @@
 interface String
 {
     base58Decode(): Uint8Array;
+    base64UrlDecode(): Uint8Array;
 }
 
 interface Uint8Array
 {
     base58Encode(): string;
+    base64UrlEncode(): string;
 }
 
 namespace AntShares.Cryptography
 {
-    String.prototype.base58Decode = function () { return Base58.Decode(this); };
-    Uint8Array.prototype.base58Encode = function () { return Base58.Encode(this); };
+    String.prototype.base58Decode = function ()
+    {
+        return Base58.Decode(this);
+    }
+
+    String.prototype.base64UrlDecode = function ()
+    {
+        let str = window.atob(this.replace(/-/g, '+').replace(/_/g, '/'));
+        let arr = new Uint8Array(str.length);
+        for (let i = 0; i < str.length; i++)
+            arr[i] = str.charCodeAt(i);
+        return arr;
+    }
+
+    Uint8Array.prototype.base58Encode = function ()
+    {
+        return Base58.Encode(this);
+    }
+
+    Uint8Array.prototype.base64UrlEncode = function ()
+    {
+        let str: string = String.fromCharCode.apply(null, this);
+        str = window.btoa(str);
+        return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    }
 
     let getAlgorithmName = (algorithm: string | Algorithm) => typeof algorithm === "string" ? algorithm : algorithm.name;
 
@@ -106,14 +131,21 @@ namespace AntShares.Cryptography
             }),
             exportKey: (format, key) => new Promise((resolve, reject) =>
             {
-                if (format != "raw" || !(key instanceof AesCryptoKey))
+                if (format != "jwk" || !(key instanceof AesCryptoKey))
                 {
                     reject(new RangeError());
                     return;
                 }
                 try
                 {
-                    resolve((key as AesCryptoKey).export().buffer);
+                    let k = key as AesCryptoKey;
+                    resolve({
+                        alg: "A256CBC",
+                        ext: true,
+                        k: k.export().base64UrlEncode(),
+                        key_ops: k.usages,
+                        kty: "oct"
+                    });
                 }
                 catch (e)
                 {
@@ -138,14 +170,14 @@ namespace AntShares.Cryptography
             }),
             importKey: (format, keyData, algorithm, extractable, keyUsages) => new Promise((resolve, reject) =>
             {
-                if (format != "raw" || getAlgorithmName(algorithm) != "AES-CBC")
+                if (format != "jwk" || getAlgorithmName(algorithm) != "AES-CBC")
                 {
                     reject(new RangeError());
                     return;
                 }
                 try
                 {
-                    resolve(AesCryptoKey.import(keyData));
+                    resolve(AesCryptoKey.import((keyData as any).k.base64UrlDecode()));
                 }
                 catch (e)
                 {
@@ -161,8 +193,118 @@ namespace AntShares.Cryptography
     let digest_old = window.crypto.subtle.digest;
     window.crypto.subtle.digest = (algorithm, data) =>
     {
-        if (getAlgorithmName(algorithm) == "RIPEMD-160")
-            return new Promise<ArrayBuffer>((resolve, reject) => resolve(RIPEMD160.computeHash(data)));
-        return digest_old(algorithm, data as any);
+        if (getAlgorithmName(algorithm) != "RIPEMD-160") return digest_old.call(window.crypto.subtle, algorithm, data as any);
+        return new Promise<ArrayBuffer>((resolve, reject) =>
+        {
+            try
+            {
+                resolve(RIPEMD160.computeHash(data));
+            }
+            catch (e)
+            {
+                reject(e);
+            }
+        });
+    };
+    let exportKey_old = window.crypto.subtle.exportKey;
+    window.crypto.subtle.exportKey = (format, key) =>
+    {
+        if (exportKey_old)
+            try
+            {
+                return exportKey_old.call(window.crypto.subtle, format, key);
+            } catch (e) { }
+        return new Promise((resolve, reject) =>
+        {
+            let k = key as ECDsaCryptoKey;
+            if (format != "jwk" || k.algorithm.name != "ECDSA" || k.algorithm.namedCurve != "P-256")
+                reject(new RangeError());
+            else
+                try
+                {
+                    if (k.type == "private")
+                        resolve({
+                            crv: k.algorithm.namedCurve,
+                            d: k.privateKey.base64UrlEncode(),
+                            ext: true,
+                            key_ops: k.usages,
+                            kty: "EC",
+                            x: k.publicKey.x.value.toUint8Array(false, 32).base64UrlEncode(),
+                            y: k.publicKey.y.value.toUint8Array(false, 32).base64UrlEncode()
+                        });
+                    else
+                        resolve({
+                            crv: k.algorithm.namedCurve,
+                            ext: true,
+                            key_ops: k.usages,
+                            kty: "EC",
+                            x: k.publicKey.x.value.toUint8Array(false, 32).base64UrlEncode(),
+                            y: k.publicKey.y.value.toUint8Array(false, 32).base64UrlEncode()
+                        });
+                }
+                catch (e)
+                {
+                    reject(e);
+                }
+        });
+    };
+    let generateKey_old = window.crypto.subtle.generateKey;
+    window.crypto.subtle.generateKey = (algorithm, extractable, keyUsages) =>
+    {
+        if (generateKey_old)
+            try
+            {
+                return generateKey_old.call(window.crypto.subtle, algorithm, extractable, keyUsages);
+            } catch (e) { }
+        return new Promise((resolve, reject) =>
+        {
+            let a = algorithm as Algorithm;
+            if (a.name != "ECDSA" || a.namedCurve != "P-256")
+                reject(new RangeError());
+            else
+                try
+                {
+                    resolve(ECDsa.generateKey(ECCurve.secp256r1));
+                }
+                catch (e)
+                {
+                    reject(e);
+                }
+        });
+    };
+    let importKey_old = window.crypto.subtle.importKey;
+    window.crypto.subtle.importKey = (format, keyData, algorithm, extractable, keyUsages) =>
+    {
+        if (importKey_old)
+            try
+            {
+                return importKey_old.call(window.crypto.subtle, format, keyData, algorithm, extractable, keyUsages);
+            } catch (e) { }
+        return new Promise((resolve, reject) =>
+        {
+            let k = keyData as any;
+            let a = algorithm as Algorithm;
+            if (format != "jwk" || a.name != "ECDSA" || a.namedCurve != "P-256")
+                reject(new RangeError());
+            else
+                try
+                {
+                    let x = k.x.base64UrlDecode();
+                    let y = k.y.base64UrlDecode();
+                    let arr = new Uint8Array(65);
+                    arr[0] = 0x04;
+                    Array.copy(x, 0, arr, 1, 32);
+                    Array.copy(y, 0, arr, 33, 32);
+                    let pubkey = ECPoint.decodePoint(arr, ECCurve.secp256r1);
+                    if (k.d)
+                        resolve(new ECDsaCryptoKey(pubkey, k.d.base64UrlDecode()));
+                    else
+                        resolve(new ECDsaCryptoKey(pubkey));
+                }
+                catch (e)
+                {
+                    reject(e);
+                }
+        });
     };
 }

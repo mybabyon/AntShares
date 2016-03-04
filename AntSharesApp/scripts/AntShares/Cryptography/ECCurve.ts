@@ -1,10 +1,10 @@
 ﻿namespace AntShares.Cryptography
 {
+    let _secp256k1: ECCurve;
+    let _secp256r1: ECCurve;
+
     export class ECCurve
     {
-        public static _secp256k1: ECCurve;
-        public static _secp256r1: ECCurve;
-
         public Q: BigInteger;
         public A: ECFieldElement;
         public B: ECFieldElement;
@@ -14,7 +14,7 @@
 
         public static get secp256k1(): ECCurve
         {
-            return ECCurve._secp256k1 || (ECCurve._secp256k1 = new ECCurve(
+            return _secp256k1 || (_secp256k1 = new ECCurve(
                 BigInteger.fromString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F", 16),
                 BigInteger.Zero,
                 new BigInteger(7),
@@ -25,7 +25,7 @@
 
         public static get secp256r1(): ECCurve
         {
-            return ECCurve._secp256r1 || (ECCurve._secp256r1 = new ECCurve(
+            return _secp256r1 || (_secp256r1 = new ECCurve(
                 BigInteger.fromString("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF", 16),
                 BigInteger.fromString("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC", 16),
                 BigInteger.fromString("5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B", 16),

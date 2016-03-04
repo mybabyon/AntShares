@@ -2,6 +2,7 @@
 {
     iv?: ArrayBuffer | ArrayBufferView;
     length?: number;
+    namedCurve?: string;
 }
 
 interface Crypto

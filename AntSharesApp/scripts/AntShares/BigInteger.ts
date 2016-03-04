@@ -4,29 +4,18 @@
     const DM = (1 << DB) - 1;
     const DV = DM + 1;
 
+    let _minusone: BigInteger;
+    let _one: BigInteger;
+    let _zero: BigInteger;
+
     export class BigInteger
     {
-        private static _minusone: BigInteger;
-        private static _one: BigInteger;
-        private static _zero: BigInteger;
-
         private _sign = 0;
         private _bits = new Array<number>();
 
-        public static get MinusOne(): BigInteger
-        {
-            return BigInteger._minusone || (BigInteger._minusone = new BigInteger(-1));
-        }
-
-        public static get One(): BigInteger
-        {
-            return BigInteger._one || (BigInteger._one = new BigInteger(1));
-        }
-
-        public static get Zero(): BigInteger
-        {
-            return BigInteger._zero || (BigInteger._zero = new BigInteger(0));
-        }
+        public static get MinusOne() { return _minusone || (_minusone = new BigInteger(-1)); }
+        public static get One() { return _one || (_one = new BigInteger(1)); }
+        public static get Zero() { return _zero || (_zero = new BigInteger(0)); }
 
         constructor(value: number | string | Uint8Array)
         {
@@ -699,23 +688,25 @@
             return s;
         }
 
-        public toUint8Array(): Uint8Array
+        public toUint8Array(littleEndian = true, length?: number): Uint8Array
         {
-            if (this._sign == 0) return new Uint8Array(1);
-            let array = new Uint8Array(Math.ceil(this._bits.length * DB / 8));
+            if (this._sign == 0) return new Uint8Array(length || 1);
+            let cb = Math.ceil(this._bits.length * DB / 8);
+            let array = new Uint8Array(length || cb);
             for (let i = 0; i < array.length; i++)
             {
+                let offset = littleEndian ? i : array.length - 1 - i;
                 let cbits = i * 8;
                 let cu = Math.floor(cbits / DB);
                 cbits %= DB;
                 if (DB - cbits < 8)
-                    array[i] = (this._bits[cu] >>> cbits | this._bits[cu + 1] << (DB - cbits)) & 0xff;
+                    array[offset] = (this._bits[cu] >>> cbits | this._bits[cu + 1] << (DB - cbits)) & 0xff;
                 else
-                    array[i] = this._bits[cu] >>> cbits & 0xff;
+                    array[offset] = this._bits[cu] >>> cbits & 0xff;
             }
-            let actual_length = BigInteger.getActualLength(array);
-            if (actual_length < array.length)
-                array = array.subarray(0, actual_length);
+            length = length || BigInteger.getActualLength(array);
+            if (length < array.length)
+                array = array.subarray(0, length);
             return array;
         }
     }

@@ -12,7 +12,7 @@
         {
             $('.content>.tab-content>.tab-pane').removeClass("active");
             $(id).addClass("active");
-            let className = id.replace("#Tab_", "AntShares.UI.").replace('_', '.');
+            let className = id.replace("#Tab_", "AntShares.UI.").replace(/_/g, '.');
             let tab: TabBase;
             if (TabBase._tabs[className] == null)
             {

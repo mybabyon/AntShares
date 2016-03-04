@@ -13,7 +13,7 @@
             0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
             0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
 
-        public static computeHash(data: Uint8Array): Uint8Array
+        public static computeHash(data: ArrayBuffer | ArrayBufferView): ArrayBuffer
         {
             // initial hash value [§5.3.1]
             let H = new Uint32Array([
@@ -22,27 +22,28 @@
             // PREPROCESSING 
 
             // convert data into 512-bit/16-integer blocks arrays of ints [§5.2.1]
-            let l = data.length / 4 + 2; // length (in 32-bit integers) of data + ‘1’ + appended length
+            let l = data.byteLength / 4 + 2; // length (in 32-bit integers) of data + ‘1’ + appended length
             let N = Math.ceil(l / 16);  // number of 16-integer-blocks required to hold 'l' ints
             let M = new Array<Uint32Array>(N);
+            let view = Uint8Array.fromArrayBuffer(data);
 
             for (let i = 0; i < N; i++)
             {
                 M[i] = new Uint32Array(16);
                 for (let j = 0; j < 16; j++)  // encode 4 chars per integer, big-endian encoding
                 {
-                    M[i][j] = (data[i * 64 + j * 4] << 24) | (data[i * 64 + j * 4 + 1] << 16) |
-                        (data[i * 64 + j * 4 + 2] << 8) | (data[i * 64 + j * 4 + 3]);
+                    M[i][j] = (view[i * 64 + j * 4] << 24) | (view[i * 64 + j * 4 + 1] << 16) |
+                        (view[i * 64 + j * 4 + 2] << 8) | (view[i * 64 + j * 4 + 3]);
                 } // note running off the end of data is ok 'cos bitwise ops on NaN return 0
             }
             // add trailing '1' bit (+ 0's padding) to string [§5.1.1]
-            M[Math.floor(data.length / 4 / 16)][Math.floor(data.length / 4) % 16] |= 0x80 << ((3 - data.length % 4) * 8);
+            M[Math.floor(data.byteLength / 4 / 16)][Math.floor(data.byteLength / 4) % 16] |= 0x80 << ((3 - data.byteLength % 4) * 8);
 
             // add length (in bits) into final pair of 32-bit integers (big-endian) [§5.1.1]
             // note: most significant word would be (len-1)*8 >>> 32, but since JS converts
             // bitwise-op args to 32 bits, we need to simulate this by arithmetic operators
-            M[N - 1][14] = (data.length * 8) / Math.pow(2, 32);
-            M[N - 1][15] = (data.length * 8) & 0xffffffff;
+            M[N - 1][14] = (data.byteLength * 8) / Math.pow(2, 32);
+            M[N - 1][15] = (data.byteLength * 8) & 0xffffffff;
 
 
             // HASH COMPUTATION [§6.1.2]
@@ -92,7 +93,7 @@
                 result[i * 4 + 2] = (H[i] >>> (1 * 8)) & 0xff;
                 result[i * 4 + 3] = (H[i] >>> (0 * 8)) & 0xff;
             }
-            return result;
+            return result.buffer;
         }
 
         // Rotates right (circular right shift) value x by n positions [§3.2.4].

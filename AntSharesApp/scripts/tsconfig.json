@@ -1,8 +1,8 @@
 {
-    "compilerOptions": { 
+    "compilerOptions": {
         "target": "es5",
         "noImplicitAny": false,
-        "removeComments": false,
+        "removeComments": true,
         "sourceMap": true,
         "inlineSources": true,
         "noEmitOnError": true,

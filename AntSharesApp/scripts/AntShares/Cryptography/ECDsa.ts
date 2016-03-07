@@ -1,22 +1,14 @@
 ﻿namespace AntShares.Cryptography
 {
-    type Signature = { r: BigInteger, s: BigInteger };
-
     export class ECDsa
     {
         constructor(private key: ECDsaCryptoKey)
         {
         }
 
-        private static calculateE(n: BigInteger, message: Uint8Array): BigInteger
+        private static calculateE(n: BigInteger, message: ArrayBuffer | ArrayBufferView): BigInteger
         {
-            let messageBitLength = message.length * 8;
-            let trunc = BigInteger.fromUint8Array(message, 1, false);
-            if (n.bitLength() < messageBitLength)
-            {
-                trunc = trunc.rightShift(messageBitLength - n.bitLength());
-            }
-            return trunc;
+            return BigInteger.fromUint8Array(new Uint8Array(Sha256.computeHash(message)), 1, false);
         }
 
         public static generateKey(curve: ECCurve): { privateKey: ECDsaCryptoKey, publicKey: ECDsaCryptoKey }
@@ -30,7 +22,7 @@
             };
         }
 
-        public sign(message: Uint8Array): Signature
+        public sign(message: ArrayBuffer | ArrayBufferView): ArrayBuffer
         {
             if (this.key.privateKey == null) throw new Error();
             let e = ECDsa.calculateE(this.key.publicKey.curve.N, message);
@@ -58,7 +50,10 @@
                 }
             }
             while (s.sign() == 0);
-            return { r: r, s: s };
+            let arr = new Uint8Array(64);
+            Array.copy(r.toUint8Array(false, 32), 0, arr, 0, 32);
+            Array.copy(s.toUint8Array(false, 32), 0, arr, 32, 32);
+            return arr.buffer;
         }
 
         private static sumOfTwoMultiplies(P: ECPoint, k: BigInteger, Q: ECPoint, l: BigInteger): ECPoint
@@ -85,9 +80,12 @@
             return R;
         }
 
-        public verify(message: Uint8Array, r: BigInteger, s: BigInteger): boolean
+        public verify(message: ArrayBuffer | ArrayBufferView, signature: ArrayBuffer | ArrayBufferView): boolean
         {
-            if (r.sign() < 1 || s.sign() < 1 || r.compare(this.key.publicKey.curve.N) >= 0 || s.compare(this.key.publicKey.curve.N) >= 0)
+            let arr = Uint8Array.fromArrayBuffer(signature);
+            let r = BigInteger.fromUint8Array(arr.subarray(0, 32), 1, false);
+            let s = BigInteger.fromUint8Array(arr.subarray(32, 64), 1, false);
+            if (r.compare(this.key.publicKey.curve.N) >= 0 || s.compare(this.key.publicKey.curve.N) >= 0)
                 return false;
             let e = ECDsa.calculateE(this.key.publicKey.curve.N, message);
             let c = s.modInverse(this.key.publicKey.curve.N);

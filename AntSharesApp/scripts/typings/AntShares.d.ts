@@ -1,5 +1,6 @@
 ﻿interface Algorithm
 {
+    hash?: Algorithm;
     iv?: ArrayBuffer | ArrayBufferView;
     length?: number;
     namedCurve?: string;

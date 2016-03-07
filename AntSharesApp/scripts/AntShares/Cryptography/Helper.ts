@@ -307,4 +307,54 @@ namespace AntShares.Cryptography
                 }
         });
     };
+    let sign_old = window.crypto.subtle.sign;
+    window.crypto.subtle.sign = (algorithm, key, data) =>
+    {
+        if (sign_old)
+            try
+            {
+                return sign_old.call(window.crypto.subtle, algorithm, key, data);
+            } catch (e) { }
+        return new Promise((resolve, reject) =>
+        {
+            let a = algorithm as Algorithm;
+            if (a.name != "ECDSA" || a.hash.name != "SHA-256" || key.algorithm.name != "ECDSA")
+                reject(new RangeError());
+            else
+                try
+                {
+                    let ecdsa = new ECDsa(key as ECDsaCryptoKey);
+                    resolve(ecdsa.sign(data));
+                }
+                catch (e)
+                {
+                    reject(e);
+                }
+        });
+    };
+    let verify_old = window.crypto.subtle.verify;
+    window.crypto.subtle.verify = (algorithm, key, signature, data) =>
+    {
+        if (verify_old)
+            try
+            {
+                return verify_old.call(window.crypto.subtle, algorithm, key, signature, data);
+            } catch (e) { }
+        return new Promise((resolve, reject) =>
+        {
+            let a = algorithm as Algorithm;
+            if (a.name != "ECDSA" || a.hash.name != "SHA-256" || key.algorithm.name != "ECDSA")
+                reject(new RangeError());
+            else
+                try
+                {
+                    let ecdsa = new ECDsa(key as ECDsaCryptoKey);
+                    resolve(ecdsa.verify(data, signature));
+                }
+                catch (e)
+                {
+                    reject(e);
+                }
+        });
+    };
 }

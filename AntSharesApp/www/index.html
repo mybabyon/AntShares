@@ -373,16 +373,23 @@
                     <fieldset>
                         <h2 class="page-header">创建钱包</h2>
                         <div class="form-group">
+                            <label class="col-sm-4 control-label">输入钱包名称</label>
+                            <div class="col-sm-6">
+                                <input class="form-control" type="password" placeholder="钱包名称" />
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label class="col-sm-4 control-label">输入钱包密码</label>
                             <div class="col-sm-6">
-                                <input class="form-control" type="password" placeholder="钱包密码" />
+                                <input id="password" class="form-control" type="password" placeholder="钱包密码" />
                                 <span class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">输入钱包确认密码</label>
                             <div class="col-sm-6">
-                                <input class="form-control" type="password" placeholder="确认密码" />
+                                <input id="password_confirm" class="form-control" type="password" placeholder="确认密码" />
                                 <span class="text-danger"></span>
                             </div>
                         </div>
@@ -539,6 +546,19 @@
             var result = rpc.call("getblockcount", []);
             $("#lbl_height").text(result - 1);
         }();
+        function alert(message) {
+            $('.modal-body').text(message);
+            $('#myModal').modal();
+        }
     </script>
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    ...
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

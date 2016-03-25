@@ -1,5 +1,5 @@
 ﻿enum StoreName {
-    account,
-    contract,
-    key
+    Account,
+    Contract,
+    Key
 }

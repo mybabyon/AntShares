@@ -1,12 +1,26 @@
 ﻿namespace AntShares.Wallets {
     export class Wallet {
+        private static SingletonWallet: Wallet;
         public db: IDBDatabase;
-        public OpenDB = (dbName: string, version: number) => {
+        private dbName = "wallet";
+        private version = 5;
+        constructor() {
+        }
+        public static CreateInstance(): Wallet {
+            if (this.SingletonWallet == null) {
+                this.SingletonWallet = new Wallet();
+                return this.SingletonWallet;
+            }
+            else {
+                return this.SingletonWallet;
+            }
+        }
+        public OpenDB = () => {
             if (!window.indexedDB) {
                 alert("Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available.")
             }
 
-            let request = window.indexedDB.open(dbName, version);
+            let request = window.indexedDB.open(this.dbName, this.version);
 
             request.onsuccess = (e: any) => {
                 this.db = e.target.result;
@@ -32,62 +46,111 @@
                     objectStore.createIndex("Key", "Name", { unique: true });
 
                 }
-                console.log('IDB version changed to ' + version);
+                console.log('IDB version changed to ' + this.version);
             };
             request.onblocked = (e: any) => {
             };
         }
-        constructor(passwordKey: Uint8Array, create: boolean) {
-            const dbName = "wallet";
-            const version = 4;
-            if (create) {
 
-                let IV = new Uint8Array(16);;
-                window.crypto.getRandomValues(IV);
-                this.AddKey(new KeyStore("IV", IV));
+        CreateWallet(passwordKey: Uint8Array) {
+            //console.log(this.db);
+            let IV = new Uint8Array(16);;
+            window.crypto.getRandomValues(IV);
+            //console.log(IV);
+            this.AddKey(new KeyStore("IV", IV));
 
-                let passwordHash = new Uint8Array(256);
-                window.crypto.subtle.digest(
-                    {
-                        name: "SHA-256",
-                    },
-                    passwordKey
-                ).then(
-                    p => {
-                        passwordHash = p;
-                    }
-                    );
-                this.AddKey(new KeyStore("passwordKey", passwordKey));
+            let passwordHash = new Uint8Array(256);
+            window.crypto.subtle.digest(
+                {
+                    name: "SHA-256",
+                },
+                passwordKey
+            )
+                .then(hash => {
+                    passwordHash = new Uint8Array(hash);
+                    //console.log(passwordHash);
+                    this.AddKey(new KeyStore("PasswordHash", passwordHash));
+                })
+                .catch(err => {
+                    console.error(err);
+                });
+
+            let masterKey = new Uint8Array(32);
+            window.crypto.getRandomValues(masterKey);
+
+            let pwdAESKey = new Uint8Array(256);
+            window.crypto.subtle.digest(
+                {
+                    name: "SHA-256",
+                },
+                passwordKey
+            )
+                .then(hash => {
+                    window.crypto.subtle.digest(
+                        {
+                            name: "SHA-256",
+                        },
+                        hash
+                    )
+                        .then(hash2 => {
+                            pwdAESKey = hash2;
+                        })
+                })
+                .catch(err => {
+                    console.error(err);
+                });
 
 
-                let masterKey = new Uint8Array(32);;
-                window.crypto.getRandomValues(masterKey);;
-                window.crypto.subtle.encrypt(
-                    {
-                        name: "AES-CBC", iv: IV
-                    },
-                    passwordKey,
-                    //TODO:要把passwordKey转为CryptoKey接口的类型
-                    masterKey
-                ).then(p => {
-                    masterKey = p;
-                    });
+            window.crypto.subtle.importKey(
+                "jwk",
+                {
+                    kty: "oct",
+                    k: pwdAESKey, //TODO:Edge可以正常运行，Chrome报错
+                    alg: "A256CBC",
+                    ext: true,
+                } as any,
+                "AES-CBC",
+                false,
+                ["encrypt", "decrypt"]
+            )
+                .then(key => {
+                    return key;
+                })
+                .catch(err => {
+                    console.error(err);
+                })
+                .then(pwdImport => {
+                    window.crypto.subtle.encrypt(
+                        {
+                            name: "AES-CBC",
+                            iv: IV
+                        },
+                        pwdImport, //from generateKey or importKey above
+                        masterKey
+                    )
+                        .then(q => {
+                            masterKey = q;
+                            console.log(masterKey);
+                            this.AddKey(new KeyStore("MasterKey", masterKey));
+                        })
+                        .catch(err => {
+                            console.error(err);
+                        });
+                });
 
-                this.AddKey(new KeyStore("MasterKey", masterKey));
 
-                let version = new Uint8Array(1);
-                version[0] = 1;
-                this.AddKey(new KeyStore("Version", version));
-            }
-            else {
 
-            }
-            this.OpenDB(dbName, version);
+            let versionArray = new Uint8Array(1);
+            versionArray[0] = this.version;
+            this.AddKey(new KeyStore("Version", versionArray));
+
         }
+
         public AddAccount(account: AccountStore) {
             try {
                 if (this.db) {
-                    let transaction = this.db.transaction("Account", IDBTransaction.READ_WRITE);
+                    let transaction = this.db.transaction("Account", IDBTransaction.READ_WRITE); //针对Edge
+                    transaction = this.db.transaction("Account", 'readwrite');//针对Chrome
                     let store = transaction.objectStore("Account");
                     store.add(account);
                     console.log('add account success');
@@ -103,8 +166,9 @@
         public AddContract(contract: ContractStore) {
             try {
                 if (this.db) {
-                    let transaction = this.db.transaction("contract", IDBTransaction.READ_WRITE);
-                    let store = transaction.objectStore("contract");
+                    let transaction = this.db.transaction("Contract", IDBTransaction.READ_WRITE);
+                    transaction = this.db.transaction("Contract", 'readwrite');
+                    let store = transaction.objectStore("Contract");
                     store.add(contract);
                     console.log('add contract success');
                 }
@@ -119,8 +183,9 @@
         public AddKey(key: KeyStore) {
             try {
                 if (this.db) {
-                    let transaction = this.db.transaction("key", IDBTransaction.READ_WRITE);
-                    let store = transaction.objectStore("key");
+                    let transaction = this.db.transaction("Key", IDBTransaction.READ_WRITE);
+                    transaction = this.db.transaction("Key", 'readwrite');
+                    let store = transaction.objectStore("Key");
                     store.add(key);
                     console.log('add key success');
                 }
@@ -165,10 +230,10 @@
                 console.log(request.error.toString());
             };
         };
-        public GetDataByKey(storeName: StoreName, value: string): string {
+        public GetDataByKey(storeName: StoreName, key: string): string {
             let transaction = this.db.transaction(storeName.toString(), IDBTransaction.READ_WRITE);
             let store = transaction.objectStore(storeName.toString());
-            let request = store.get(value);
+            let request = store.get(key);
             request.onsuccess = (e: any) => {
                 return e.target.result;
             };

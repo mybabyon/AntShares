@@ -413,7 +413,7 @@
                         <div class="form-group">
                             <label class="col-sm-4 control-label">输入钱包密码</label>
                             <div class="col-sm-6">
-                                <input class="form-control" autocomplete="off" type="password" placeholder="钱包密码" />
+                                <input class="form-control" id="password" autocomplete="off" type="password" placeholder="钱包密码" />
                                 <span class="text-danger"></span>
                             </div>
                         </div>
@@ -508,7 +508,6 @@
     <script src="cordova.js"></script>
     <script src="scripts/platformOverrides.js"></script>
     <script src="scripts/appBundle.js"></script>
-
     <script type="text/javascript">
         //初始化侧边栏
         $('nav#menu').mmenu({
@@ -539,13 +538,13 @@
             previewFileIcon: "<i class='glyphicon glyphicon-king'></i>",
             //uploadUrl: "~/Wallet/Upload"
         });
-
-        void function ()
+        setTimeout(getblockcount, 1000);
+        function getblockcount()
         {
             var rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
             var result = rpc.call("getblockcount", []);
             $("#lbl_height").text(result - 1);
-        }();
+        };
         function alert(message) {
             $('.modal-body').text(message);
             $('#myModal').modal();

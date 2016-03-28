@@ -64,7 +64,7 @@
                 {
                     name: "SHA-256",
                 },
-                passwordKey
+                passwordKey 
             )
                 .then(hash => {
                     passwordHash = new Uint8Array(hash);
@@ -77,66 +77,71 @@
 
             let masterKey = new Uint8Array(32);
             window.crypto.getRandomValues(masterKey);
-
             let pwdAESKey = new Uint8Array(256);
             window.crypto.subtle.digest(
                 {
                     name: "SHA-256",
                 },
-                passwordKey
+                passwordKey 
             )
                 .then(hash => {
                     window.crypto.subtle.digest(
                         {
                             name: "SHA-256",
                         },
-                        hash
+                        new Uint8Array(hash)
                     )
                         .then(hash2 => {
-                            pwdAESKey = hash2;
-                        })
-                })
-                .catch(err => {
-                    console.error(err);
-                });
+                            pwdAESKey = new Uint8Array(hash2); //钱包口令经过UTF8编码以及两次HASH-256之后的结果
+                            let pwdAESKeyStr = pwdAESKey.base64UrlEncode();
+
+                            window.crypto.subtle.importKey(
+                                "jwk",
+                                {
+                                    kty: "oct",
+                                    k: pwdAESKeyStr, //TODO:Edge可以正常运行，Chrome报错
+                                    alg: "A256CBC",
+                                    ext: true,
+                                } as any,
+                                "AES-CBC",
+                                false,
+                                ["encrypt", "decrypt"]
+                            )
+                                .then(key => {
+                                    return key;
+                                })
+                                .catch(err => {
+                                    console.error(err);
+                                })
+                                .then(pwdImport => {
+                                    window.crypto.subtle.encrypt(
+                                        {
+                                            name: "AES-CBC",
+                                            iv: IV
+                                        },
+                                        pwdImport, //from generateKey or importKey above
+                                        masterKey
+                                    )
+                                        .then(q => {
+                                            masterKey = new Uint8Array(q);
+                                            this.AddKey(new KeyStore("MasterKey", masterKey));
+                                        })
+                                        .catch(err => {
+                                            console.error(err);
+                                        });
+                                });
 
 
-            window.crypto.subtle.importKey(
-                "jwk",
-                {
-                    kty: "oct",
-                    k: pwdAESKey, //TODO:Edge可以正常运行，Chrome报错
-                    alg: "A256CBC",
-                    ext: true,
-                } as any,
-                "AES-CBC",
-                false,
-                ["encrypt", "decrypt"]
-            )
-                .then(key => {
-                    return key;
-                })
-                .catch(err => {
-                    console.error(err);
-                })
-                .then(pwdImport => {
-                    window.crypto.subtle.encrypt(
-                        {
-                            name: "AES-CBC",
-                            iv: IV
-                        },
-                        pwdImport, //from generateKey or importKey above
-                        masterKey
-                    )
-                        .then(q => {
-                            masterKey = q;
-                            console.log(masterKey);
-                            this.AddKey(new KeyStore("MasterKey", masterKey));
                         })
                         .catch(err => {
                             console.error(err);
-                        });
-                });
+                        })
+                })
+                
+                
+
+
+
 
 
 

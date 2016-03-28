@@ -6,20 +6,13 @@ namespace AntShares.UI.Wallet {
         }
 
         protected onload(): void {
-
             let wallet = AntShares.Wallets.Wallet.CreateInstance();
             wallet.OpenDB();
         }
 
         private OnCreateButtonClick() {
-            let password = $("#password").val();
-            let uint8array = new Uint8Array(password.length);
-            for (var i = 0; i < password.length; i++) {
-                uint8array[i] = password.charCodeAt(i);
-            }
             let wallet = AntShares.Wallets.Wallet.CreateInstance();
-            wallet.CreateWallet(uint8array);
-
+            wallet.CreateWallet(toUint8Array(encodeUTF8($("#password").val())));
 
             //生成随机数
             //window.crypto.subtle.generateKey(

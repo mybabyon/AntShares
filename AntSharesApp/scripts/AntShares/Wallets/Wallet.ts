@@ -130,20 +130,12 @@
                                             console.error(err);
                                         });
                                 });
-
-
                         })
                         .catch(err => {
                             console.error(err);
                         })
                 })
                 
-                
-
-
-
-
-
 
             let versionArray = new Uint8Array(1);
             versionArray[0] = this.version;
@@ -217,11 +209,13 @@
         }
         public ClearObjectStore(storeName: StoreName) {
             let transaction = this.db.transaction(storeName.toString(), IDBTransaction.READ_WRITE);
+            transaction = this.db.transaction(storeName.toString(), 'readwrite');
             let store = transaction.objectStore(storeName.toString());
             store.clear();
         }
         public DeleteDataByKey(storeName: StoreName, value: string) {
             let transaction = this.db.transaction(storeName.toString(), IDBTransaction.READ_WRITE);
+            transaction = this.db.transaction(storeName.toString(), 'readwrite');
             let store = transaction.objectStore(storeName.toString());
             store.delete(value);
         }
@@ -236,7 +230,8 @@
             };
         };
         public GetDataByKey(storeName: StoreName, key: string): string {
-            let transaction = this.db.transaction(storeName.toString(), IDBTransaction.READ_WRITE);
+            let transaction = this.db.transaction(storeName.toString(), IDBTransaction.READ_ONLY);
+            transaction = this.db.transaction(storeName.toString(), 'read');
             let store = transaction.objectStore(storeName.toString());
             let request = store.get(key);
             request.onsuccess = (e: any) => {
@@ -251,6 +246,7 @@
             try {
                 if (this.db) {
                     let transaction = this.db.transaction(storeName.toString(), IDBTransaction.READ_ONLY);
+                    transaction = this.db.transaction(storeName.toString(), 'read');
                     let objectStore = transaction.objectStore(storeName.toString());
                     let request = objectStore.openCursor();
                     request.onsuccess = (e: any) => {
@@ -277,6 +273,7 @@
         }
         public UpdateDataByKey(storeName: StoreName, value: string, object: AccountStore | ContractStore | KeyStore) {
             let transaction = this.db.transaction(storeName.toString(), IDBTransaction.READ_WRITE);
+            transaction = this.db.transaction(storeName.toString(), 'readwrite');
             let store = transaction.objectStore(storeName.toString());
             let request = store.get(value);
             request.onsuccess = (e: any) => {

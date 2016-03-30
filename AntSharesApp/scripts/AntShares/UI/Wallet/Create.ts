@@ -32,8 +32,8 @@ namespace AntShares.UI.Wallet {
             })
             .then(p => {
                 Account.PrivateKey = p.d.base64UrlDecode();
-                Account.PublicKey = EncodePoint(p.x.base64UrlDecode(), p.y.base64UrlDecode(), false).subarray(1, 64);
-                ToScriptHash(EncodePoint(p.x.base64UrlDecode(), p.y.base64UrlDecode(), true), createAccount);
+                Account.PublicKey = EncodePoint(new ECPoint(p.x.base64UrlDecode(), p.y.base64UrlDecode()), false).subarray(1, 64);
+                ToScriptHash(EncodePoint(new ECPoint(p.x.base64UrlDecode(), p.y.base64UrlDecode()), true), createAccount);
             });
     }
     function createAccount(publicKeyHash: Uint8Array) {
@@ -64,8 +64,12 @@ namespace AntShares.UI.Wallet {
                 let account = new AccountStore(publicKeyHash, new Uint8Array(result));
                 let wallet = AntShares.Wallets.Wallet.GetInstance();
                 wallet.AddAccount(account);
+                CreateContract();
             }, err => {
                 console.error(err);
             })
+    }
+    function CreateContract() {
+        
     }
 }

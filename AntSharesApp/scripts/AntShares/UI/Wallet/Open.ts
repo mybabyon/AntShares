@@ -5,26 +5,19 @@
         }
 
         protected onload(): void {
-            let wallet = AntShares.Wallets.Wallet.CreateInstance();
+            let wallet = AntShares.Wallets.Wallet.GetInstance();
             wallet.OpenDB();
         }
 
         private OnOpenButtonClick() {
 
-            let wallet = AntShares.Wallets.Wallet.CreateInstance();
-            wallet.CreateWallet(toUint8Array(encodeUTF8($("#password").val())));
-
-            setTimeout(function () {
-                //TODO:UWP下正常运行，Chrome下显示IndexedDB为readonly
-                let account = new AccountStore("11111", "22222");
-                wallet.AddAccount(account);
-                setTimeout(function () {
-                    wallet.TraversalData(StoreName.Account);
-                    console.log(wallet.db);
-                }, 1000);  
-            }, 500);   
+            let wallet = AntShares.Wallets.Wallet.GetInstance();
+            wallet.GetDataByKey(StoreName.Key, "MasterKey", getDataByKeyDone)          
         }
 
     }
-
+    function getDataByKeyDone(key: KeyStore)
+    {
+        
+    }
 }

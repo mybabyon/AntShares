@@ -13,3 +13,39 @@ function toUint8Array(str: string): Uint8Array {
     }
     return uint8array;
 }
+
+//参照AntShares.Cryptography.ECC.ECPoint的对应方法
+function EncodePoint(publicKeyX: Uint8Array, publicKeyY: Uint8Array, commpressed: boolean): Uint8Array {
+    let data;
+    if (commpressed) {
+        data = new Uint8Array(33);
+    }
+    else {
+        data = new Uint8Array(65);
+        let yBytes = publicKeyY.reverse();
+        data.set(publicKeyY, 33);
+    }
+    let xBytes = publicKeyX.reverse();
+
+    data.set(publicKeyX, 1);
+    data[0] = commpressed ? IsEven(publicKeyY) ? 0x02 : 0x03 : 0x04;
+    return data;
+}
+
+function IsEven(array: Uint8Array): boolean {
+    return array[0] / 2 == 0;
+}
+
+//参照AntShares.Core.Scripts.Helper的对应方法
+function ToScriptHash(EncodedPoint: Uint8Array, callback: (scriptHash: ArrayBuffer) => any) {
+    let scriptHash;
+    window.crypto.subtle.digest(
+        {
+            name: "SHA-256",
+        },
+        EncodedPoint
+    )
+        .then(hash => {
+            callback(AntShares.Cryptography.RIPEMD160.computeHash(new Uint8Array(hash)));
+        })
+}

@@ -6,8 +6,5 @@
     "jQuery.mmenu": "5.5.3",
     "bootstrap": "~3.3.5",
     "bootstrap-fileinput": "~4.3.0"
-  },
-  "resolutions": {
-    "jquery": "~2.2.0"
   }
 }

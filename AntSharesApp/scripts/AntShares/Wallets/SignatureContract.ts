@@ -1,14 +1,20 @@
 ﻿class SignatureContract {
-    constructor(publicKey: ECPoint) {
-        this.publicKey = publicKey;
+    constructor(private publicKey: AntShares.Cryptography.ECPoint) {
         this.RedeemScript = SignatureContract.CreateSignatureRedeemScript(publicKey);
+        if (Account.PublicKeyHash) {
+            this.PublicKeyHash = Account.PublicKeyHash;
+        }
     }
-    PublicKeyHash: Uint8Array;
     RedeemScript: Uint8Array;
-    publicKey: ECPoint;
+    PublicKeyHash: Uint8Array;
+    
 
-    public static CreateSignatureRedeemScript(publicKey: ECPoint): Uint8Array {
-        return new Uint8Array(0);
-        //TODO: 2016.3.30 创建RedeemScript
+    public static CreateSignatureRedeemScript(publicKey: AntShares.Cryptography.ECPoint): Uint8Array {
+        let sb = new AntShares.Core.Scripts.ScriptBuilder()
+        sb.push(publicKey.encodePoint(true));
+        sb.add(AntShares.Core.Scripts.ScriptOp.OP_CHECKSIG);
+        return sb.toArray();
     }
+
+    
 }

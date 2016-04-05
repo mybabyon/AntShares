@@ -10,6 +10,7 @@ footer { bottom: 0; }
 fieldset { overflow-x: hidden; }
 a, a:hover, a:focus, a:active { outline: none !important; text-decoration: none; white-space: nowrap; }
 input[type=checkbox], input[type=checkbox]:focus { width: 22px; height: 22px; margin: 6px 12px 0 6px; outline: none; float: left; }
+input[type="radio"] { vertical-align:-3px }
 .mm-navbar { height:50px }
 .nomargin { margin: 0 !important; }
 .nopadding { padding: 0 !important; }

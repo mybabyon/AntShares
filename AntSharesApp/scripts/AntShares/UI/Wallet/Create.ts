@@ -1,19 +1,46 @@
-﻿
-namespace AntShares.UI.Wallet {
+﻿namespace AntShares.UI.Wallet {
     export class Create extends TabBase {
         protected oncreate(): void {
-            $(this.target).find("button").click(this.OnCreateButtonClick);
+            $(this.target).find("#create_wallet").click(this.OnCreateButtonClick);
+            $(this.target).find("#delete_wallet").click(this.OnDeleteButtonClick);
         }
 
         protected onload(): void {
             let wallet = AntShares.Wallets.Wallet.GetInstance();
-            wallet.OpenDB();
+            wallet.OpenDB(() => { });            
         }
 
         private OnCreateButtonClick() {
             let wallet = AntShares.Wallets.Wallet.GetInstance();
-            wallet.CreateWallet(toUint8Array(encodeUTF8($("#password").val())), createECDSAKey);
+            wallet.GetDataByKey(StoreName.Key, "WalletName", createWallet);
         }
+
+        //删除整个IndexedDB，测试用
+        private OnDeleteButtonClick() {
+            let wallet = AntShares.Wallets.Wallet.GetInstance();
+            wallet.ClearObjectStore(StoreName.Key);
+            wallet.ClearObjectStore(StoreName.Contract);
+            wallet.ClearObjectStore(StoreName.Account);
+            wallet.DeleteIndexdDB();
+            let a = toUint8Array("3232");
+            alert("delete wallet success.");
+        }
+    }
+    function createWallet(walletName: KeyStore) {
+        let wallet = AntShares.Wallets.Wallet.GetInstance();
+        if (!(walletName && walletName.Value)) {
+            wallet.walletName = $("#wallet_name").val();
+            ToPasswordKey(toUint8Array($("#create_password").val()),
+                (passwordKey) => {
+                    wallet.CreateWallet(passwordKey, createECDSAKey)
+                });
+        }
+        else {
+            alert("已经存在钱包文件，请勿重新创建。");
+        }
+
+        //let wallet = AntShares.Wallets.Wallet.GetInstance();
+        //wallet.DeleteIndexdDB();
     }
     //创建ECDSA公私钥对
     function createECDSAKey() {
@@ -32,15 +59,21 @@ namespace AntShares.UI.Wallet {
             })
             .then(p => {
                 Account.PrivateKey = p.d.base64UrlDecode();
-                Account.PublicKey = EncodePoint(new ECPoint(p.x.base64UrlDecode(), p.y.base64UrlDecode()), false).subarray(1, 64);
-                ToScriptHash(EncodePoint(new ECPoint(p.x.base64UrlDecode(), p.y.base64UrlDecode()), true), createAccount);
+                Account.PublicECPoint = new AntShares.Cryptography.ECPoint(
+                    new AntShares.Cryptography.ECFieldElement(new BigInteger(p.x.base64UrlDecode()), AntShares.Cryptography.ECCurve.secp256r1),
+                    new AntShares.Cryptography.ECFieldElement(new AntShares.BigInteger(p.y.base64UrlDecode()), AntShares.Cryptography.ECCurve.secp256r1),
+                    AntShares.Cryptography.ECCurve.secp256r1);
+                
+                Account.PublicKey = Account.PublicECPoint.encodePoint(false).subarray(1, 65);
+
+                ToScriptHash(Account.PublicECPoint.encodePoint(true), createAccount);
             });
     }
     function createAccount(publicKeyHash: Uint8Array) {
         Account.PublicKeyHash = publicKeyHash;
         let encryptedPrivateKey = new Uint8Array(96);
         encryptedPrivateKey.set(Account.PrivateKey, 0);
-        encryptedPrivateKey.set(Account.PublicKey, 33);
+        encryptedPrivateKey.set(Account.PublicKey, 32);
         window.crypto.subtle.importKey(
             "raw",
             Key.MasterKey,
@@ -63,13 +96,23 @@ namespace AntShares.UI.Wallet {
             .then(result => {
                 let account = new AccountStore(publicKeyHash, new Uint8Array(result));
                 let wallet = AntShares.Wallets.Wallet.GetInstance();
-                wallet.AddAccount(account);
+                wallet.AddAccount(account); //TODO:这里有Bug
                 CreateContract();
             }, err => {
                 console.error(err);
             })
     }
     function CreateContract() {
+        let sc = new SignatureContract(Account.PublicECPoint);
+        ToScriptHash(sc.RedeemScript, saveContract)
         
+    }
+
+    function saveContract(ScriptHash: Uint8Array) {
+        let sc = new SignatureContract(Account.PublicECPoint);
+        let contract = new ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");
+        let wallet = AntShares.Wallets.Wallet.GetInstance();
+
+        wallet.AddContract(contract);
     }
 }

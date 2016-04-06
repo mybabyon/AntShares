@@ -6,8 +6,8 @@
 
         protected onload(): void {
             let wallet = AntShares.Wallets.Wallet.GetInstance();
-            wallet.OpenDB(listWallet);
-            listWallet();
+            //wallet.OpenDB(listWallet);
+            //listWallet();
         }
 
         private OnOpenButtonClick() {
@@ -32,7 +32,7 @@
             .then(hash => {
                 let currentPasswordHash = new Uint8Array(hash);
                 if (Equeal(Key.PasswordHash, currentPasswordHash)) {
-                    wallet.GetDataByKey(StoreName.Key, "IV", decryptMasterKey);
+                    wallet.GetDataByKey(StoreName.Key, "IV", getIVDown);
                     alert("open wallet success");
                     $("#open_error").hide();
                 }
@@ -63,8 +63,38 @@
             //alert("没有找到钱包文件，请先创建钱包。");  
         }
     }
-    function decryptMasterKey(key: KeyStore) {
-        let IV = key.Value;
+    function getIVDown(iv: KeyStore) {
+        Key.IV = iv.Value;
+        let wallet = AntShares.Wallets.Wallet.GetInstance();
+        wallet.GetDataByKey(StoreName.Key, "MasterKey", getMasterKeyDown);
+    }
+    function getMasterKeyDown(masterkey: KeyStore) {
+        Key.MasterKey = masterkey.Value;
+        ToPasswordKey(toUint8Array($("#open_password").val()), decryptMasterKey);
+    }
+    function decryptMasterKey(passwordKey: Uint8Array) {
+        window.crypto.subtle.importKey(
+            "raw",
+            passwordKey,
+            "AES-CBC",
+            false,
+            ["encrypt", "decrypt"]
+        )
+            .then(keyImport => {
+                return window.crypto.subtle.decrypt(
+                    {
+                        name: "AES-CBC",
+                        iv: Key.IV
+                    },
+                    keyImport,
+                    Key.MasterKey
+                )
+            }, err => {
+                console.error(err);
+            })
+            .then(q => {
+                Key.MasterKey = new Uint8Array(q);
+            })
     }
 }
 

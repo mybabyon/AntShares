@@ -6,13 +6,14 @@
         }
 
         protected onload(): void {
-            let wallet = AntShares.Wallets.Wallet.GetInstance();
-            wallet.OpenDB(() => { });            
         }
 
         private OnCreateButtonClick() {
             let wallet = AntShares.Wallets.Wallet.GetInstance();
-            wallet.GetDataByKey(StoreName.Key, "WalletName", createWallet);
+            wallet.OpenDB(() => {
+                wallet.GetDataByKey(StoreName.Key, "WalletName", createWallet);
+            });   
+            
         }
 
         //删除整个IndexedDB，测试用

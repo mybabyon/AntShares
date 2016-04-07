@@ -9,6 +9,17 @@
         }
 
         private OnCreateButtonClick() {
+            console.clear();
+            let demo = $('#form_create_wallet') as any;
+            if (!demo.valid()) {
+                console.log("表单验证未通过");
+                return;
+            }
+            else {
+                console.log("验证通过");
+                //return;
+            }
+            
             let wallet = AntShares.Wallets.Wallet.GetInstance();
             wallet.OpenDB(() => {
                 wallet.GetDataByKey(StoreName.Key, "WalletName", createWallet);
@@ -18,6 +29,7 @@
 
         //删除整个IndexedDB，测试用
         private OnDeleteButtonClick() {
+            console.clear();
             let wallet = AntShares.Wallets.Wallet.GetInstance();
             wallet.ClearObjectStore(StoreName.Key);
             wallet.ClearObjectStore(StoreName.Contract);

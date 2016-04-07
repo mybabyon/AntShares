@@ -23,35 +23,43 @@
                 //TODO:在config.xml中设置目标平台为Windows8.1时，在Windows10 mobile的手机中无法运行IndexedDB
                 return;
             }
-            let request = window.indexedDB.open(this.dbName, this.version);
+            try {
+                let request = window.indexedDB.open(this.dbName, this.version);
 
-            request.onsuccess = (e: any) => {
-                this.db = e.target.result;
-                callback();
-            };
-            request.onerror = (e: any) => {
-                console.log(e.currentTarget.error.toString());
-            };
-            request.onupgradeneeded = (e: any) => {
-                this.db = e.target.result;
+                request.onsuccess = (e: any) => {
+                    this.db = e.target.result;
+                    callback();
+                    return;
+                };
+                request.onerror = (e: any) => {
+                    console.log(e.currentTarget.error.toString());
+                    return;
+                };
+                request.onupgradeneeded = (e: any) => {
+                    this.db = e.target.result;
 
-                if (!this.db.objectStoreNames.contains('Account')) {
-                    let objectStore = this.db.createObjectStore('Account', { keyPath: "Name" });
-                    objectStore.createIndex("Account", "Name", { unique: true });
+                    if (!this.db.objectStoreNames.contains('Account')) {
+                        let objectStore = this.db.createObjectStore('Account', { keyPath: "Name" });
+                        objectStore.createIndex("Account", "Name", { unique: true });
 
-                }
-                if (!this.db.objectStoreNames.contains('Contract')) {
-                    let objectStore = this.db.createObjectStore('Contract', { keyPath: "Name" });
-                    objectStore.createIndex("Contract", "Name", { unique: true });
+                    }
+                    if (!this.db.objectStoreNames.contains('Contract')) {
+                        let objectStore = this.db.createObjectStore('Contract', { keyPath: "Name" });
+                        objectStore.createIndex("Contract", "Name", { unique: true });
 
-                }
-                if (!this.db.objectStoreNames.contains('Key')) {
-                    let objectStore = this.db.createObjectStore('Key', { keyPath: "Name" });
-                    objectStore.createIndex("Key", "Name", { unique: true });
+                    }
+                    if (!this.db.objectStoreNames.contains('Key')) {
+                        let objectStore = this.db.createObjectStore('Key', { keyPath: "Name" });
+                        objectStore.createIndex("Key", "Name", { unique: true });
 
-                }
-                console.log('IDB version changed to ' + this.version);
-            };
+                    }
+                    console.log('IDB version changed to ' + this.version);
+                };
+            }
+            catch (e) {
+                console.log("打开IDB异常： " + e);
+            }
+            callback(); //当要打开的IDB已经处于打开状态时不会报错也不会抛出异常。这时可以直接调用回调函数执行后续操作。
         }
 
         CreateWallet(passwordKey: Uint8Array, callback: () => any) {
@@ -235,7 +243,7 @@
                 };
             }
             else {
-                console.log('db = null');
+                console.log('读取' + key + '错误，因为db=null');
             }
         }
         public TraversalData(storeName: StoreName) {

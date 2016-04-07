@@ -6,11 +6,21 @@
 
         protected onload(): void {
             let wallet = AntShares.Wallets.Wallet.GetInstance();
-            //wallet.OpenDB(listWallet);
-            //listWallet();
+            wallet.OpenDB(listWallet);
         }
 
         private OnOpenButtonClick() {
+            console.clear();
+            let demo = $('#form_create_wallet') as any;
+            if (!demo.valid()) {
+                console.log("表单验证未通过");
+                return;
+            }
+            else {
+                console.log("验证通过");
+                //return;
+            }
+            
             let wallet = AntShares.Wallets.Wallet.GetInstance();
             wallet.GetDataByKey(StoreName.Key, "PasswordHash", getPwdHashDown);
         }

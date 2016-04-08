@@ -109,7 +109,6 @@
                 })
                 .then(q => {
                     masterKey = new Uint8Array(q);
-                    masterKey = masterKey.subarray(0, 32);
                     this.AddKey(new KeyStore("MasterKey", masterKey));
 
                     let versionArray = new Uint8Array(1);
@@ -246,9 +245,10 @@
                 console.log('读取' + key + '错误，因为db=null');
             }
         }
-        public TraversalData(storeName: StoreName) {
+        public TraversalData(storeName: StoreName, callback) {
             try {
                 if (this.db) {
+                    let array = new Array<Uint8Array>();
                     let transaction = this.db.transaction(StoreName[storeName], IDBTransaction.READ_WRITE);
                     transaction = this.db.transaction(StoreName[storeName], 'readwrite');
                     let objectStore = transaction.objectStore(StoreName[storeName]);
@@ -258,8 +258,13 @@
                         if (cursor) {
                             let key = cursor.key;
                             let rowData = cursor.value;
+                            array.push(rowData);
                             console.log(rowData);
                             cursor.continue();
+                        }
+                        else {
+                            console.log("遍历完毕");
+                            callback(array);
                         }
                     }
                     request.onerror = (e: any) => {

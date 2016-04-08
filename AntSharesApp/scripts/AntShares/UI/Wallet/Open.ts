@@ -31,17 +31,18 @@
         ToPasswordKey(toUint8Array($("#open_password").val()), verifyPassword);
     }
 
-    function verifyPassword(hash) {
+    function verifyPassword(passwordKey) {
         let wallet = AntShares.Wallets.Wallet.GetInstance();
         window.crypto.subtle.digest(
             {
                 name: "SHA-256",
             },
-            new Uint8Array(hash)
+            new Uint8Array(passwordKey)
         )
             .then(hash => {
                 let currentPasswordHash = new Uint8Array(hash);
                 if (Equeal(Key.PasswordHash, currentPasswordHash)) {
+                    Key.PasswordKey = passwordKey;
                     wallet.GetDataByKey(StoreName.Key, "IV", getIVDown);
                     alert("open wallet success");
                     $("#open_error").hide();
@@ -76,16 +77,15 @@
     function getIVDown(iv: KeyStore) {
         Key.IV = iv.Value;
         let wallet = AntShares.Wallets.Wallet.GetInstance();
-        wallet.GetDataByKey(StoreName.Key, "MasterKey", getMasterKeyDown);
+        wallet.GetDataByKey(StoreName.Key, "MasterKey", decryptMasterKey);
     }
-    function getMasterKeyDown(masterkey: KeyStore) {
+
+    function decryptMasterKey(masterkey: KeyStore) {
         Key.MasterKey = masterkey.Value;
-        ToPasswordKey(toUint8Array($("#open_password").val()), decryptMasterKey);
-    }
-    function decryptMasterKey(passwordKey: Uint8Array) {
+        let wallet = AntShares.Wallets.Wallet.GetInstance();
         window.crypto.subtle.importKey(
             "raw",
-            passwordKey,
+            Key.PasswordKey,
             "AES-CBC",
             false,
             ["encrypt", "decrypt"]
@@ -104,7 +104,44 @@
             })
             .then(q => {
                 Key.MasterKey = new Uint8Array(q);
-            })
+                wallet.TraversalData(StoreName.Account, decryptPrivateKey);
+            }, err => {
+                console.log("解密MasterKey失败");
+            }); 
+    }
+
+    function decryptPrivateKey(rawDataArray: Array<AccountStore>) {
+        //for (let i = 0; i < rawDataArray.length; i++) {
+        //在循环中的函数使用循环块中的变量i，仅在VS2015.2的TS1.8中支持
+            window.crypto.subtle.importKey(
+                "raw",
+                Key.MasterKey, //解密过的MasterKey
+                "AES-CBC",
+                false,
+                ["encrypt", "decrypt"]
+            )
+                .then(keyImport => {
+                    return window.crypto.subtle.decrypt(
+                        {
+                            name: "AES-CBC",
+                            iv: Key.IV
+                        },
+                        keyImport,
+                        rawDataArray[0].PrivateKeyEncrypted
+                        //rawDataArray[i].PrivateKeyEncrypted //AES加密后的私钥和公钥
+                    )
+                }, err => {
+                    console.error(err);
+                })
+                .then(q => {
+                    let privateKeyEncrypted = new Uint8Array(q);
+                    let privateKey = privateKeyEncrypted.subarray(0, 32);
+                }, err => {
+                    console.log("解密私钥失败");
+                }); 
+        //}
+        
     }
 }
 
+ 

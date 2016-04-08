@@ -109,7 +109,7 @@
             .then(result => {
                 let account = new AccountStore(publicKeyHash, new Uint8Array(result));
                 let wallet = AntShares.Wallets.Wallet.GetInstance();
-                wallet.AddAccount(account); //TODO:这里有Bug
+                wallet.AddAccount(account);
                 CreateContract();
             }, err => {
                 console.error(err);
@@ -127,5 +127,16 @@
         let wallet = AntShares.Wallets.Wallet.GetInstance();
 
         wallet.AddContract(contract);
+
+        //对创建钱包进行校验
+        wallet.GetDataByKey(StoreName.Key, "IV", (() => {
+            wallet.GetDataByKey(StoreName.Key, "MasterKey", (() => {
+                wallet.GetDataByKey(StoreName.Key, "WalletName", (() => {
+                    wallet.GetDataByKey(StoreName.Key, "PasswordHash", (() => {
+                        alert("创建钱包成功");
+                    }));
+                }));
+            }));
+        }));
     }
 }

@@ -111,7 +111,7 @@
     }
 
     function decryptPrivateKey(rawDataArray: Array<AccountStore>) {
-        //for (let i = 0; i < rawDataArray.length; i++) {
+        for (let i = 0; i < rawDataArray.length; i++) {
         //在循环中的函数使用循环块中的变量i，仅在VS2015.2的TS1.8中支持
             window.crypto.subtle.importKey(
                 "raw",
@@ -127,8 +127,7 @@
                             iv: Key.IV
                         },
                         keyImport,
-                        rawDataArray[0].PrivateKeyEncrypted
-                        //rawDataArray[i].PrivateKeyEncrypted //AES加密后的私钥和公钥
+                        rawDataArray[i].PrivateKeyEncrypted //AES加密后的私钥和公钥
                     )
                 }, err => {
                     console.error(err);
@@ -136,10 +135,14 @@
                 .then(q => {
                     let privateKeyEncrypted = new Uint8Array(q);
                     let privateKey = privateKeyEncrypted.subarray(0, 32);
+                    let publicKey = privateKeyEncrypted.subarray(32, 96);
+                    let item = new AccountItem();
+
+                    AccountList.List.push(item);
                 }, err => {
                     console.log("解密私钥失败");
                 }); 
-        //}
+        }
         
     }
 }

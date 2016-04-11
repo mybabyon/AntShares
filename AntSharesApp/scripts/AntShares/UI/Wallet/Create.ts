@@ -31,11 +31,7 @@
         private OnDeleteButtonClick() {
             console.clear();
             let wallet = AntShares.Wallets.Wallet.GetInstance();
-            wallet.ClearObjectStore(StoreName.Key);
-            wallet.ClearObjectStore(StoreName.Contract);
-            wallet.ClearObjectStore(StoreName.Account);
             wallet.DeleteIndexdDB();
-            let a = toUint8Array("3232");
             alert("delete wallet success.");
         }
     }

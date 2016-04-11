@@ -3,6 +3,6 @@
 }
 
 class AccountItem {
-    static PrivateKey: Uint8Array;
-    static PublicKey: Uint8Array;
+    PrivateKey: Uint8Array;
+    PublicKey: Uint8Array;
 }

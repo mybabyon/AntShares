@@ -7,7 +7,10 @@
         private version = 6;
         constructor() {
         }
-        //Wallet的单例静态方法
+
+        /**
+        * Wallet的单例静态方法
+        */
         public static GetInstance(): Wallet {
             if (this.SingletonWallet == null) {
                 this.SingletonWallet = new Wallet();
@@ -17,6 +20,11 @@
                 return this.SingletonWallet;
             }
         }
+
+        /**
+         * 打开钱包数据库
+         * @param callback 查询结果的回调函数。
+         */
         public OpenDB = (callback) => {
             if (!window.indexedDB) {
                 alert("Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available.")
@@ -59,9 +67,16 @@
             catch (e) {
                 console.log("打开IDB异常： " + e);
             }
-            callback(); //当要打开的IDB已经处于打开状态时不会报错也不会抛出异常。这时可以直接调用回调函数执行后续操作。
+
+            //当要打开的IDB已经处于打开状态时不会报错也不会抛出异常。
+            setTimeout(500, callback());
         }
 
+        /**
+         * 创建钱包数据库
+         * @param passwordKey 钱包密码。
+         * @param callback 查询结果的回调函数。
+         */
         CreateWallet(passwordKey: Uint8Array, callback: () => any) {
             let IV = new Uint8Array(16);;
             window.crypto.getRandomValues(IV);
@@ -117,9 +132,13 @@
 
                     callback(); //执行创建钱包后的回调函数
                 })
-            
+
         }
 
+        /**
+         * 向钱包中添加Account
+         * @param account 要添加的Account。
+         */
         public AddAccount(account: AccountStore) {
             try {
                 if (this.db) {
@@ -142,6 +161,11 @@
                 console.log(e);
             }
         }
+
+        /**
+         * 向钱包中添加Contract
+         * @param contract 要添加的Contract。
+         */
         public AddContract(contract: ContractStore) {
             try {
                 if (this.db) {
@@ -164,6 +188,11 @@
                 console.log(e);
             }
         }
+
+        /**
+         * 向钱包中添加Key
+         * @param key 要添加的Key。
+         */
         public AddKey(key: KeyStore) {
             try {
                 if (this.db) {
@@ -172,7 +201,7 @@
                     let store = transaction.objectStore("Key");
                     let request = store.add(key);
                     request.onsuccess = (e: any) => {
-                        console.log('add key ' + key.Name +' success');
+                        console.log('add key ' + key.Name + ' success');
                     };
                     request.onerror = (e: any) => {
                         console.log(e.currentTarget.error.toString());
@@ -186,6 +215,7 @@
                 console.log(e);
             }
         }
+
         public CloseDB() {
             try {
                 if (this.db != null) {
@@ -199,18 +229,24 @@
                 console.log(e);
             }
         }
+
         public ClearObjectStore(storeName: StoreName) {
             let transaction = this.db.transaction(StoreName[storeName], IDBTransaction.READ_WRITE);
             transaction = this.db.transaction(StoreName[storeName], 'readwrite');
             let store = transaction.objectStore(StoreName[storeName]);
             store.clear();
         }
+
         public DeleteDataByKey(storeName: StoreName, value: string) {
             let transaction = this.db.transaction(StoreName[storeName], IDBTransaction.READ_WRITE);
             transaction = this.db.transaction(StoreName[storeName], 'readwrite');
             let store = transaction.objectStore(StoreName[storeName]);
             store.delete(value);
         }
+
+        /**
+         * 删除IndexdDB
+         */
         public DeleteIndexdDB() {
             try {
                 let request = window.indexedDB.deleteDatabase(this.dbName);
@@ -227,6 +263,13 @@
             }
 
         };
+
+        /**
+         * 根据key查询数据
+         * @param storeName objectStore名称。
+         * @param key 要查询的Key。
+         * @param callback 查询结果的回调函数。
+         */
         public GetDataByKey(storeName: StoreName, key: string, callback: (key: KeyStore) => any) {
             if (this.db) {
                 let transaction = this.db.transaction(StoreName[storeName], IDBTransaction.READ_WRITE);
@@ -245,7 +288,13 @@
                 console.log('读取' + key + '错误，因为db=null');
             }
         }
-        public TraversalData(storeName: StoreName, callback) {
+
+        /**
+         * 遍历钱包的objectStore
+         * @param storeName objectStore名称。
+         * @param callback 遍历完毕时执行的方法，参数是遍历的结果数组型。
+         */
+        public TraversalData(storeName: StoreName, callback: (result: Array<any>) => any) {
             try {
                 if (this.db) {
                     let array = new Array<Uint8Array>();
@@ -279,6 +328,7 @@
                 console.log(e);
             }
         }
+
         public UpdateDataByKey(storeName: StoreName, value: string, object: AccountStore | ContractStore | KeyStore) {
             let transaction = this.db.transaction(StoreName[storeName], IDBTransaction.READ_WRITE);
             transaction = this.db.transaction(StoreName[storeName], 'readwrite');
@@ -293,5 +343,45 @@
                 console.log(e.currentTarget.error.toString());
             }
         }
-    };
+
+        /**
+         * 验证钱包密码是否正确
+         * @param password 用户输入的钱包密码。
+         * @param verifySuccess 验证成功时调用的回调函数。
+         * @param verifyFaild 验证失败时调用的回调函数。
+         */
+        public VerifyPassword(password: Uint8Array, verifySuccess, verifyFaild) {
+            this.GetDataByKey(StoreName.Key, "PasswordHash",
+                (key) => {
+                    Key.PasswordHash = key.Value;
+                    let wallet = AntShares.Wallets.Wallet.GetInstance();
+                    ToPasswordKey(toUint8Array($("#open_password").val()),
+                        (passwordKey) => {
+                            let wallet = AntShares.Wallets.Wallet.GetInstance();
+                            window.crypto.subtle.digest(
+                                {
+                                    name: "SHA-256",
+                                },
+                                new Uint8Array(passwordKey)
+                            )
+                                .then(hash => {
+                                    let currentPasswordHash = new Uint8Array(hash);
+                                    if (Equeal(Key.PasswordHash, currentPasswordHash)) {
+                                        Key.PasswordKey = passwordKey;
+                                        verifySuccess();    //调用验证成功的回调函数
+                                    }
+                                    else {
+                                        verifyFaild();      //调用验证失败的回调函数
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error(err);
+                                });
+                        }
+                    );//ToPasswordKey
+                }
+            );//GetDataByKey
+        }
+
+    }
 }

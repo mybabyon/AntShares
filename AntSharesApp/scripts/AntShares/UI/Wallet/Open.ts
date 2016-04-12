@@ -2,44 +2,31 @@
     export class Open extends TabBase {
         protected oncreate(): void {
             $(this.target).find("button").click(this.OnOpenButtonClick);
+            $(this.target).find("#open_password").change(() => { verifyPassword("open_password", "open_error") });
         }
 
         protected onload(): void {
-            let wallet = AntShares.Wallets.Wallet.GetInstance();
-            wallet.OpenDB(listWallet);
+            AntShares.Wallets.Wallet.GetInstance().OpenDB(listWallet);
         }
 
         private OnOpenButtonClick() {
-            console.clear();
-            let demo = $('#form_create_wallet') as any;
-            if (!demo.valid()) {
-                console.log("表单验证未通过");
-                return;
+            if (formIsValid("form_open_wallet")) {
+                let wallet = AntShares.Wallets.Wallet.GetInstance();
+                wallet.VerifyPassword(toUint8Array($("#open_password").val()),
+                    () => {
+                        wallet.GetDataByKey(StoreName.Key, "IV", getIVDown);
+                        $("#open_error").hide();
+                    },
+                    () => {
+                        $("#open_error").show();
+                    }
+                );
             }
-            else {
-                console.log("验证通过");
-                //return;
-            }
-            
-            let wallet = AntShares.Wallets.Wallet.GetInstance();
-            wallet.VerifyPassword(toUint8Array($("#open_password").val()),
-                () => {
-                    let wallet = AntShares.Wallets.Wallet.GetInstance();
-                    wallet.GetDataByKey(StoreName.Key, "IV", getIVDown);
-                    $("#open_error").hide();
-                },
-                () => {
-                    $("#open_error").show();
-                }
-            );
-
         }
     }
 
-
     function listWallet() {
-        let wallet = AntShares.Wallets.Wallet.GetInstance();
-        wallet.GetDataByKey(StoreName.Key, "WalletName", listWallet2);
+        AntShares.Wallets.Wallet.GetInstance().GetDataByKey(StoreName.Key, "WalletName", listWallet2);
     }
 
     function listWallet2(walletName: KeyStore) {
@@ -52,18 +39,15 @@
         else {
             $("#list_wallet_name").hide();
             $("#input_wallet_name").show();
-            //alert("没有找到钱包文件，请先创建钱包。");  
         }
     }
     function getIVDown(iv: KeyStore) {
         Key.IV = iv.Value;
-        let wallet = AntShares.Wallets.Wallet.GetInstance();
-        wallet.GetDataByKey(StoreName.Key, "MasterKey", decryptMasterKey);
+        AntShares.Wallets.Wallet.GetInstance().GetDataByKey(StoreName.Key, "MasterKey", decryptMasterKey);
     }
 
     function decryptMasterKey(masterkey: KeyStore) {
         Key.MasterKey = masterkey.Value;
-        let wallet = AntShares.Wallets.Wallet.GetInstance();
         window.crypto.subtle.importKey(
             "raw",
             Key.PasswordKey,
@@ -85,7 +69,7 @@
             })
             .then(q => {
                 Key.MasterKey = new Uint8Array(q);
-                wallet.TraversalData(StoreName.Account, decryptPrivateKey);
+                AntShares.Wallets.Wallet.GetInstance().TraversalData(StoreName.Account, decryptPrivateKey);
             }, err => {
                 console.log("解密MasterKey失败");
             }); 

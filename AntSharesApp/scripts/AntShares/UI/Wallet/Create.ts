@@ -9,32 +9,26 @@
         }
 
         private OnCreateButtonClick() {
-            console.clear();
-            let demo = $('#form_create_wallet') as any;
-            if (!demo.valid()) {
-                console.log("表单验证未通过");
-                return;
-            }
-            else {
-                console.log("验证通过");
-                //return;
-            }
-            
-            let wallet = AntShares.Wallets.Wallet.GetInstance();
-            wallet.OpenDB(() => {
-                wallet.GetDataByKey(StoreName.Key, "WalletName", createWallet);
-            });   
-            
+            if (formIsValid("form_create_wallet")) {
+                let wallet = AntShares.Wallets.Wallet.GetInstance();
+                wallet.OpenDB(() => {
+                    wallet.GetDataByKey(StoreName.Key, "WalletName", createWallet);
+                });   
+            }   
         }
 
         //删除整个IndexedDB，测试用
         private OnDeleteButtonClick() {
             console.clear();
             let wallet = AntShares.Wallets.Wallet.GetInstance();
+            wallet.ClearObjectStore(StoreName.Key);
+            wallet.ClearObjectStore(StoreName.Contract);
+            wallet.ClearObjectStore(StoreName.Account);
             wallet.DeleteIndexdDB();
             alert("delete wallet success.");
         }
     }
+
     function createWallet(walletName: KeyStore) {
         let wallet = AntShares.Wallets.Wallet.GetInstance();
         if (!(walletName && walletName.Value)) {
@@ -47,10 +41,8 @@
         else {
             alert("已经存在钱包文件，请勿重新创建。");
         }
-
-        //let wallet = AntShares.Wallets.Wallet.GetInstance();
-        //wallet.DeleteIndexdDB();
     }
+
     //创建ECDSA公私钥对
     function createECDSAKey() {
         
@@ -104,8 +96,7 @@
             })
             .then(result => {
                 let account = new AccountStore(publicKeyHash, new Uint8Array(result));
-                let wallet = AntShares.Wallets.Wallet.GetInstance();
-                wallet.AddAccount(account);
+                AntShares.Wallets.Wallet.GetInstance().AddAccount(account);
                 CreateContract();
             }, err => {
                 console.error(err);

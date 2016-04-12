@@ -355,7 +355,7 @@
                 (key) => {
                     Key.PasswordHash = key.Value;
                     let wallet = AntShares.Wallets.Wallet.GetInstance();
-                    ToPasswordKey(toUint8Array($("#open_password").val()),
+                    ToPasswordKey(password,
                         (passwordKey) => {
                             let wallet = AntShares.Wallets.Wallet.GetInstance();
                             window.crypto.subtle.digest(
@@ -382,6 +382,5 @@
                 }
             );//GetDataByKey
         }
-
     }
 }

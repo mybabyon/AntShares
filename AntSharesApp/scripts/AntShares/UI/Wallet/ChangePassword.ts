@@ -15,12 +15,16 @@
                 wallet.VerifyPassword(toUint8Array($("#old_password").val()),
                     () => {
                         $("#change_error").hide();
+                        wallet.ChangePassword(
+                            toUint8Array($("#old_password").val()),
+                            toUint8Array($("#new_password").val()),
+                            () => { alert("修改钱包密码成功");}
+                        );
                     },
                     () => {
                         $("#change_error").show();
                     }
                 );
-                //wallet.GetDataByKey(StoreName.Key, "PasswordHash", getPwdHashDown);
             }
         }
     }
@@ -40,7 +44,6 @@
         else {
             $("#list_wallet_name2").hide();
             $("#input_wallet_name2").show();
-            //alert("没有找到钱包文件，请先创建钱包。");  
         }
     }
 

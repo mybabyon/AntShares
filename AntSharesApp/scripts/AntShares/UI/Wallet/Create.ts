@@ -102,6 +102,7 @@
                 console.error(err);
             })
     }
+
     function CreateContract() {
         let sc = new SignatureContract(Account.PublicECPoint);
         ToScriptHash(sc.RedeemScript, saveContract)

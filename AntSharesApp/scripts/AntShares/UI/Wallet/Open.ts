@@ -14,7 +14,7 @@
                 let wallet = AntShares.Wallets.Wallet.GetInstance();
                 wallet.VerifyPassword(toUint8Array($("#open_password").val()),
                     () => {
-                        wallet.GetDataByKey(StoreName.Key, "IV", getIVDown);
+                        wallet.OpenWalletAndDecryptPrivateKey(() => { alert("打开钱包成功"); });
                         $("#open_error").hide();
                     },
                     () => {
@@ -40,80 +40,6 @@
             $("#list_wallet_name").hide();
             $("#input_wallet_name").show();
         }
-    }
-    function getIVDown(iv: KeyStore) {
-        Key.IV = iv.Value;
-        AntShares.Wallets.Wallet.GetInstance().GetDataByKey(StoreName.Key, "MasterKey", decryptMasterKey);
-    }
-
-    function decryptMasterKey(masterkey: KeyStore) {
-        Key.MasterKey = masterkey.Value;
-        window.crypto.subtle.importKey(
-            "raw",
-            Key.PasswordKey,
-            "AES-CBC",
-            false,
-            ["encrypt", "decrypt"]
-        )
-            .then(keyImport => {
-                return window.crypto.subtle.decrypt(
-                    {
-                        name: "AES-CBC",
-                        iv: Key.IV
-                    },
-                    keyImport,
-                    Key.MasterKey
-                )
-            }, err => {
-                console.error(err);
-            })
-            .then(q => {
-                Key.MasterKey = new Uint8Array(q);
-                AntShares.Wallets.Wallet.GetInstance().TraversalData(StoreName.Account, decryptPrivateKey);
-            }, err => {
-                console.log("解密MasterKey失败");
-            }); 
-    }
-
-    function decryptPrivateKey(rawDataArray: Array<AccountStore>) {
-        for (let i = 0; i < rawDataArray.length; i++) {
-            decPriKey(rawDataArray[i].PrivateKeyEncrypted);
-        }
-        alert("open wallet success");
-    }
-    function decPriKey(rawData: Uint8Array) {
-        window.crypto.subtle.importKey(
-            "raw",
-            Key.MasterKey, //解密过的MasterKey
-            "AES-CBC",
-            false,
-            ["encrypt", "decrypt"]
-        )
-            .then(keyImport => {
-                return window.crypto.subtle.decrypt(
-                    {
-                        name: "AES-CBC",
-                        iv: Key.IV
-                    },
-                    keyImport,
-                    rawData //AES加密后的私钥和公钥
-                )
-            }, err => {
-                console.error(err);
-            })
-            .then(q => {
-                let privateKeyEncrypted = new Uint8Array(q);
-                let privateKey = privateKeyEncrypted.subarray(0, 32);
-                let publicKey = privateKeyEncrypted.subarray(32, 96);
-                let item = new AccountItem();
-                item.PrivateKey = privateKey;
-                item.PublicKey = publicKey;
-                AccountList.List.push(item);
-                
-            }, err => {
-                console.log("解密私钥失败");
-            }); 
-
     }
 }
 

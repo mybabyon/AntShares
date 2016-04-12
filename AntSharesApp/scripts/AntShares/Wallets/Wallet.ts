@@ -381,6 +381,193 @@
                     );//ToPasswordKey
                 }
             );//GetDataByKey
+        }//VerifyPassword
+
+        /**
+         * 修改钱包密码（替换PasswordKeyHash, 修改MasterKey）
+         * @param oldPassword 旧的钱包密码
+         * @param newPassword 新的钱包密码
+         * @param callback 成功后执行的方法
+         */
+        public ChangePassword(oldPassword: Uint8Array, newPassword: Uint8Array, callback) {
+
+            //1、用旧的PasswordKey对MasterKey解密，再用新的PasswordKey对MasterKey重新加密
+            this.GetDataByKey(StoreName.Key, "IV",
+                (iv: KeyStore) => {
+                    Key.IV = iv.Value;
+                    this.GetDataByKey(StoreName.Key, "MasterKey",
+                        (masterkey: KeyStore) => {
+                            Key.MasterKey = masterkey.Value;
+                            //1.1 解密过程
+                            ToPasswordKey(oldPassword,
+                                (passwordKey) => {
+                                    window.crypto.subtle.importKey(
+                                        "raw",
+                                        passwordKey, //旧的PasswordKey,用来解密MasterKey
+                                        "AES-CBC",
+                                        false,
+                                        ["encrypt", "decrypt"]
+                                    )
+                                        .then(keyImport => {
+                                            return window.crypto.subtle.decrypt(
+                                                {
+                                                    name: "AES-CBC",
+                                                    iv: Key.IV
+                                                },
+                                                keyImport,
+                                                Key.MasterKey //待解密的MasterKey
+                                            )
+                                        }, err => {
+                                            console.error(err);
+                                        })
+                                        .then(q => {
+                                            let masterKey = new Uint8Array(q); //解密后的masterKey
+                                            //1.2 加密过程
+                                            ToPasswordKey(newPassword,
+                                                (passwordKey) => {
+                                                    window.crypto.subtle.importKey(
+                                                        "raw",
+                                                        passwordKey,  //新的PasswordKey,用来加密MasterKey
+                                                        "AES-CBC",
+                                                        false,
+                                                        ["encrypt", "decrypt"]
+                                                    )
+                                                        .then(keyImport => {
+                                                            return window.crypto.subtle.encrypt(
+                                                                {
+                                                                    name: "AES-CBC",
+                                                                    iv: Key.IV
+                                                                },
+                                                                keyImport,
+                                                                masterKey //待加密的masterKey
+                                                            )
+                                                        }, err => {
+                                                            console.error(err);
+                                                        })
+                                                        .then(q => {
+                                                            let masterKey = new Uint8Array(q); //重新加密后的masterKey
+                                                            this.UpdateDataByKey(StoreName.Key, "MasterKey", new KeyStore("MasterKey", masterKey));
+                                                            console.log("修改MasterKey成功");
+                                                        })
+                                                }
+                                            ); //ToPasswordKey
+                                        })
+                                }
+                            ); //ToPasswordKey
+                        }
+                    ); //GetDataByKey
+                }
+            ); //GetDataByKey
+            
+            //2、替换PasswordKeyHash
+            ToPasswordKey(newPassword,
+                (passwordKey) => {
+                    window.crypto.subtle.digest(
+                        {
+                            name: "SHA-256",
+                        },
+                        passwordKey
+                    )
+                        .then(hash => {
+                            let passwordHash = new Uint8Array(hash);
+                            Key.PasswordHash = passwordHash;
+                            this.UpdateDataByKey(StoreName.Key, "PasswordHash", new KeyStore("PasswordHash", passwordHash));
+                            console.log("替换PasswordHash成功");
+                        })
+                        .catch(err => {
+                            console.error(err);
+                        });
+                }
+            );//ToPasswordKey
         }
+
+        /**
+         * 打开钱包并解密私钥
+         * @param callback 成功后执行的方法
+         */
+        public OpenWalletAndDecryptPrivateKey(callback) {
+            this.GetDataByKey(StoreName.Key, "IV",
+                (iv: KeyStore) => {
+                    Key.IV = iv.Value;
+                    this.GetDataByKey(StoreName.Key, "MasterKey",
+                        (masterkey: KeyStore) => {
+                            Key.MasterKey = masterkey.Value;
+                            window.crypto.subtle.importKey(
+                                "raw",
+                                Key.PasswordKey,
+                                "AES-CBC",
+                                false,
+                                ["encrypt", "decrypt"]
+                            )
+                                .then(keyImport => {
+                                    return window.crypto.subtle.decrypt(
+                                        {
+                                            name: "AES-CBC",
+                                            iv: Key.IV
+                                        },
+                                        keyImport,
+                                        Key.MasterKey
+                                    )
+                                }, err => {
+                                    console.error(err);
+                                })
+                                .then(q => {
+                                    Key.MasterKey = new Uint8Array(q);
+                                    this.TraversalData(StoreName.Account,
+                                        (rawDataArray: Array<AccountStore>) => {
+                                            for (let i = 0; i < rawDataArray.length; i++) {
+                                                decPriKey(rawDataArray[i]);
+                                            }
+                                            callback();
+                                        }
+                                    );
+                                }, err => {
+                                    console.log("解密MasterKey失败");
+                                });
+                        }
+                    );//GetDataByKey
+                }
+            );//GetDataByKey
+        }//OpenWalletAndDecryptPrivateKey
     }
+
+    /**
+     * 对加密过的privateKeyEncrypted进行解密
+     * @param rawData 从数据库中读出的account字段
+     */
+    function decPriKey(rawData: AccountStore) {
+        window.crypto.subtle.importKey(
+            "raw",
+            Key.MasterKey, //解密过的MasterKey
+            "AES-CBC",
+            false,
+            ["encrypt", "decrypt"]
+        )
+            .then(keyImport => {
+                return window.crypto.subtle.decrypt(
+                    {
+                        name: "AES-CBC",
+                        iv: Key.IV
+                    },
+                    keyImport,
+                    rawData.PrivateKeyEncrypted //AES加密后的私钥和公钥
+                )
+            }, err => {
+                console.error(err);
+            })
+            .then(q => {
+                let privateKeyEncrypted = new Uint8Array(q);
+                let privateKey = privateKeyEncrypted.subarray(0, 32);
+                let publicKey = privateKeyEncrypted.subarray(32, 96);
+                let item = new AccountItem();
+                item.PublicKeyHash = rawData.PublicKeyHash;
+                item.PrivateKey = privateKey;
+                item.PublicKey = publicKey;
+                AccountList.List.push(item);
+
+            }, err => {
+                console.log("解密私钥失败");
+            });
+    }
+
 }

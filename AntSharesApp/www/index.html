@@ -339,7 +339,7 @@
                     </div>
                 </div>
                 <div id="Tab_Wallet_ChangePassword" class="form-horizontal tab-pane">
-                    <form id="form_change_password">
+                    <form id="form_change_password" autocomplete="off">
                         <fieldset>
                             <h2 class="page-header">修改钱包密码</h2>
                             <div class="form-group">
@@ -357,22 +357,22 @@
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">验证旧密码</label>
                                 <div class="col-sm-6">
-                                    <input id="old_password" class="form-control" autocomplete="off" type="password" placeholder="钱包密码" data-val="true" data-val-required="钱包密码不能为空！" />
-                                    <span class="text-danger" data-valmsg-for="open_password" data-valmsg-replace="true"></span>
+                                    <input id="old_password" name="old_password" class="form-control" type="password" placeholder="钱包密码" data-val="true" data-val-required="钱包密码不能为空！" />
+                                    <span class="text-danger" data-valmsg-for="old_password" data-valmsg-replace="true"></span>
                                     <span id="change_error" class="text-danger" style="display:none">钱包密码错误</span>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">输入新密码</label>
                                 <div class="col-sm-6">
-                                    <input id="new_password" class="form-control" autocomplete="off" type="password" placeholder="钱包密码" data-val="true" data-val-required="钱包密码不能为空！" data-val-length-min="6" data-val-length="密码必须至少包含 6 个字符。" />
+                                    <input id="new_password" name="new_password" class="form-control" type="password" placeholder="钱包密码" data-val="true" data-val-required="钱包密码不能为空！" data-val-length-min="6" data-val-length="密码必须至少包含 6 个字符。" />
                                     <span class="text-danger" data-valmsg-for="new_password" data-valmsg-replace="true"></span>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">确认新密码</label>
                                 <div class="col-sm-6">
-                                    <input id="new_password_confirm" class="form-control" autocomplete="off" type="password" placeholder="钱包密码" data-val="true" data-val-required="确认密码不能为空！" data-val-equalto="密码和确认密码不匹配。" data-val-equalto-other="new_password" />
+                                    <input id="new_password_confirm" name="new_password_confirm" class="form-control" type="password" placeholder="钱包密码" data-val="true" data-val-required="确认密码不能为空！" data-val-equalto="密码和确认密码不匹配。" data-val-equalto-other="new_password" />
                                     <span class="text-danger" data-valmsg-for="new_password_confirm" data-valmsg-replace="true"></span>
                                 </div>
                             </div>
@@ -385,7 +385,7 @@
                     </form>
                 </div>
                 <div id="Tab_Wallet_Create" class="form-horizontal tab-pane">
-                    <form id="form_create_wallet">
+                    <form id="form_create_wallet" autocomplete="off">
                         <h2 class="page-header">创建钱包</h2>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">输入钱包名称</label>
@@ -423,7 +423,7 @@
                     </form>
                 </div>
                 <div id="Tab_Wallet_Open" class="form-horizontal tab-pane active">
-                    <form id="form_open_wallet">
+                    <form id="form_open_wallet" autocomplete="off">
                         <fieldset>
                             <h2 class="page-header">打开钱包</h2>
                             <div class="form-group">
@@ -440,7 +440,7 @@
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">输入钱包密码</label>
                                 <div class="col-sm-6">
-                                    <input id="open_password" name="open_password" class="form-control" autocomplete="off" type="password" placeholder="钱包密码"  data-val="true" data-val-required="钱包密码不能为空！" />
+                                    <input id="open_password" name="open_password" class="form-control" type="password" placeholder="钱包密码"  data-val="true" data-val-required="钱包密码不能为空！" />
                                     <span class="text-danger" data-valmsg-for="open_password" data-valmsg-replace="true"></span>
                                     <span id="open_error" class="text-danger" style="display:none">钱包密码错误</span>
                                 </div>

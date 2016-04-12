@@ -390,7 +390,7 @@
          * @param callback 成功后执行的方法
          */
         public ChangePassword(oldPassword: Uint8Array, newPassword: Uint8Array, callback) {
-
+            let firstStep = false;
             //1、用旧的PasswordKey对MasterKey解密，再用新的PasswordKey对MasterKey重新加密
             this.GetDataByKey(StoreName.Key, "IV",
                 (iv: KeyStore) => {
@@ -448,6 +448,9 @@
                                                             let masterKey = new Uint8Array(q); //重新加密后的masterKey
                                                             this.UpdateDataByKey(StoreName.Key, "MasterKey", new KeyStore("MasterKey", masterKey));
                                                             console.log("修改MasterKey成功");
+                                                            firstStep = true;
+                                                            if (firstStep && secondStep)
+                                                                callback();
                                                         })
                                                 }
                                             ); //ToPasswordKey
@@ -459,6 +462,7 @@
                 }
             ); //GetDataByKey
             
+            let secondStep = false;
             //2、替换PasswordKeyHash
             ToPasswordKey(newPassword,
                 (passwordKey) => {
@@ -473,6 +477,9 @@
                             Key.PasswordHash = passwordHash;
                             this.UpdateDataByKey(StoreName.Key, "PasswordHash", new KeyStore("PasswordHash", passwordHash));
                             console.log("替换PasswordHash成功");
+                            secondStep = true;
+                            if (firstStep && secondStep)
+                                callback();
                         })
                         .catch(err => {
                             console.error(err);

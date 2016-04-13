@@ -440,7 +440,7 @@
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">输入钱包密码</label>
                                 <div class="col-sm-6">
-                                    <input id="open_password" name="open_password" class="form-control" type="password" placeholder="钱包密码"  data-val="true" data-val-required="钱包密码不能为空！" />
+                                    <input id="open_password" name="open_password" class="form-control" type="password" placeholder="钱包密码" data-val="true" data-val-required="钱包密码不能为空！" />
                                     <span class="text-danger" data-valmsg-for="open_password" data-valmsg-replace="true"></span>
                                     <span id="open_error" class="text-danger" style="display:none">钱包密码错误</span>
                                 </div>
@@ -567,17 +567,26 @@
             previewFileIcon: "<i class='glyphicon glyphicon-king'></i>",
             //uploadUrl: "~/Wallet/Upload"
         });
-        //setTimeout(getblockcount, 1000);
-        function getblockcount() {
+        function getblockcount()
+        {
             var rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
-            var result = rpc.call("getblockcount", []);
-            $("#lbl_height").text(result - 1);
-        };
-        void function listWallet() {
+            var result = rpc.call("getblockcount", [], function (result)
+            {
+                $("#lbl_height").text(result - 1);
+                setTimeout(getblockcount, 5000);
+            }, function (error)
+            {
+                setTimeout(getblockcount, 5000);
+            });
+        }
+        getblockcount();
+        void function listWallet()
+        {
             var open = new AntShares.UI.Wallet.Open();
             open.onload();
         }();
-        function alert(message) {
+        function alert(message)
+        {
             $('.modal-body').text(message);
             $('#myModal').modal();
         }

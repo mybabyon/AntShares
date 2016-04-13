@@ -9,35 +9,43 @@
             return { jsonrpc: "2.0", method: method, params: params, id: Math.random() };
         }
 
-        private static send(url: string, request: any)
+        private static send(url: string, request: any, callback: (response: any) => void): void
         {
             let xhr = new XMLHttpRequest();
-            xhr.open("POST", url, false);
+            xhr.addEventListener("load", () => { callback(JSON.parse(xhr.responseText)); });
+            xhr.open("POST", url, true);
             xhr.setRequestHeader('Content-Type', 'application/json-rpc');
             xhr.send(JSON.stringify(request));
-            return JSON.parse(xhr.responseText);
         }
 
-        public call(method: string, params: any[]): any
+        public call(method: string, params: any[], callback: (result: any) => void, onerror?: (error: any) => void): void
         {
-            let response = RpcClient.send(this.url, RpcClient.makeRequest(method, params));
-            if (response.error) throw response.error;
-            return response.result;
+            RpcClient.send(this.url, RpcClient.makeRequest(method, params), response=>
+            {
+                if (response.error && onerror)
+                    onerror(response.error);
+                else if (response.result !== undefined)
+                    callback(response.result);
+            });
         }
 
-        public callBatch(batch: Array<{ method: string, params: any[] }>): any[]
+        public callBatch(batch: Array<{ method: string, params: any[] }>, callback: (results: any[]) => void, onerror?: (error: any) => void): void
         {
             let request = [];
             for (let i = 0; i < batch.length; i++)
                 request.push(RpcClient.makeRequest(batch[i].method, batch[i].params));
-            let response = RpcClient.send(this.url, request);
-            if (response.error) throw response.error;
-            let results = [];
-            for (let i = 0; i < response.length; i++)
+            RpcClient.send(this.url, request, response=>
             {
-                results.push(response[i].result);
-            }
-            return results;
+                if (response.error && onerror)
+                    onerror(response.error);
+                else if (response.length > 0)
+                {
+                    let results = [];
+                    for (let i = 0; i < response.length; i++)
+                        results.push(response[i].result);
+                    callback(results);
+                }
+            });
         }
     }
 }

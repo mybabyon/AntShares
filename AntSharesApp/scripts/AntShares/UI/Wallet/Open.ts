@@ -2,44 +2,82 @@
     export class Open extends TabBase {
         protected oncreate(): void {
             $(this.target).find("button").click(this.OnOpenButtonClick);
-            $(this.target).find("#open_password").change(() => { verifyPassword("open_password", "open_error") });
+            $(this.target).find("#open_password").change(() => { this.vertifyPassword() });
+            $(this.target).find("#list_wallet_name input[name='wallet']").change(() => { this.vertifyPassword() }); //没有触发
         }
 
-        protected onload(): void {
-            AntShares.Wallets.Wallet.GetInstance().OpenDB(listWallet);
+        private vertifyPassword()
+        {
+            verifyPassword(
+                $('#list_wallet_name input[name="wallet"]:checked').val(),
+                "open_password",
+                "open_error")
+        }
+
+        protected onload(): void
+        {
+            let master = AntShares.Wallets.Master.GetInstance();
+            master.OpenDB(
+                () =>
+                {
+                    master.GetWalletNameList(listWallet)
+                }
+            );
         }
 
         private OnOpenButtonClick() {
             if (formIsValid("form_open_wallet")) {
-                let wallet = AntShares.Wallets.Wallet.GetInstance();
-                wallet.VerifyPassword(toUint8Array($("#open_password").val()),
-                    () => {
-                        wallet.OpenWalletAndDecryptPrivateKey(() => { alert("打开钱包成功"); });
-                        $("#open_error").hide();
-                    },
-                    () => {
-                        $("#open_error").show();
-                    }
-                );
+                let wallet = GlobalWallet.NewWallet();
+
+                let walletName = $('#list_wallet_name input[name="wallet"]:checked ').val(); 
+                wallet.OpenDB(walletName, () =>
+                {
+                    wallet.VerifyPassword(toUint8Array($("#open_password").val()),
+                        () =>
+                        {
+                            wallet.OpenWalletAndDecryptPrivateKey(() => { alert("打开钱包成功"); });
+                            //TODO:打开成功后跳转账户管理页面
+                            $("#open_error").hide();
+                        },
+                        () =>
+                        {
+                            $("#open_error").show();
+                        }
+                    );
+                })
+                
             }
         }
     }
 
-    function listWallet() {
-        AntShares.Wallets.Wallet.GetInstance().GetDataByKey(StoreName.Key, "WalletName", listWallet2);
-    }
-
-    function listWallet2(walletName: KeyStore) {
-        if (walletName && walletName.Value) {
-            $("#input_wallet_name").hide();
-            $("#list_wallet_name").show();
-            $("#list_wallet_name").find("input").val(walletName.Value.toString());
-            $("#list_wallet_name").find("span").text(walletName.Value.toString());
-        }
-        else {
+    function listWallet(walletNameList: Array<AntShares.Wallets.WalletStore>)
+    {
+        if (walletNameList.length == 0)
+        {
             $("#list_wallet_name").hide();
             $("#input_wallet_name").show();
         }
+        else
+        {
+            $("#input_wallet_name").hide();
+            $("#list_wallet_name").show();
+            let ul = $("#list_wallet_name");
+            ul.find("li:visible").remove();
+            for (let i = 0; i < walletNameList.length; i++)
+            {
+                let liTemplet = ul.find("li:eq(0)");
+                let li = liTemplet.clone();
+                li.removeAttr("style");
+                li.find("input").val(walletNameList[i].Name);
+                li.find("span").text(walletNameList[i].Name);
+                if (i == 0) //第一个默认选中
+                {
+                    li.find("input").attr("checked", 'checked');
+                }
+                ul.append(li);
+            }
+        }
+
     }
 }
 

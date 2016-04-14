@@ -1,37 +1,25 @@
-﻿namespace AntShares.Wallets {
-    export class Wallet {
-        private static SingletonWallet: Wallet;
+﻿namespace AntShares.Wallets
+{
+    
+    export class Wallet 
+    {
         public db: IDBDatabase;
         public dbName = "wallet";
-        public walletName;
         private version = 6;
-        constructor() {
-        }
-
-        /**
-        * Wallet的单例静态方法
-        */
-        public static GetInstance(): Wallet {
-            if (this.SingletonWallet == null) {
-                this.SingletonWallet = new Wallet();
-                return this.SingletonWallet;
-            }
-            else {
-                return this.SingletonWallet;
-            }
-        }
 
         /**
          * 打开钱包数据库
          * @param callback 查询结果的回调函数。
          */
-        public OpenDB = (callback) => {
+        public OpenDB = (walletName: string, callback) => {
             if (!window.indexedDB) {
                 alert("Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available.")
                 //TODO:在config.xml中设置目标平台为Windows8.1时，在Windows10 mobile的手机中无法运行IndexedDB
                 return;
             }
-            try {
+            try
+            {
+                this.dbName = walletName;
                 let request = window.indexedDB.open(this.dbName, this.version);
 
                 request.onsuccess = (e: any) => {
@@ -61,15 +49,12 @@
                         objectStore.createIndex("Key", "Name", { unique: true });
 
                     }
-                    console.log('IDB version changed to ' + this.version);
+                    console.log('IDB wallet version changed to ' + this.version);
                 };
             }
             catch (e) {
-                console.log("打开IDB异常： " + e);
+                console.log("打开IDB wallet异常： " + e);
             }
-
-            //当要打开的IDB已经处于打开状态时不会报错也不会抛出异常。
-            setTimeout(500, callback());
         }
 
         /**
@@ -82,8 +67,6 @@
             window.crypto.getRandomValues(IV);
             Key.IV = IV;
             this.AddKey(new KeyStore("IV", IV));
-            this.AddKey(new KeyStore("WalletName", this.walletName));
-
             let masterKey = new Uint8Array(32);
             window.crypto.getRandomValues(masterKey);
             Key.MasterKey = masterKey;
@@ -237,11 +220,11 @@
             store.clear();
         }
 
-        public DeleteDataByKey(storeName: StoreName, value: string) {
+        public DeleteDataByKey(storeName: StoreName, key: string) {
             let transaction = this.db.transaction(StoreName[storeName], IDBTransaction.READ_WRITE);
             transaction = this.db.transaction(StoreName[storeName], 'readwrite');
             let store = transaction.objectStore(StoreName[storeName]);
-            store.delete(value);
+            store.delete(key);
         }
 
         /**
@@ -354,10 +337,8 @@
             this.GetDataByKey(StoreName.Key, "PasswordHash",
                 (key) => {
                     Key.PasswordHash = key.Value;
-                    let wallet = AntShares.Wallets.Wallet.GetInstance();
                     ToPasswordKey(password,
                         (passwordKey) => {
-                            let wallet = AntShares.Wallets.Wallet.GetInstance();
                             window.crypto.subtle.digest(
                                 {
                                     name: "SHA-256",

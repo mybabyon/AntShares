@@ -12,7 +12,6 @@
     <!-- AntSharesApp 引用 -->
     <link href="lib/jQuery.mmenu/dist/core/css/jquery.mmenu.all.css" rel="stylesheet" />
     <link href="lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="lib/bootstrap-fileinput/css/fileinput.min.css" rel="stylesheet" />
     <link href="css/site.css" rel="stylesheet" />
 </head>
 <body>
@@ -49,12 +48,12 @@
                     <div class="row">
                         <div class="col-xs-6">
                             <span>公钥</span><br />
-                            <pre>04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235</pre>
+                            <pre id="public_key">04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235</pre>
                         </div>
                         <div class="col-xs-6">
                             <a href="#seckey" data-toggle="collapse" aria-expanded="false">显示/隐藏私钥</a>
                             <div id="seckey" class="collapse">
-                                <pre>L1tRSPTFbNrFaUHUtgfMY7GUXshdadtjPJhUXiTqoCnCW6BmiS4C</pre>
+                                <pre id="private_key_import">L1tRSPTFbNrFaUHUtgfMY7GUXshdadtjPJhUXiTqoCnCW6BmiS4C</pre>
                             </div>
                         </div>
                     </div>
@@ -89,29 +88,31 @@
                     </div>
                 </div>
                 <div id="Tab_Account_Index" class="tab-pane">
-                    <h2 class="page-header">账户管理</h2>
-                    <div class="row nomargin">
-                        <div class="col-sm-12 wallet-name" style="padding: 0; margin-bottom: 10px;">
-                            <div>钱包名称：wallet1.db3</div><br />
-                            <a class="btn tab-trigger btn-default" href="#Tab_Account_Create">创建账户</a>
-                            <a class="btn tab-trigger btn-default" href="#Tab_Account_Import">导入私钥</a>
+                    <form id="form_account_list">
+                        <h2 class="page-header">账户管理</h2>
+                        <div class="row nomargin">
+                            <div class="col-sm-12 wallet-name" style="padding: 0; margin-bottom: 10px;">
+                                <div>钱包名称：wallet1.db3</div><br />
+                                <a class="btn tab-trigger btn-default" href="#Tab_Account_Create">创建账户</a>
+                                <a class="btn tab-trigger btn-default" href="#Tab_Account_Import">导入私钥</a>
+                            </div>
+                            <ul class="col-sm-12 account-list">
+                                <li style="display:none">
+                                    <span></span>
+                                    <a class="btn tab-trigger btn-primary" href="#Tab_Account_Details">详情</a>
+                                    <button class="btn btn-primary">导出</button>
+                                    <button class="btn btn-primary">认证</button>
+                                </li>
+                            </ul>
                         </div>
-                        <ul class="col-sm-12 account-list">
-                            <li>
-                                <span>@ViewBag.Accounts[i]</span>
-                                <a class="btn tab-trigger btn-primary" href="#Tab_Account_Details">详情</a>
-                                <button class="btn btn-primary">导出</button>
-                                <button class="btn btn-primary">认证</button>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="alert alert-info bottom" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        账户是指一个公私钥对。最基本的账户由一个公私钥组成，其账户地址就是其 1-of-1 多重签名地址。更高级的设计中，账户可以由两个公钥组成，这两个公钥所生成的 2-of-2 多重签名的地址为账户地址。
-                        <a class="alert-link" href="javascript:">了解更多</a>
-                    </div>
+                        <div class="alert alert-info bottom" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            账户是指一个公私钥对。最基本的账户由一个公私钥组成，其账户地址就是其 1-of-1 多重签名地址。更高级的设计中，账户可以由两个公钥组成，这两个公钥所生成的 2-of-2 多重签名的地址为账户地址。
+                            <a class="alert-link" href="javascript:">了解更多</a>
+                        </div>
+                    </form>
                 </div>
                 <div id="Tab_Advanced_Issue" class="form-horizontal tab-pane">
                     <form method="post" class="form-horizontal" autocomplete="off">
@@ -347,10 +348,15 @@
                                 <div class="col-sm-6">
                                     <input id="input_wallet_name2" class="form-control" type="text" placeholder="钱包名称" />
                                     <span class="text-danger"></span>
-                                    <label id="list_wallet_name2">
-                                        <input type="radio" checked="checked" name="wallet" />
-                                        <span>钱包名称</span>
-                                    </label>
+                                    <ul class="list_wallet_ul" id="list_wallet_name2">
+                                        <li style="display:none">
+                                            <label>
+                                                <input type="radio" name="wallet2" />
+                                                <span>钱包名称</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+
                                 </div>
                             </div>
 
@@ -417,7 +423,7 @@
                         <div class="form-group">
                             <label class="col-sm-4"></label>
                             <div class="col-sm-6">
-                                <button id="delete_wallet" type="button" class="btn btn-sm">delete wallet</button>
+                                <button id="delete_wallet" type="button" class="btn btn-sm">delete current wallet</button>
                             </div>
                         </div>
                     </form>
@@ -431,10 +437,14 @@
                                 <div class="col-sm-6">
                                     <input id="input_wallet_name" class="form-control" type="text" placeholder="钱包名称" />
                                     <span class="text-danger"></span>
-                                    <label id="list_wallet_name">
-                                        <input type="radio" checked="checked" name="wallet" />
-                                        <span>钱包名称</span>
-                                    </label>
+                                    <ul class="list_wallet_ul" id="list_wallet_name">
+                                        <li style="display:none">
+                                            <label>
+                                                <input type="radio" name="wallet" />
+                                                <span>钱包名称1</span>
+                                            </label>
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -472,7 +482,7 @@
                     <span><i class="iconfont">&#xe600;</i>个人中心</span>
                     <ul>
                         <li><a class="tab-trigger" href="#Tab_Account_Index">账户管理</a></li>
-                        <li><a class="tab-trigger" href="#Tab_Contract_Index">合约管理</a></li>
+                        <li><a class="tab-trigger" href="#Tab_Contracts_Index">合约管理</a></li>
                     </ul>
                 </li>
                 <li>
@@ -530,8 +540,6 @@
     <script src="lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="lib/jQuery.mmenu/dist/core/js/jquery.mmenu.min.all.js"></script>
     <script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="lib/bootstrap-fileinput/js/fileinput.min.js"></script>
-    <script src="lib/bootstrap-fileinput/js/fileinput_locale_zh.js"></script>
     <script src="lib/jQuery.mmenu/dist/core/js/jquery.mmenu.dragclose.min.js"></script>
     <!-- Cordova 引用，它在生成应用程序时添加到其中。 -->
     <script src="cordova.js"></script>
@@ -558,19 +566,10 @@
             }]
         });
 
-        //初始化fileinput控件
-        //http://plugins.krajee.com/file-input
-        //http://www.cnblogs.com/wuhuacong/p/4774396.html
-        $("input[type=file]").fileinput({
-            language: 'zh',
-            allowedFileExtensions: ['db3'],
-            previewFileIcon: "<i class='glyphicon glyphicon-king'></i>",
-            //uploadUrl: "~/Wallet/Upload"
-        });
         function getblockcount()
         {
             var rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
-            var result = rpc.call("getblockcount", [], function (result)
+            rpc.call("getblockcount", [], function (result)
             {
                 $("#lbl_height").text(result - 1);
                 setTimeout(getblockcount, 5000);
@@ -585,11 +584,6 @@
             $('.modal-body').text(message);
             $('#myModal').modal();
         }
-
-        //$.validator.setDefaults({
-        //    debug: true
-        //})
-
     </script>
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog" role="document">

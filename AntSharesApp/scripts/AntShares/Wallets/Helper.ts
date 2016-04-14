@@ -76,10 +76,23 @@ function formIsValid(formId: string): boolean {
     }
 }
 
-function verifyPassword(inputID, errorID) {
-    AntShares.Wallets.Wallet.GetInstance().VerifyPassword(
-        toUint8Array($('#' + inputID).val()),
-        () => { $('#' + errorID).hide(); },
-        () => { $('#' + errorID).show(); }
-    );
+/**
+ * 创建一个新的钱包对象用于验证钱包密码是否正确
+ * @param walletName 用户选择的钱包名称。
+ * @param inputID 用户输入的钱包密码的文本框ID。
+ * @param errorID 显示密码错误的ID。
+ */
+function verifyPassword(walletName: string, inputID: string, errorID: string)
+{
+    let wallet = new AntShares.Wallets.Wallet();
+    wallet.OpenDB(walletName,
+    ()=> {
+        wallet.VerifyPassword(
+            toUint8Array($('#' + inputID).val()),
+            () => { $('#' + errorID).hide(); },
+            () => { $('#' + errorID).show(); }
+        );
+
+    });
+    
 }

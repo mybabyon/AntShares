@@ -58,3 +58,5 @@ nav:not(.mm-menu) { display: none; }
     .account-list li { margin-bottom: 10px; list-style: none; }
         .account-list li span { background-color: #f0f0f0; border-radius: 4px; padding: 6px 10px; letter-spacing: 1px; width: 50%; word-break: break-all; vertical-align: middle; display: inline-block; }
         .account-list li .btn { margin-left: 5px; padding: 5px 12px; }
+
+.list_wallet_ul { margin-top:5px; padding-left:0; list-style:none; }

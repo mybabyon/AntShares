@@ -1,4 +1,5 @@
-﻿enum StoreName {
+﻿enum StoreName
+{
     Account,
     Contract,
     Key

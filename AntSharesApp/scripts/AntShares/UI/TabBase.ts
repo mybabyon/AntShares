@@ -23,7 +23,7 @@
                 tab.target = $(id)[0];
                 tab.oncreate();
                 TabBase._tabs[className] = tab;
-            }
+            } 
             else
             {
                 tab = TabBase._tabs[className];

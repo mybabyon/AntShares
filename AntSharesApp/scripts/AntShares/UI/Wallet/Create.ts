@@ -5,41 +5,94 @@
             $(this.target).find("#delete_wallet").click(this.OnDeleteButtonClick);
         }
 
-        protected onload(): void {
+        protected onload(): void
+        {
+            AntShares.Wallets.Master.GetInstance().OpenDB(() => { });
         }
 
         private OnCreateButtonClick() {
             if (formIsValid("form_create_wallet")) {
-                let wallet = AntShares.Wallets.Wallet.GetInstance();
-                wallet.OpenDB(() => {
-                    wallet.GetDataByKey(StoreName.Key, "WalletName", createWallet);
+                let master = AntShares.Wallets.Master.GetInstance();
+                master.OpenDB(() =>
+                {
+                    master.GetWalletNameList(createWallet);
                 });   
             }   
         }
 
-        //删除整个IndexedDB，测试用
-        private OnDeleteButtonClick() {
+        //删除当前所有钱包，测试用
+        private OnDeleteButtonClick()
+        {
             console.clear();
-            let wallet = AntShares.Wallets.Wallet.GetInstance();
+            let master = AntShares.Wallets.Master.GetInstance();
+            master.OpenDB(() =>
+            {
+                master.GetWalletNameList(
+                    (walletNameList: Array<AntShares.Wallets.WalletStore>) =>
+                {
+                    if (walletNameList.length == 0)
+                    {
+                        alert("当前没有钱包数据库");
+                    }
+                    else
+                    {
+                        for (let i = 0; i < walletNameList.length; i++)
+                        {
+                            deleteWallet(walletNameList[i].Name);
+                            master.DeleteWalletName(walletNameList[i].Name);
+                            alert("delete current wallet success.");
+                        }
+                    }
+                })
+            });
+        }
+    }
+
+    function deleteWallet(waletName: string)
+    {
+        let wallet = new AntShares.Wallets.Wallet();
+        wallet.OpenDB(waletName, () =>
+        {
             wallet.ClearObjectStore(StoreName.Key);
             wallet.ClearObjectStore(StoreName.Contract);
             wallet.ClearObjectStore(StoreName.Account);
             wallet.DeleteIndexdDB();
-            alert("delete wallet success.");
-        }
+        });
     }
 
-    function createWallet(walletName: KeyStore) {
-        let wallet = AntShares.Wallets.Wallet.GetInstance();
-        if (!(walletName && walletName.Value)) {
-            wallet.walletName = $("#wallet_name").val();
-            ToPasswordKey(toUint8Array($("#create_password").val()),
-                (passwordKey) => {
-                    wallet.CreateWallet(passwordKey, createECDSAKey)
-                });
+    function createWallet(walletNameList: Array<string>)
+    {
+        let alreadyExitWallet = false;
+        for (let i = 0; i < walletNameList.length; i++)
+        {
+            if (walletNameList[i] == $("#wallet_name").val())
+            {
+                alreadyExitWallet = true;
+                break;
+            }
         }
-        else {
-            alert("已经存在钱包文件，请勿重新创建。");
+        if (alreadyExitWallet)
+        {
+            alert("已经存在重名的钱包文件，你可以打开钱包或者创建新的钱包。");
+        }
+        else
+        {
+            let wallet = GlobalWallet.GetCurrentWallet();
+            wallet.dbName = $("#wallet_name").val();
+            AntShares.Wallets.Master.GetInstance().AddWalletName(new AntShares.Wallets.WalletStore(wallet.dbName));
+            wallet.OpenDB
+            (
+                $("#wallet_name").val(),
+                () =>
+                {
+                    ToPasswordKey(toUint8Array($("#create_password").val()),
+                        (passwordKey) =>
+                        {
+                            wallet.CreateWallet(passwordKey, createECDSAKey)
+                        });
+                }
+            );
+            
         }
     }
 
@@ -58,26 +111,27 @@
             }, err=> {
                 console.error(err);
             })
-            .then(p => {
-                Account.PrivateKey = p.d.base64UrlDecode();
-                Account.PublicECPoint = new AntShares.Cryptography.ECPoint(
+            .then(p =>
+            {
+                AntShares.Wallets.Account.PrivateKey = p.d.base64UrlDecode();
+                AntShares.Wallets.Account.PublicECPoint = new AntShares.Cryptography.ECPoint(
                     new AntShares.Cryptography.ECFieldElement(new BigInteger(p.x.base64UrlDecode()), AntShares.Cryptography.ECCurve.secp256r1),
                     new AntShares.Cryptography.ECFieldElement(new AntShares.BigInteger(p.y.base64UrlDecode()), AntShares.Cryptography.ECCurve.secp256r1),
                     AntShares.Cryptography.ECCurve.secp256r1);
                 
-                Account.PublicKey = Account.PublicECPoint.encodePoint(false).subarray(1, 65);
+                AntShares.Wallets.Account.PublicKey = AntShares.Wallets.Account.PublicECPoint.encodePoint(false).subarray(1, 65);
 
-                ToScriptHash(Account.PublicECPoint.encodePoint(true), createAccount);
+                ToScriptHash(AntShares.Wallets.Account.PublicECPoint.encodePoint(true), createAccount);
             });
     }
     function createAccount(publicKeyHash: Uint8Array) {
-        Account.PublicKeyHash = publicKeyHash;
+        AntShares.Wallets.Account.PublicKeyHash = publicKeyHash;
         let encryptedPrivateKey = new Uint8Array(96);
-        encryptedPrivateKey.set(Account.PrivateKey, 0);
-        encryptedPrivateKey.set(Account.PublicKey, 32);
+        encryptedPrivateKey.set(AntShares.Wallets.Account.PrivateKey, 0);
+        encryptedPrivateKey.set(AntShares.Wallets.Account.PublicKey, 32);
         window.crypto.subtle.importKey(
             "raw",
-            Key.MasterKey,
+            AntShares.Wallets.Key.MasterKey,
             "AES-CBC",
             false,
             ["encrypt", "decrypt"]
@@ -86,7 +140,7 @@
                 return window.crypto.subtle.encrypt(
                     {
                         name: "AES-CBC",
-                        iv: Key.IV
+                        iv: AntShares.Wallets.Key.IV
                     },
                     importKey,
                     encryptedPrivateKey
@@ -95,8 +149,8 @@
                 console.error(err);
             })
             .then(result => {
-                let account = new AccountStore(publicKeyHash, new Uint8Array(result));
-                AntShares.Wallets.Wallet.GetInstance().AddAccount(account);
+                let account = new AccountStore("我的账户" ,publicKeyHash, new Uint8Array(result));
+                GlobalWallet.GetCurrentWallet().AddAccount(account);
                 CreateContract();
             }, err => {
                 console.error(err);
@@ -104,15 +158,15 @@
     }
 
     function CreateContract() {
-        let sc = new SignatureContract(Account.PublicECPoint);
+        let sc = new AntShares.Wallets.SignatureContract(AntShares.Wallets.Account.PublicECPoint);
         ToScriptHash(sc.RedeemScript, saveContract)
         
     }
 
     function saveContract(ScriptHash: Uint8Array) {
-        let sc = new SignatureContract(Account.PublicECPoint);
-        let contract = new ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");
-        let wallet = AntShares.Wallets.Wallet.GetInstance();
+        let sc = new AntShares.Wallets.SignatureContract(AntShares.Wallets.Account.PublicECPoint);
+        let contract = new AntShares.Wallets.ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");
+        let wallet = GlobalWallet.GetCurrentWallet();
 
         wallet.AddContract(contract);
 

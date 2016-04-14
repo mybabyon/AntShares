@@ -1,8 +1,8 @@
 ﻿class AccountStore {
-    constructor(publicKeyHash: Uint8Array, privateKeyEncrypted: Uint8Array) {
+    constructor(name: string, publicKeyHash: Uint8Array, privateKeyEncrypted: Uint8Array) {
         this.PublicKeyHash = publicKeyHash;
         this.PrivateKeyEncrypted = privateKeyEncrypted;
-        this.Name = publicKeyHash.base58Encode();
+        this.Name = name;
     }
     Name: string;
     PublicKeyHash: Uint8Array;

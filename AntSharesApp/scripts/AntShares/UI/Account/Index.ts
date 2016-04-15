@@ -1,7 +1,7 @@
 ﻿namespace AntShares.UI.Account {
     export class Index extends TabBase {
         protected oncreate(): void {
-            //$(this.target).find("#create_wallet").click(this.OnCreateButtonClick);
+            $(this.target).find("#create_account").click(this.OnCreateButtonClick);
         }
 
         protected onload(): void {
@@ -9,29 +9,36 @@
             wallet.TraversalData(StoreName.Account,
                 (rawData: Array<AccountStore>) => {
                     for (let i = 0; i < rawData.length; i++) {
-                        let ul = $("#form_account_list").find("ul:eq(0)");
-                        ul.find("li:visible").remove();
-                        let liTemplet = ul.find("li:eq(0)");
-                        let li = liTemplet.clone(true);
-                        li.removeAttr("style");
-                        let span = li.find("span");
-                        span.text(rawData[i].Name + rawData[i].PublicKeyHash.base58Encode().substr(0, 8));
-                        ul.append(li);
+                        addAccountList(i)
                     }
                     
                 }
             );
         }
 
-        private OnCreateButtonClick() {
-            if (formIsValid("form_account_list")) {
+        private OnCreateButtonClick()
+        {
+            TabBase.showTab("#Tab_Account_Details");
+            //if (formIsValid("form_account_list")) {
                 
-            }
+            //}
         }
     }
 
-    function setDetailClick(rawData: AccountStore)
+    function addAccountList(i: number)
     {
-        //TODO：跳转到详情页面，这里要把私钥解密并且以WIF格式显示
+        let ul = $("#form_account_list").find("ul:eq(0)");
+        ul.find("li:visible").remove();
+        let liTemplet = ul.find("li:eq(0)");
+        let li = liTemplet.clone(true);
+        li.removeAttr("style");
+        let span = li.find("span");
+        let a = li.find("a");
+        a.click(() =>
+        {
+            TabBase.showTab("#Tab_Account_Details", i);
+        });
+        span.text(AccountList.List[i].Name + AccountList.List[i].PublicKeyHash.base58Encode().substr(0, 8));
+        ul.append(li);
     }
 }

@@ -502,11 +502,11 @@
                                 .then(q => {
                                     Key.MasterKey = new Uint8Array(q);
                                     this.TraversalData(StoreName.Account,
-                                        (rawDataArray: Array<AccountStore>) => {
-                                            for (let i = 0; i < rawDataArray.length; i++) {
-                                                decPriKey(rawDataArray[i]);
-                                            }
-                                            callback();
+                                        (rawDataArray: Array<AccountStore>) =>
+                                        {
+                                            AccountList.List = new Array<AccountItem>();
+                                            //以下函数相当于一个for循环,所有异步执行完毕才进入回调函数。
+                                            decPriKey(rawDataArray, 0, callback);
                                         }
                                     );
                                 }, err => {
@@ -523,7 +523,13 @@
      * 对加密过的privateKeyEncrypted进行解密
      * @param rawData 从数据库中读出的account字段
      */
-    function decPriKey(rawData: AccountStore) {
+    function decPriKey(rawDataArray: Array<AccountStore>, i: number, callback)
+    {
+        if (i >= rawDataArray.length)
+        {
+            callback();
+            return;
+        }
         window.crypto.subtle.importKey(
             "raw",
             Key.MasterKey, //解密过的MasterKey
@@ -538,7 +544,7 @@
                         iv: Key.IV
                     },
                     keyImport,
-                    rawData.PrivateKeyEncrypted //AES加密后的私钥和公钥
+                    rawDataArray[i].PrivateKeyEncrypted //AES加密后的私钥和公钥
                 )
             }, err => {
                 console.error(err);
@@ -548,11 +554,13 @@
                 let privateKey = privateKeyEncrypted.subarray(0, 32);
                 let publicKey = privateKeyEncrypted.subarray(32, 96);
                 let item = new AccountItem();
-                item.PublicKeyHash = rawData.PublicKeyHash;
+                item.Name = rawDataArray[i].Name;
+                item.PublicKeyHash = rawDataArray[i].PublicKeyHash;
                 item.PrivateKey = privateKey;
                 item.PublicKey = publicKey;
                 AccountList.List.push(item);
-
+                decPriKey(rawDataArray, ++i, callback);
+                
             }, err => {
                 console.log("解密私钥失败");
             });

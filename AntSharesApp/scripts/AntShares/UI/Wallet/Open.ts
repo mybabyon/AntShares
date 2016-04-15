@@ -35,9 +35,15 @@
                     wallet.VerifyPassword(toUint8Array($("#open_password").val()),
                         () =>
                         {
-                            wallet.OpenWalletAndDecryptPrivateKey(() => { alert("打开钱包成功"); });
-                            //TODO:打开成功后跳转账户管理页面
-                            $("#open_error").hide();
+                            wallet.OpenWalletAndDecryptPrivateKey(() =>
+                            {
+                                alert("打开钱包成功");
+                                $("#open_error").hide();
+                                //打开成功后跳转账户管理页面
+                                TabBase.showTab("#Tab_Account_Index");   
+                            });
+                            
+                            
                         },
                         () =>
                         {

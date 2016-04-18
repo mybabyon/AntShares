@@ -170,14 +170,29 @@
 
         wallet.AddContract(contract);
 
+
+        //创建钱包时记录下当前区块高度以便从此高度开始同步区块
+        let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
+        //根据指定的散列值，返回对应的交易信息
+        rpc.call("getblockcount", [],
+            (height) =>
+            {
+                wallet.AddKey(new Wallets.KeyStore("Height", height));
+            })
+        
+
         //对创建钱包进行校验
         wallet.GetDataByKey(StoreName.Key, "IV", (() => {
             wallet.GetDataByKey(StoreName.Key, "MasterKey", (() => {
                 wallet.GetDataByKey(StoreName.Key, "WalletName", (() => {
-                    wallet.GetDataByKey(StoreName.Key, "PasswordHash", (() => {
-                        alert("创建钱包成功");
-                        //打开成功后跳转账户管理页面
-                        TabBase.showTab("#Tab_Account_Index");
+                    wallet.GetDataByKey(StoreName.Key, "PasswordHash", (() =>
+                    {
+                        wallet.OpenWalletAndDecryptPrivateKey(() =>
+                        {
+                            alert("创建钱包成功");
+                            //打开成功后跳转账户管理页面
+                            TabBase.showTab("#Tab_Account_Index");
+                        });
                     }));
                 }));
             }));

@@ -93,7 +93,7 @@
                         <div class="row nomargin">
                             <div class="col-sm-12 wallet-name" style="padding: 0; margin-bottom: 10px;">
                                 <div>钱包名称：wallet1.db3</div><br />
-                                <a class="btn tab-trigger btn-default"  id="create_account" href="#Tab_Account_Create">创建账户</a>
+                                <a class="btn tab-trigger btn-default" id="create_account" href="#Tab_Account_Create">创建账户</a>
                                 <a class="btn tab-trigger btn-default" href="#Tab_Account_Import">导入私钥</a>
                             </div>
                             <ul class="col-sm-12 account-list">
@@ -566,19 +566,7 @@
             }]
         });
 
-        function getblockcount()
-        {
-            var rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
-            rpc.call("getblockcount", [], function (result)
-            {
-                $("#lbl_height").text(result - 1);
-                setTimeout(getblockcount, 5000);
-            }, function (error)
-            {
-                setTimeout(getblockcount, 5000);
-            });
-        }
-        getblockcount();
+        SyncBlocks();
         function alert(message)
         {
             $('.modal-body').text(message);

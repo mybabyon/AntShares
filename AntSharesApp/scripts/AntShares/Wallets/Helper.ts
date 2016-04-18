@@ -96,3 +96,84 @@ function verifyPassword(walletName: string, inputID: string, errorID: string)
     });
     
 }
+
+/**
+ * 在线同步区块并更新钱包中的未花费的币
+ */
+function SyncBlocks()
+{
+    getblockcount();
+    syncWallet();
+}
+
+function getblockcount()
+{
+    let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
+
+    rpc.call("getblockcount", [],
+        (result) =>
+        {
+            $("#lbl_height").text(result - 1);
+
+            setTimeout(getblockcount, 5000);
+        },
+        (error) =>
+        {
+            setTimeout(getblockcount, 5000);
+        }
+    );
+}
+
+function syncWallet()
+{
+    GlobalWallet.GetCurrentWallet().GetDataByKey(StoreName.Key, "Height",
+        (height: AntShares.Wallets.KeyStore) =>
+        {
+            let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
+            //根据指定的高度（索引），返回对应区块的散列值 
+            rpc.call("getblockhash", [],
+                (hash) =>
+                {
+                    //根据指定的散列值，返回对应的区块信息
+                    rpc.call("getblock", [hash],
+                        (block) =>
+                        {
+                            //以下函数相当于一个for循环,所有异步执行完毕才进入回调函数，读取下一个区块的数据。
+                            getAllTransactions(block.tx, 0,
+                                () =>
+                                {
+                                    //TODO:将钱包中的Height（标记同步区块的高度的字段）+1;
+                                    //同步完一个区块后立即同步下一个区块
+                                    
+                                    //GlobalWallet.GetCurrentWallet().HeightPlusOne(syncWallet());
+                                    
+                                });
+                           
+                        },
+                        (err) => { console.log(err); }
+                    );
+                },
+                (err) => { console.log(err); }
+            );
+        });
+    
+}
+function getAllTransactions(transactions: Array<any>, i: number, callback)
+{
+    if (i >= transactions.length)
+    {
+        callback();
+        return;
+    }
+    let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
+    //根据指定的散列值，返回对应的交易信息
+    rpc.call("getrawtransaction", [transactions[i].id],
+        (tx) =>
+        {
+            //TODO:读取交易数据，在本地存储UnSpentCoin
+
+            getAllTransactions(transactions, ++i, callback);
+        },
+        (err) => { console.log(err); }
+    );
+}

@@ -98,14 +98,8 @@ function verifyPassword(walletName: string, inputID: string, errorID: string)
 }
 
 /**
- * 在线同步区块并更新钱包中的未花费的币
+ * 在线同步区块高度
  */
-function SyncBlocks()
-{
-    getblockcount();
-    syncWallet();
-}
-
 function getblockcount()
 {
     let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
@@ -124,6 +118,10 @@ function getblockcount()
     );
 }
 
+/**
+ * 在线更新钱包中的未花费的币
+ * 打开钱包后调用
+ */
 function syncWallet()
 {
     GlobalWallet.GetCurrentWallet().GetDataByKey(StoreName.Key, "Height",
@@ -131,7 +129,7 @@ function syncWallet()
         {
             let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
             //根据指定的高度（索引），返回对应区块的散列值 
-            rpc.call("getblockhash", [],
+            rpc.call("getblockhash", [height.Value as number],
                 (hash) =>
                 {
                     //根据指定的散列值，返回对应的区块信息
@@ -145,7 +143,7 @@ function syncWallet()
                                     //TODO:将钱包中的Height（标记同步区块的高度的字段）+1;
                                     //同步完一个区块后立即同步下一个区块
                                     
-                                    //GlobalWallet.GetCurrentWallet().HeightPlusOne(syncWallet());
+                                    GlobalWallet.GetCurrentWallet().HeightPlusOne(syncWallet());
                                     
                                 });
                            

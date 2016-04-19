@@ -176,7 +176,7 @@
          * 向钱包中添加Key
          * @param key 要添加的Key。
          */
-        public AddKey(key: KeyStore) {
+        public AddKey(key: KeyStore, callback = null) {
             try {
                 if (this.db) {
                     let transaction = this.db.transaction("Key", IDBTransaction.READ_WRITE);
@@ -185,6 +185,8 @@
                     let request = store.add(key);
                     request.onsuccess = (e: any) => {
                         console.log('add key ' + key.Name + ' success');
+                        if (callback)
+                            callback();
                     };
                     request.onerror = (e: any) => {
                         console.log(e.currentTarget.error.toString());
@@ -273,6 +275,21 @@
         }
 
         /**
+         * 将钱包中Height字段（记录已同步到的区块高度）增加1
+         * @param callback 执行成功后的回调函数
+         */
+        public HeightPlusOne(callback)
+        {
+            this.GetDataByKey(StoreName.Key, "Height",
+                (height: KeyStore) =>
+                {
+                    height.Value++;
+                    this.UpdateDataByKey(StoreName.Key, "Height", height, callback);
+                }
+            )
+        }
+
+        /**
          * 遍历钱包的objectStore
          * @param storeName objectStore名称。
          * @param callback 遍历完毕时执行的方法，参数是遍历的结果数组型。
@@ -312,18 +329,75 @@
             }
         }
 
-        public UpdateDataByKey(storeName: StoreName, value: string, object: AccountStore | ContractStore | KeyStore) {
+        /**
+         * 更新数据库字段
+         * @param storeName 表名称。
+         * @param key 要更新的键。
+         * @param object 更新的对象。
+         */
+        public UpdateDataByKey(storeName: StoreName, key: string, object: AccountStore | ContractStore | KeyStore, callback = null) {
             let transaction = this.db.transaction(StoreName[storeName], IDBTransaction.READ_WRITE);
             transaction = this.db.transaction(StoreName[storeName], 'readwrite');
             let store = transaction.objectStore(StoreName[storeName]);
-            let request = store.get(value);
+            let request = store.get(key);
             request.onsuccess = (e: any) => {
                 let obj = e.target.result;
                 obj = object;
-                store.put(obj);
+                request = store.put(obj);
+                request.onsuccess = (e: any) =>
+                {
+                    if (callback)
+                        callback();
+                };
+                request.onerror = (e: any) =>
+                {
+                    console.log(e.currentTarget.error.toString());
+                }
             };
             request.onerror = (e: any) => {
                 console.log(e.currentTarget.error.toString());
+            }
+        }
+
+        /**
+         * 以事务的方式更新钱包密码
+         * @param newPasswordKeyHash 新的钱包密码的Hash
+         * @param newMasterKey 新的加密过的MasterKey
+         * @param callback 同时修改PasswordKeyHash和MasterKey成功后的回调函数
+         */
+        public UpdatePassword(newPasswordKeyHash: Uint8Array, newMasterKey: Uint8Array, callback)
+        {
+            let transaction = this.db.transaction("Key", IDBTransaction.READ_WRITE);
+            transaction = this.db.transaction("Key", 'readwrite');
+            let store = transaction.objectStore("Key");
+            let pwdhRquest = store.get("PasswordHash");
+            
+            pwdhRquest.onsuccess = (e: any) =>
+            {
+                let obj = e.target.result;
+                obj.Value = newPasswordKeyHash;
+                pwdhRquest = store.put(obj);
+                pwdhRquest.onsuccess = () =>
+                {
+                    console.log("1.修改PasswordHash成功");
+                };
+            };
+
+            let mkRquest = store.get("MasterKey");
+            mkRquest.onsuccess = (e: any) =>
+            {
+                let obj = e.target.result;
+                obj.Value = newMasterKey;
+                mkRquest = store.put(obj);
+                mkRquest.onsuccess = () =>
+                {
+                    console.log("2.修改MasterKey成功");
+                };
+            };
+            transaction.oncomplete = () =>
+            {
+                console.log("3.修改PasswordHash和修改MasterKey成功");
+                callback();
             }
         }
 
@@ -426,12 +500,32 @@
                                                             console.error(err);
                                                         })
                                                         .then(q => {
-                                                            let masterKey = new Uint8Array(q); //重新加密后的masterKey
-                                                            this.UpdateDataByKey(StoreName.Key, "MasterKey", new KeyStore("MasterKey", masterKey));
-                                                            console.log("修改MasterKey成功");
-                                                            firstStep = true;
-                                                            if (firstStep && secondStep)
-                                                                callback();
+                                                            Key.MasterKey = new Uint8Array(q); //重新加密后的masterKey
+
+                                                            //2、替换PasswordKeyHash
+                                                            ToPasswordKey(newPassword,
+                                                                (passwordKey) =>
+                                                                {
+                                                                    window.crypto.subtle.digest(
+                                                                        {
+                                                                            name: "SHA-256",
+                                                                        },
+                                                                        passwordKey
+                                                                    )
+                                                                        .then(hash =>
+                                                                        {
+                                                                            let passwordHash = new Uint8Array(hash);
+                                                                            Key.PasswordHash = passwordHash;
+
+                                                                            this.UpdatePassword(Key.PasswordHash, Key.MasterKey, callback);
+                                                                        })
+                                                                        .catch(err =>
+                                                                        {
+                                                                            console.error(err);
+                                                                        });
+                                                                }
+                                                            );//ToPasswordKey
+                                                                
                                                         })
                                                 }
                                             ); //ToPasswordKey
@@ -442,31 +536,7 @@
                     ); //GetDataByKey
                 }
             ); //GetDataByKey
-            
-            let secondStep = false;
-            //2、替换PasswordKeyHash
-            ToPasswordKey(newPassword,
-                (passwordKey) => {
-                    window.crypto.subtle.digest(
-                        {
-                            name: "SHA-256",
-                        },
-                        passwordKey
-                    )
-                        .then(hash => {
-                            let passwordHash = new Uint8Array(hash);
-                            Key.PasswordHash = passwordHash;
-                            this.UpdateDataByKey(StoreName.Key, "PasswordHash", new KeyStore("PasswordHash", passwordHash));
-                            console.log("替换PasswordHash成功");
-                            secondStep = true;
-                            if (firstStep && secondStep)
-                                callback();
-                        })
-                        .catch(err => {
-                            console.error(err);
-                        });
-                }
-            );//ToPasswordKey
+
         }
 
         /**

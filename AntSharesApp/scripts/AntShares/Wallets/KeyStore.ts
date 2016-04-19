@@ -2,12 +2,12 @@
 {
     export class KeyStore
     {
-        constructor(name: string, value: Uint8Array)
+        constructor(name: string, value:any)
         {
             this.Name = name;
             this.Value = value;
         }
         Name: string;
-        Value: Uint8Array;
+        Value: any;
     }
 }

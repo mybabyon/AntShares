@@ -41,6 +41,7 @@
                                 $("#open_error").hide();
                                 //打开成功后跳转账户管理页面
                                 TabBase.showTab("#Tab_Account_Index");   
+                                syncWallet();
                             });
                             
                             

@@ -3,7 +3,7 @@
         protected oncreate(): void {
             $(this.target).find("#create_account").click(this.OnCreateButtonClick);
         }
-
+        
         protected onload(): void {
             let wallet = GlobalWallet.GetCurrentWallet();
             wallet.TraversalData(StoreName.Account,
@@ -23,6 +23,7 @@
                 
             //}
         }
+
     }
 
     function addAccountList(i: number)
@@ -34,6 +35,14 @@
         li.removeAttr("style");
         let span = li.find("span");
         let a = li.find("a");
+        let btn = li.find("button:eq(0)");
+        btn.click(() =>
+        {
+            exportPrivateKey(AccountList.List[i].PrivateKey, (wif) =>
+            {
+                alert("WIF格式的私钥为：" + wif);
+            });
+        })
         a.click(() =>
         {
             TabBase.showTab("#Tab_Account_Details", i);
@@ -41,4 +50,5 @@
         span.text(AccountList.List[i].Name + AccountList.List[i].PublicKeyHash.base58Encode().substr(0, 8));
         ul.append(li);
     }
+
 }

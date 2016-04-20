@@ -140,18 +140,15 @@ function syncWallet()
                             getAllTransactions(block.tx, 0,
                                 () =>
                                 {
-                                    //TODO:将钱包中的Height（标记同步区块的高度的字段）+1;
-                                    //同步完一个区块后立即同步下一个区块
-                                    
+                                    //同步完一个区块将Height+1，然后后立即同步下一个区块
                                     GlobalWallet.GetCurrentWallet().HeightPlusOne(syncWallet());
-                                    
                                 });
                            
                         },
-                        (err) => { console.log(err); }
+                        (err) => { console.log(err.message); }
                     );
                 },
-                (err) => { console.log(err); }
+                (err) => { console.log(err.message); }
             );
         });
     
@@ -165,13 +162,15 @@ function getAllTransactions(transactions: Array<any>, i: number, callback)
     }
     let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
     //根据指定的散列值，返回对应的交易信息
-    rpc.call("getrawtransaction", [transactions[i].id],
+    rpc.call("getrawtransaction", [transactions[i].txid],
         (tx) =>
-        {
-            //TODO:读取交易数据，在本地存储UnSpentCoin
-
+        {     
+            if (tx.vin > 0 || tx.vout > 0)
+            {
+                //TODO:读取交易数据，在本地存储UnSpentCoin
+            }
             getAllTransactions(transactions, ++i, callback);
         },
-        (err) => { console.log(err); }
+        (err) => { console.log(err.message); }
     );
 }

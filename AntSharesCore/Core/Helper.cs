@@ -1,5 +1,6 @@
 ﻿using AntShares.Core.Scripts;
 using AntShares.Cryptography;
+using AntShares.Cryptography.ECC;
 using AntShares.Wallets;
 using System;
 using System.IO;
@@ -56,10 +57,21 @@ namespace AntShares.Core
             for (int i = 0; i < hashes.Length; i++)
             {
                 if (hashes[i] != signable.Scripts[i].RedeemScript.ToScriptHash()) return false;
-                ScriptEngine engine = new ScriptEngine(signable.Scripts[i], signable.GetHashForSigning());
+                ScriptEngine engine = new ScriptEngine(signable.Scripts[i], signable);
                 if (!engine.Execute()) return false;
             }
             return true;
+        }
+
+        public static bool VerifySignature(this ISignable signable, ECPoint pubkey, byte[] signature)
+        {
+            const int ECDSA_PUBLIC_P256_MAGIC = 0x31534345;
+            byte[] bytes = BitConverter.GetBytes(ECDSA_PUBLIC_P256_MAGIC).Concat(BitConverter.GetBytes(32)).Concat(pubkey.EncodePoint(false).Skip(1)).ToArray();
+            using (CngKey key = CngKey.Import(bytes, CngKeyBlobFormat.EccPublicBlob))
+            using (ECDsaCng ecdsa = new ECDsaCng(key))
+            {
+                return ecdsa.VerifyHash(signable.GetHashForSigning(), signature);
+            }
         }
     }
 }

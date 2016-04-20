@@ -70,11 +70,23 @@
     <Compile Include="UI\AssetRegisterDialog.Designer.cs">
       <DependentUpon>AssetRegisterDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\ClaimForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ClaimForm.Designer.cs">
+      <DependentUpon>ClaimForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\CreateMultiSigContractDialog.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\CreateMultiSigContractDialog.Designer.cs">
       <DependentUpon>CreateMultiSigContractDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ElectionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ElectionDialog.Designer.cs">
+      <DependentUpon>ElectionDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\ImportPrivateKeyDialog.cs">
       <SubType>Form</SubType>
@@ -87,6 +99,12 @@
     </Compile>
     <Compile Include="UI\IssueDialog.Designer.cs">
       <DependentUpon>IssueDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\TxOutListBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\TxOutListBox.Designer.cs">
+      <DependentUpon>TxOutListBox.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\PayToDialog.cs">
       <SubType>Form</SubType>
@@ -169,8 +187,17 @@
     <Compile Include="UI\ViewPrivateKeyDialog.designer.cs">
       <DependentUpon>ViewPrivateKeyDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\VotingDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\VotingDialog.Designer.cs">
+      <DependentUpon>VotingDialog.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="UI\AssetRegisterDialog.resx">
       <DependentUpon>AssetRegisterDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ClaimForm.resx">
+      <DependentUpon>ClaimForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\ContractDetailsDialog.resx">
       <DependentUpon>ContractDetailsDialog.cs</DependentUpon>
@@ -180,6 +207,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\DeveloperToolsForm.resx">
       <DependentUpon>DeveloperToolsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ElectionDialog.resx">
+      <DependentUpon>ElectionDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\ImportPrivateKeyDialog.resx">
       <DependentUpon>ImportPrivateKeyDialog.cs</DependentUpon>
@@ -192,6 +222,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\OpenWalletDialog.resx">
       <DependentUpon>OpenWalletDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\TxOutListBox.resx">
+      <DependentUpon>TxOutListBox.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\PayToDialog.resx">
       <DependentUpon>PayToDialog.cs</DependentUpon>
@@ -216,6 +249,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\ViewPrivateKeyDialog.resx">
       <DependentUpon>ViewPrivateKeyDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\VotingDialog.resx">
+      <DependentUpon>VotingDialog.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

@@ -15,15 +15,13 @@ namespace AntShares.Network
 {
     public class RemoteNode : IDisposable
     {
-        internal event EventHandler<Block> BlockReceived;
         public event EventHandler<bool> Disconnected;
+        internal event EventHandler<Inventory> InventoryReceived;
         internal event EventHandler<IPEndPoint[]> PeersReceived;
-        internal event EventHandler<Transaction> TransactionReceived;
 
         private static readonly TimeSpan OneMinute = TimeSpan.FromMinutes(1);
 
         private Queue<Message> message_queue = new Queue<Message>();
-        private static HashSet<UInt256> KnownHashes = new HashSet<UInt256>();
         private static HashSet<UInt256> missions_global = new HashSet<UInt256>();
         private HashSet<UInt256> missions = new HashSet<UInt256>();
 
@@ -71,7 +69,7 @@ namespace AntShares.Network
             }
             catch (SocketException)
             {
-                Disconnect(true);
+                Disconnect(false);
                 return;
             }
             OnConnected();
@@ -94,7 +92,8 @@ namespace AntShares.Network
                         missions_global.Remove(hash);
                     }
                 }
-                if (!protocolThread.ThreadState.HasFlag(ThreadState.Unstarted)) protocolThread.Join();
+                if (protocolThread != Thread.CurrentThread && !protocolThread.ThreadState.HasFlag(ThreadState.Unstarted))
+                    protocolThread.Join();
                 if (!sendThread.ThreadState.HasFlag(ThreadState.Unstarted)) sendThread.Join();
             }
         }
@@ -117,7 +116,7 @@ namespace AntShares.Network
 
         private void OnAddrMessageReceived(AddrPayload payload)
         {
-            IPEndPoint[] peers = payload.AddressList.Select(p => p.EndPoint).Where(p => !p.Equals(localNode.LocalEndpoint)).ToArray();
+            IPEndPoint[] peers = payload.AddressList.Select(p => p.EndPoint).Where(p => p.Port != localNode.Port || !LocalNode.LocalAddresses.Contains(p.Address)).ToArray();
             if (PeersReceived != null && peers.Length > 0)
             {
                 PeersReceived(this, peers);
@@ -127,22 +126,9 @@ namespace AntShares.Network
         private void OnConnected()
         {
             IPEndPoint remoteEndpoint = (IPEndPoint)tcp.Client.RemoteEndPoint;
-            remoteEndpoint = new IPEndPoint(remoteEndpoint.Address.MapToIPv6(), remoteEndpoint.Port);
-            lock (localNode.pendingPeers)
-                lock (localNode.connectedPeers)
-                {
-                    if (localNode.pendingPeers.All(p => p.RemoteEndpoint != remoteEndpoint) && !localNode.connectedPeers.ContainsKey(remoteEndpoint))
-                    {
-                        RemoteEndpoint = remoteEndpoint;
-                    }
-                }
-            if (RemoteEndpoint == null)
-            {
-                Disconnect(false);
-                return;
-            }
-            protocolThread.Name = $"RemoteNode.RunProtocol@{tcp.Client.RemoteEndPoint}";
-            sendThread.Name = $"RemoteNode.SendLoop@{tcp.Client.RemoteEndPoint}";
+            RemoteEndpoint = new IPEndPoint(remoteEndpoint.Address.MapToIPv6(), remoteEndpoint.Port);
+            protocolThread.Name = $"RemoteNode.RunProtocol@{RemoteEndpoint}";
+            sendThread.Name = $"RemoteNode.SendLoop@{RemoteEndpoint}";
             tcp.SendTimeout = 10000;
             stream = tcp.GetStream();
             connected = true;
@@ -154,7 +140,7 @@ namespace AntShares.Network
             AddrPayload payload;
             lock (localNode.connectedPeers)
             {
-                payload = AddrPayload.Create(localNode.connectedPeers.Values.Where(p => p.ListenerEndpoint != null).Take(100).Select(p => NetworkAddressWithTime.Create(p.ListenerEndpoint, p.Version.Services, p.Version.Timestamp)).ToArray());
+                payload = AddrPayload.Create(localNode.connectedPeers.Where(p => p.ListenerEndpoint != null).Take(100).Select(p => NetworkAddressWithTime.Create(p.ListenerEndpoint, p.Version.Services, p.Version.Timestamp)).ToArray());
             }
             EnqueueMessage("addr", payload, true);
         }
@@ -197,6 +183,10 @@ namespace AntShares.Network
                         if (inventory != null)
                             EnqueueMessage("block", inventory);
                         break;
+                    case InventoryType.Consensus:
+                        if (inventory != null)
+                            EnqueueMessage("consensus", inventory);
+                        break;
                 }
             }
         }
@@ -230,31 +220,20 @@ namespace AntShares.Network
 
         private void OnInventoryReceived(Inventory inventory)
         {
-            lock (KnownHashes)
-            {
-                KnownHashes.Add(inventory.Hash);
-            }
             lock (missions_global)
             {
                 missions_global.Remove(inventory.Hash);
             }
             missions.Remove(inventory.Hash);
-            if (inventory is Block)
-            {
-                if (BlockReceived != null) BlockReceived(this, (Block)inventory);
-            }
-            else if (inventory is Transaction)
-            {
-                if (TransactionReceived != null) TransactionReceived(this, (Transaction)inventory);
-            }
+            if (InventoryReceived != null) InventoryReceived(this, inventory);
         }
 
         private void OnInvMessageReceived(InvPayload payload)
         {
             InventoryVector[] vectors = payload.Inventories.Distinct().Where(p => Enum.IsDefined(typeof(InventoryType), p.Type)).ToArray();
-            lock (KnownHashes)
+            lock (LocalNode.KnownHashes)
             {
-                vectors = vectors.Where(p => !KnownHashes.Contains(p.Hash)).ToArray();
+                vectors = vectors.Where(p => !LocalNode.KnownHashes.Contains(p.Hash)).ToArray();
             }
             if (vectors.Length == 0) return;
             lock (missions_global)
@@ -281,11 +260,8 @@ namespace AntShares.Network
                 case "block":
                     OnInventoryReceived(message.Payload.AsSerializable<Block>());
                     break;
-                case "consrequest":
-                    //OnNewInventory(message.Payload.AsSerializable<BlockConsensusRequest>());
-                    break;
-                case "consresponse":
-                    //OnNewInventory(message.Payload.AsSerializable<BlockConsensusResponse>());
+                case "consensus":
+                    OnInventoryReceived(message.Payload.AsSerializable<ConsensusPayload>());
                     break;
                 case "getaddr":
                     OnGetAddrMessageReceived();
@@ -341,7 +317,7 @@ namespace AntShares.Network
                 }
                 catch (IOException)
                 {
-                    Disconnect(true);
+                    Disconnect(false);
                 }
             }
             return null;
@@ -359,7 +335,7 @@ namespace AntShares.Network
 
         private void RunProtocol()
         {
-            if (!SendMessage(Message.Create("version", VersionPayload.Create(localNode.LocalEndpoint?.Port ?? 0, localNode.UserAgent, Blockchain.Default?.Height ?? 0))))
+            if (!SendMessage(Message.Create("version", VersionPayload.Create(localNode.Port, localNode.Nonce, localNode.UserAgent))))
                 return;
             Message message = ReceiveMessage(TimeSpan.FromSeconds(30));
             if (message == null) return;
@@ -372,10 +348,34 @@ namespace AntShares.Network
             {
                 Version = message.Payload.AsSerializable<VersionPayload>();
             }
+            catch (EndOfStreamException)
+            {
+                Disconnect(false);
+                return;
+            }
             catch (FormatException)
             {
                 Disconnect(true);
                 return;
+            }
+            if (Version.Nonce == localNode.Nonce)
+            {
+                Disconnect(true);
+                return;
+            }
+            lock (localNode.pendingPeers)
+            {
+                lock (localNode.connectedPeers)
+                {
+                    if (localNode.connectedPeers.Any(p => p.RemoteEndpoint.Address.Equals(RemoteEndpoint.Address) && p.Version.Nonce == Version.Nonce))
+                    {
+                        Disconnect(false);
+                        return;
+                    }
+                    localNode.connectedPeers.Add(this);
+                }
+                if (ListenerEndpoint != null)
+                    localNode.pendingPeers.Remove(ListenerEndpoint);
             }
             if (ListenerEndpoint != null)
             {
@@ -387,8 +387,7 @@ namespace AntShares.Network
             }
             else if (Version.Port > 0)
             {
-                IPAddress ip = ((IPEndPoint)tcp.Client.RemoteEndPoint).Address.MapToIPv6();
-                ListenerEndpoint = new IPEndPoint(ip, Version.Port);
+                ListenerEndpoint = new IPEndPoint(RemoteEndpoint.Address, Version.Port);
             }
             if (!SendMessage(Message.Create("verack"))) return;
             message = ReceiveMessage(TimeSpan.FromSeconds(30));
@@ -397,14 +396,6 @@ namespace AntShares.Network
             {
                 Disconnect(true);
                 return;
-            }
-            lock (localNode.pendingPeers)
-            {
-                lock (localNode.connectedPeers)
-                {
-                    localNode.connectedPeers.Add(RemoteEndpoint, this);
-                }
-                localNode.pendingPeers.Remove(this);
             }
             if (Blockchain.Default?.HeaderHeight < Version.StartHeight)
             {
@@ -431,7 +422,7 @@ namespace AntShares.Network
                 }
                 catch (EndOfStreamException)
                 {
-                    Disconnect(true);
+                    Disconnect(false);
                     break;
                 }
                 catch (FormatException)
@@ -481,7 +472,7 @@ namespace AntShares.Network
             catch (ObjectDisposedException) { }
             catch (IOException)
             {
-                Disconnect(true);
+                Disconnect(false);
             }
             return false;
         }

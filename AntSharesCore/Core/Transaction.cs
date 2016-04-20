@@ -77,9 +77,9 @@ namespace AntShares.Core
         {
         }
 
-        public static Transaction DeserializeFrom(byte[] value)
+        public static Transaction DeserializeFrom(byte[] value, int offset = 0)
         {
-            using (MemoryStream ms = new MemoryStream(value, false))
+            using (MemoryStream ms = new MemoryStream(value, offset, value.Length - offset, false))
             using (BinaryReader reader = new BinaryReader(ms, Encoding.UTF8))
             {
                 return DeserializeFrom(reader);
@@ -109,6 +109,8 @@ namespace AntShares.Core
         {
             DeserializeExclusiveData(reader);
             Attributes = reader.ReadSerializableArray<TransactionAttribute>();
+            if (Attributes.Count(p => p.Usage == TransactionAttributeUsage.Script) > 1)
+                throw new FormatException();
             Inputs = reader.ReadSerializableArray<TransactionInput>();
             TransactionInput[] inputs = GetAllInputs().ToArray();
             for (int i = 1; i < inputs.Length; i++)
@@ -118,6 +120,10 @@ namespace AntShares.Core
             Outputs = reader.ReadSerializableArray<TransactionOutput>();
             if (Outputs.Length > ushort.MaxValue + 1)
                 throw new FormatException();
+            if (Blockchain.AntShare != null)
+                foreach (TransactionOutput output in Outputs.Where(p => p.AssetId == Blockchain.AntShare.Hash))
+                    if (output.Value.GetData() % 100000000 != 0)
+                        throw new FormatException();
         }
 
         public virtual IEnumerable<TransactionInput> GetAllInputs()
@@ -192,7 +198,7 @@ namespace AntShares.Core
             writer.Write(Outputs);
         }
 
-        public JObject ToJson()
+        public virtual JObject ToJson()
         {
             JObject json = new JObject();
             json["txid"] = Hash.ToString();
@@ -224,15 +230,31 @@ namespace AntShares.Core
             if (SystemFee > Fixed8.Zero && (results_destroy.Length == 0 || results_destroy[0].Amount < SystemFee))
                 return false;
             TransactionResult[] results_issue = results.Where(p => p.Amount < Fixed8.Zero).ToArray();
-            if (Type == TransactionType.GenerationTransaction)
+            switch (Type)
             {
-                if (results_issue.Any(p => p.AssetId != Blockchain.AntCoin.Hash))
-                    return false;
+                case TransactionType.MinerTransaction:
+                case TransactionType.ClaimTransaction:
+                    if (results_issue.Any(p => p.AssetId != Blockchain.AntCoin.Hash))
+                        return false;
+                    break;
+                case TransactionType.IssueTransaction:
+                    if (results_issue.Any(p => p.AssetId == Blockchain.AntCoin.Hash))
+                        return false;
+                    break;
+                default:
+                    if (results_issue.Length > 0)
+                        return false;
+                    break;
             }
-            else if (Type != TransactionType.IssueTransaction)
+            TransactionAttribute script = Attributes.FirstOrDefault(p => p.Usage == TransactionAttributeUsage.Script);
+            if (script != null)
             {
-                if (results_issue.Length > 0)
-                    return false;
+                ScriptEngine engine = new ScriptEngine(new Script
+                {
+                    StackScript = new byte[0],
+                    RedeemScript = script.Data
+                }, this);
+                if (!engine.Execute()) return false;
             }
             return this.VerifySignature();
         }

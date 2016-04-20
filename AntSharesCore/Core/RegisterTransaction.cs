@@ -30,7 +30,7 @@ namespace AntShares.Core
 
         private static readonly string ShareName = "[{'lang':'zh-CN','name':'股权'},{'lang':'en','name':'Share'}]";
 
-        public override Fixed8 SystemFee => Fixed8.FromDecimal(10000);
+        public override Fixed8 SystemFee => AssetType == AssetType.AntShare || AssetType == AssetType.AntCoin ? Fixed8.Zero : Fixed8.FromDecimal(10000);
 
         public RegisterTransaction()
             : base(TransactionType.RegisterTransaction)
@@ -90,6 +90,20 @@ namespace AntShares.Core
             writer.Write(Amount);
             writer.Write(Issuer);
             writer.Write(Admin);
+        }
+
+        public override JObject ToJson()
+        {
+            JObject json = base.ToJson();
+            json["asset"] = new JObject();
+            json["asset"]["type"] = AssetType;
+            json["asset"]["name"] = Name == "" ? null : JObject.Parse(Name);
+            json["asset"]["amount"] = Amount.ToString();
+            json["asset"]["high"] = Amount.GetData() >> 32;
+            json["asset"]["low"] = Amount.GetData() & 0xffffffff;
+            json["asset"]["issuer"] = Issuer.ToString();
+            json["asset"]["admin"] = Wallet.ToAddress(Admin);
+            return json;
         }
 
         public override string ToString()

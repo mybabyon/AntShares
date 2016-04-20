@@ -136,13 +136,17 @@
     <Compile Include="Core\Block.cs" />
     <Compile Include="Core\Blockchain.cs" />
     <Compile Include="Core\BlockchainAbility.cs" />
+    <Compile Include="Core\Claimable.cs" />
+    <Compile Include="Core\ClaimTransaction.cs" />
     <Compile Include="Core\ContractTransaction.cs" />
     <Compile Include="Core\EnrollmentTransaction.cs" />
-    <Compile Include="Core\GenerationTransaction.cs" />
+    <Compile Include="Core\MinerTransaction.cs" />
     <Compile Include="Core\Helper.cs" />
     <Compile Include="Core\Scripts\Helper.cs" />
+    <Compile Include="Core\Scripts\InterfaceEngine.cs" />
     <Compile Include="Core\Scripts\Script.cs" />
-    <Compile Include="Core\Scripts\ScriptAPI.cs" />
+    <Compile Include="Core\Scripts\InterfaceOp.cs" />
+    <Compile Include="Core\Scripts\StackItem.cs" />
     <Compile Include="Cryptography\ECC\ECDsa.cs" />
     <Compile Include="Implementations\Blockchains\LevelDB\DataEntryPrefix.cs" />
     <Compile Include="Implementations\Blockchains\LevelDB\Helper.cs" />
@@ -153,15 +157,17 @@
     <Compile Include="Implementations\Wallets\EntityFramework\Contract.cs" />
     <Compile Include="Implementations\Wallets\EntityFramework\Key.cs" />
     <Compile Include="Implementations\Wallets\EntityFramework\Transaction.cs" />
-    <Compile Include="Implementations\Wallets\EntityFramework\UnspentCoin.cs" />
+    <Compile Include="Implementations\Wallets\EntityFramework\Coin.cs" />
     <Compile Include="Implementations\Wallets\EntityFramework\UserWallet.cs" />
     <Compile Include="Implementations\Wallets\EntityFramework\WalletDataContext.cs" />
     <Compile Include="IO\Caching\Cache.cs" />
     <Compile Include="IO\Caching\FIFOCache.cs" />
+    <Compile Include="IO\Caching\ITrackable.cs" />
+    <Compile Include="IO\Caching\TrackableCollection.cs" />
+    <Compile Include="IO\Caching\TrackState.cs" />
     <Compile Include="IO\Caching\Tree.cs" />
     <Compile Include="IO\Caching\TreeNode.cs" />
-    <Compile Include="Miner\BlockConsensusRequest.cs" />
-    <Compile Include="Miner\BlockConsensusResponse.cs" />
+    <Compile Include="Network\Payloads\ConsensusPayload.cs" />
     <Compile Include="Network\Inventory.cs" />
     <Compile Include="Core\ISignable.cs" />
     <Compile Include="Core\IssueTransaction.cs" />
@@ -171,7 +177,6 @@
     <Compile Include="Core\Scripts\ScriptBuilder.cs" />
     <Compile Include="Core\Scripts\ScriptEngine.cs" />
     <Compile Include="Core\Scripts\ScriptOp.cs" />
-    <Compile Include="Core\Scripts\Stack.cs" />
     <Compile Include="Core\SignatureContext.cs" />
     <Compile Include="Core\SplitOrder.cs" />
     <Compile Include="Core\Transaction.cs" />
@@ -205,7 +210,6 @@
     <Compile Include="Network\Payloads\AddrPayload.cs" />
     <Compile Include="Network\Payloads\GetBlocksPayload.cs" />
     <Compile Include="Network\Payloads\HeadersPayload.cs" />
-    <Compile Include="Network\Payloads\Helper.cs" />
     <Compile Include="Network\InventoryType.cs" />
     <Compile Include="Network\Payloads\InventoryVector.cs" />
     <Compile Include="Network\Payloads\InvPayload.cs" />
@@ -219,10 +223,11 @@
     <Compile Include="UInt256.cs" />
     <Compile Include="UIntBase.cs" />
     <Compile Include="Cryptography\ProtectedMemoryContext.cs" />
+    <Compile Include="Wallets\CoinState.cs" />
     <Compile Include="Wallets\Contract.cs" />
     <Compile Include="Wallets\MultiSigContract.cs" />
     <Compile Include="Wallets\SignatureContract.cs" />
-    <Compile Include="Wallets\UnspentCoin.cs" />
+    <Compile Include="Wallets\Coin.cs" />
     <Compile Include="Wallets\Wallet.cs" />
     <Compile Include="Wallets\Account.cs" />
   </ItemGroup>
@@ -234,6 +239,7 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

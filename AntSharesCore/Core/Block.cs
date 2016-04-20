@@ -5,6 +5,7 @@ using AntShares.IO.Json;
 using AntShares.Network;
 using AntShares.Wallets;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -12,7 +13,7 @@ namespace AntShares.Core
 {
     public class Block : Inventory, IEquatable<Block>, ISignable
     {
-        public const uint Version = 0;
+        public uint Version;
         public UInt256 PrevBlock;
         public UInt256 MerkleRoot;
         public uint Timestamp;
@@ -65,26 +66,28 @@ namespace AntShares.Core
 
         public bool IsHeader => Transactions.Length == 0;
 
+        public static Fixed8 CalculateNetFee(IEnumerable<Transaction> transactions)
+        {
+            Transaction[] ts = transactions.Where(p => p.Type != TransactionType.MinerTransaction && p.Type != TransactionType.ClaimTransaction).ToArray();
+            Fixed8 amount_in = ts.SelectMany(p => p.References.Values.Where(o => o.AssetId == Blockchain.AntCoin.Hash)).Sum(p => p.Value);
+            Fixed8 amount_out = ts.SelectMany(p => p.Outputs.Where(o => o.AssetId == Blockchain.AntCoin.Hash)).Sum(p => p.Value);
+            Fixed8 amount_sysfee = ts.Sum(p => p.SystemFee);
+            return amount_in - amount_out - amount_sysfee;
+        }
+
         public override void Deserialize(BinaryReader reader)
         {
-            if (reader.ReadUInt32() != Version)
-                throw new FormatException();
-            PrevBlock = reader.ReadSerializable<UInt256>();
-            MerkleRoot = reader.ReadSerializable<UInt256>();
-            Timestamp = reader.ReadUInt32();
-            Height = reader.ReadUInt32();
-            Nonce = reader.ReadUInt64();
-            NextMiner = reader.ReadSerializable<UInt160>();
+            ((ISignable)this).DeserializeUnsigned(reader);
             if (reader.ReadByte() != 1) throw new FormatException();
             Script = reader.ReadSerializable<Script>();
-            Transactions = new Transaction[reader.ReadVarInt()];
+            Transactions = new Transaction[reader.ReadVarInt(0x10000000)];
             for (int i = 0; i < Transactions.Length; i++)
             {
                 Transactions[i] = Transaction.DeserializeFrom(reader);
             }
             if (Transactions.Length > 0)
             {
-                if (Transactions[0].Type != TransactionType.GenerationTransaction || Transactions.Skip(1).Any(p => p.Type == TransactionType.GenerationTransaction))
+                if (Transactions[0].Type != TransactionType.MinerTransaction || Transactions.Skip(1).Any(p => p.Type == TransactionType.MinerTransaction))
                     throw new FormatException();
                 if (MerkleTree.ComputeRoot(Transactions.Select(p => p.Hash).ToArray()) != MerkleRoot)
                     throw new FormatException();
@@ -93,8 +96,7 @@ namespace AntShares.Core
 
         void ISignable.DeserializeUnsigned(BinaryReader reader)
         {
-            if (reader.ReadUInt32() != Version)
-                throw new FormatException();
+            Version = reader.ReadUInt32();
             PrevBlock = reader.ReadSerializable<UInt256>();
             MerkleRoot = reader.ReadSerializable<UInt256>();
             Timestamp = reader.ReadUInt32();
@@ -122,14 +124,7 @@ namespace AntShares.Core
             using (MemoryStream ms = new MemoryStream(data, index, data.Length - index, false))
             using (BinaryReader reader = new BinaryReader(ms))
             {
-                if (reader.ReadUInt32() != Version)
-                    throw new FormatException();
-                block.PrevBlock = reader.ReadSerializable<UInt256>();
-                block.MerkleRoot = reader.ReadSerializable<UInt256>();
-                block.Timestamp = reader.ReadUInt32();
-                block.Height = reader.ReadUInt32();
-                block.Nonce = reader.ReadUInt64();
-                block.NextMiner = reader.ReadSerializable<UInt160>();
+                ((ISignable)block).DeserializeUnsigned(reader);
                 reader.ReadByte(); block.Script = reader.ReadSerializable<Script>();
                 if (txSelector == null)
                 {
@@ -137,7 +132,7 @@ namespace AntShares.Core
                 }
                 else
                 {
-                    block.Transactions = new Transaction[reader.ReadVarInt()];
+                    block.Transactions = new Transaction[reader.ReadVarInt(0x10000000)];
                     for (int i = 0; i < block.Transactions.Length; i++)
                     {
                         block.Transactions[i] = txSelector(reader.ReadSerializable<UInt256>());
@@ -157,13 +152,8 @@ namespace AntShares.Core
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriter writer = new BinaryWriter(ms))
             {
-                writer.Write(Version);
-                writer.Write(PrevBlock);
-                writer.Write(MerkleRoot);
-                writer.Write(Timestamp);
-                writer.Write(Height);
-                writer.Write(Nonce);
-                writer.Write(NextMiner);
+                ((ISignable)this).SerializeUnsigned(writer);
+                writer.Flush();
                 return ms.ToArray();
             }
         }
@@ -171,7 +161,7 @@ namespace AntShares.Core
         UInt160[] ISignable.GetScriptHashesForVerifying()
         {
             if (PrevBlock == UInt256.Zero)
-                return new UInt160[] { NextMiner };
+                return new UInt160[] { new byte[0].ToScriptHash() };
             Block prev_header = Blockchain.Default.GetHeader(PrevBlock);
             if (prev_header == null) throw new InvalidOperationException();
             return new UInt160[] { prev_header.NextMiner };
@@ -184,13 +174,7 @@ namespace AntShares.Core
 
         public override void Serialize(BinaryWriter writer)
         {
-            writer.Write(Version);
-            writer.Write(PrevBlock);
-            writer.Write(MerkleRoot);
-            writer.Write(Timestamp);
-            writer.Write(Height);
-            writer.Write(Nonce);
-            writer.Write(NextMiner);
+            ((ISignable)this).SerializeUnsigned(writer);
             writer.Write((byte)1); writer.Write(Script);
             writer.Write(Transactions);
         }
@@ -215,7 +199,7 @@ namespace AntShares.Core
             json["merkleroot"] = MerkleRoot.ToString();
             json["time"] = Timestamp;
             json["height"] = Height;
-            json["nonce"] = Nonce;
+            json["nonce"] = Nonce.ToString("x16");
             json["nextminer"] = Wallet.ToAddress(NextMiner);
             json["script"] = Script.ToJson();
             json["tx"] = Transactions.Select(p => p.ToJson()).ToArray();
@@ -227,13 +211,7 @@ namespace AntShares.Core
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriter writer = new BinaryWriter(ms))
             {
-                writer.Write(Version);
-                writer.Write(PrevBlock);
-                writer.Write(MerkleRoot);
-                writer.Write(Timestamp);
-                writer.Write(Height);
-                writer.Write(Nonce);
-                writer.Write(NextMiner);
+                ((ISignable)this).SerializeUnsigned(writer);
                 writer.Write((byte)1); writer.Write(Script);
                 writer.Write(Transactions.Select(p => p.Hash).ToArray());
                 writer.Flush();
@@ -261,41 +239,10 @@ namespace AntShares.Core
                 return false;
             if (completely)
             {
-                if (!Blockchain.Default.Ability.HasFlag(BlockchainAbility.Statistics))
-                    return false;
                 foreach (Transaction tx in Transactions)
                     if (!tx.Verify()) return false;
-                var antshares = Blockchain.Default.GetUnspentAntShares().GroupBy(p => p.ScriptHash, (k, g) => new
-                {
-                    ScriptHash = k,
-                    Amount = g.Sum(p => p.Value)
-                }).OrderBy(p => p.Amount).ThenBy(p => p.ScriptHash).ToArray();
-                Transaction[] transactions = Transactions.Where(p => p.Type != TransactionType.GenerationTransaction).ToArray();
-                Fixed8 amount_in = transactions.SelectMany(p => p.References.Values.Where(o => o.AssetId == Blockchain.AntCoin.Hash)).Sum(p => p.Value);
-                Fixed8 amount_out = transactions.SelectMany(p => p.Outputs.Where(o => o.AssetId == Blockchain.AntCoin.Hash)).Sum(p => p.Value);
-                Fixed8 amount_sysfee = transactions.Sum(p => p.SystemFee);
-                Fixed8 amount_netfee = amount_in - amount_out - amount_sysfee;
-                Fixed8 quantity = Blockchain.Default.GetQuantityIssued(Blockchain.AntCoin.Hash);
-                Fixed8 gen = Fixed8.Zero;
-                if (Height % Blockchain.MintingInterval == 0 && antshares.Length > 0)
-                {
-                    gen = Fixed8.FromDecimal((Blockchain.AntCoin.Amount - (quantity - amount_sysfee)).ToDecimal() * Blockchain.GenerationFactor);
-                }
-                GenerationTransaction tx_gen = Transactions.OfType<GenerationTransaction>().First();
-                if (tx_gen.Outputs.Sum(p => p.Value) != amount_netfee + gen)
-                    return false;
-                if (antshares.Length > 0)
-                {
-                    ulong n = Nonce % (ulong)antshares.Sum(p => p.Amount).value;
-                    ulong line = 0;
-                    int i = -1;
-                    do
-                    {
-                        line += (ulong)antshares[++i].Amount.value;
-                    } while (line <= n);
-                    if (tx_gen.Outputs.Where(p => p.ScriptHash == antshares[i].ScriptHash).Sum(p => p.Value) < gen)
-                        return false;
-                }
+                Transaction tx_gen = Transactions.FirstOrDefault(p => p.Type == TransactionType.MinerTransaction);
+                if (tx_gen?.Outputs.Sum(p => p.Value) != CalculateNetFee(Transactions)) return false;
             }
             return true;
         }

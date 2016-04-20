@@ -12,7 +12,6 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AntShares.UI
@@ -69,21 +68,6 @@ namespace AntShares.UI
             balance_changed = true;
         }
 
-        private async Task ShowInformationAsync(SignatureContext context)
-        {
-            if (context.Completed)
-            {
-                context.Signable.Scripts = context.GetScripts();
-                Transaction tx = (Transaction)context.Signable;
-                await Program.LocalNode.RelayAsync(tx);
-                InformationBox.Show(tx.Hash.ToString(), "交易已发送，这是交易编号(TXID)：", "交易成功");
-            }
-            else
-            {
-                InformationBox.Show(context.ToString(), "交易构造完成，但没有足够的签名：", "签名不完整");
-            }
-        }
-
         private void MainForm_Load(object sender, EventArgs e)
         {
             Program.LocalNode.Start(Settings.Default.NodePort);
@@ -100,7 +84,7 @@ namespace AntShares.UI
             lbl_count_node.Text = Program.LocalNode.RemoteNodeCount.ToString();
             if (balance_changed)
             {
-                IEnumerable<UnspentCoin> coins = Program.CurrentWallet == null ? Enumerable.Empty<UnspentCoin>() : Program.CurrentWallet.FindUnspentCoins();
+                IEnumerable<Coin> coins = Program.CurrentWallet == null ? Enumerable.Empty<Coin>() : Program.CurrentWallet.FindUnspentCoins();
                 var assets = coins.GroupBy(p => p.AssetId, (k, g) => new
                 {
                     Asset = (RegisterTransaction)Blockchain.Default.GetTransaction(k),
@@ -234,16 +218,12 @@ namespace AntShares.UI
             Close();
         }
 
-        private async void 转账TToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 转账TToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (TransferDialog dialog = new TransferDialog())
             {
                 if (dialog.ShowDialog() != DialogResult.OK) return;
-                Transaction tx = dialog.GetTransaction();
-                if (tx == null) return;
-                SignatureContext context = new SignatureContext(tx);
-                Program.CurrentWallet.Sign(context);
-                await ShowInformationAsync(context);
+                Helper.SignAndShowInformation(dialog.GetTransaction());
             }
         }
 
@@ -255,42 +235,44 @@ namespace AntShares.UI
             }
         }
 
-        private async void 注册资产RToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 提取小蚁币CToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Helper.Show<ClaimForm>();
+        }
+
+        private void 注册资产RToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (AssetRegisterDialog dialog = new AssetRegisterDialog())
             {
                 if (dialog.ShowDialog() != DialogResult.OK) return;
-                Transaction tx = null;
-                try
-                {
-                    tx = dialog.GetTransaction();
-                }
-                catch
-                {
-                    MessageBox.Show("数据填写不完整，或格式错误。");
-                    return;
-                }
-                if (tx == null)
-                {
-                    MessageBox.Show("余额不足以支付系统费用。");
-                    return;
-                }
-                SignatureContext context = new SignatureContext(tx);
-                Program.CurrentWallet.Sign(context);
-                await ShowInformationAsync(context);
+                Helper.SignAndShowInformation(dialog.GetTransaction());
             }
         }
 
-        private async void 资产分发IToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 资产分发IToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (IssueDialog dialog = new IssueDialog())
             {
                 if (dialog.ShowDialog() != DialogResult.OK) return;
-                Transaction tx = dialog.GetTransaction();
-                if (tx == null) return;
-                SignatureContext context = new SignatureContext(tx);
-                Program.CurrentWallet.Sign(context);
-                await ShowInformationAsync(context);
+                Helper.SignAndShowInformation(dialog.GetTransaction());
+            }
+        }
+
+        private void 选举EToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (ElectionDialog dialog = new ElectionDialog())
+            {
+                if (dialog.ShowDialog() != DialogResult.OK) return;
+                Helper.SignAndShowInformation(dialog.GetTransaction());
+            }
+        }
+
+        private void 投票VToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (VotingDialog dialog = new VotingDialog())
+            {
+                if (dialog.ShowDialog() != DialogResult.OK) return;
+                Helper.SignAndShowInformation(dialog.GetTransaction());
             }
         }
 

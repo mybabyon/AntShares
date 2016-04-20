@@ -10,14 +10,11 @@ namespace AntShares.Core
 {
     public abstract class Blockchain : IDisposable
     {
-        public event EventHandler<Block> PersistCompleted;
+        public static event EventHandler<Block> PersistCompleted;
 
-        public const int SecondsPerBlock = 15;
-        public const int MintingInterval = 10;
-        private const int BlocksPerYear = 365 * 24 * 60 * 60 / SecondsPerBlock;
-        private const double R_Init = 0.5;
-        private const double R_Final = 0.3;
-        public static readonly decimal GenerationFactor = 1 - (decimal)Math.Pow(R_Final / R_Init, (double)MintingInterval / BlocksPerYear);
+        public const uint SecondsPerBlock = 15;
+        public const uint DecrementInterval = 2000000;
+        public static readonly uint[] MintingAmount = { 8, 7, 6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
         public static readonly TimeSpan TimePerBlock = TimeSpan.FromSeconds(SecondsPerBlock);
         public static readonly ECPoint[] StandbyMiners =
         {
@@ -27,25 +24,9 @@ namespace AntShares.Core
             ECPoint.DecodePoint("039dafd8571a641058ccc832c5e2111ea39b09c0bde36050914384f7a48bce9bf9".HexToBytes(), ECCurve.Secp256r1),
             ECPoint.DecodePoint("038dddc06ce687677a53d54f096d2591ba2302068cf123c1f2d75c2dddc5425579".HexToBytes(), ECCurve.Secp256r1),
         };
-        public static readonly Block GenesisBlock = "0000000000000000000000000000000000000000000000000000000000000000000000003af466056e266f45fd4f929e5f6c55367b9047fb8bdd581cc77bb1dfcc40f43aa1f2a956000000001dac2b7c00000000d5b21f2e11a9795a22a482f342f53634b5a8cf3a01fd450140afa15d18d9f31dba3db565a69ebee34a09453d110fe3349257579d1c9359ff59a0e14e948141bbc5e2431dd171047f92d7ecd964b6cd4f3e5dd5854a0cd590d240e02f74fb6d8dc6283f00a3d51f1c3e252288b474da0f2b081370417740b950f07e45856b77f89524e830750364baa6cf90f4b8775da9ff720b87b75aa5989ca8405a6bbfbdcbbbf3cf47b668e1a781df9f745b5b2e9379aaf7d40c1f9fb8714d2d5dad2f72e5db2cc7646490e1545897d4820d2b54ae2c20b2b141c4cac4eaa6c6409d8d1ade01619614ade4e2e07f6a4094e5141e5a4d9995fc358d8101502edcda306b97707579800d39a16a047e67b758e57e5c384b39274815bf7bc75f98fe8d402182a064dc6831f2988834bc51c3d5db0300d19c0554923885d9ef8f38dbac4981afbbeb2d9b346d3557f10f6c988faf69f7d238aa4e4c6570e2a5629ef8143dad53210209e7fd41dfb5c2f8dc72eb30358ac100ea8c72da18847befe06eade68cebfcb9210327da12b5c40200e9f65569476bbff2218da4f32548ff43b6387ec1416a231ee821026ce35b29147ad09e4afe4ec4a7319095f08198fa8babbe3c56e970b143528d2221038dddc06ce687677a53d54f096d2591ba2302068cf123c1f2d75c2dddc542557921039dafd8571a641058ccc832c5e2111ea39b09c0bde36050914384f7a48bce9bf955ae020000000000000000004000565b7b276c616e67273a277a682d434e272c276e616d65273a27e5b08fe89a81e882a128e6b58be8af9529277d2c7b276c616e67273a27656e272c276e616d65273a27416e74536861726528546573744e657429277d5d0000c16ff28623000327da12b5c40200e9f65569476bbff2218da4f32548ff43b6387ec1416a231ee8d5b21f2e11a9795a22a482f342f53634b5a8cf3a00000002414034b5265dc400befd91f0441d8aa2ed1cad6d1fc4426c5bf72b3f9fe140ff7bd4bc386b34ac66c442ef1a216d36313fa1917a7a2f649dd6330e2403de0ca0fe7623210327da12b5c40200e9f65569476bbff2218da4f32548ff43b6387ec1416a231ee8acfd4501400e02302d5711999b8cc93e5f93b556cd7b4c4018422182201a29548c2924e1a62a65f188cdf51dc3a6b72e7357b57f101a420e09b40d6c6f2673e74065d1b036407feb69a038d0d138e055835abe10415f9d1a6155dbd8b077d87e73bcc78713f76ebc7750aa8bab484ec87f929a7b865362e0a6ceb5da9c24e0567667ea3912864059d38d920be5d774a359270ecbed7817a2ad48b3deb29fd4588563f532bf085a4c2b0372a3bc4fdc6187403e1642f61005b585df1834d863daafae3379a386a040b0ef07e761e00ede7047339690dc4632ae5d20cda49030f1141a839d9284df86ac181bc2340183d0dcc961e646a44d07732dac6a49da0dd613556e74f0edcd164090073f99a88b39ba27970ebaa858ff8ef05eed6c546f7ea6860a433efc6384c22c4afcc2ca6aa2f2bd62af9a32c0c7ae0ab9b5cbe28d1bb7469c1a1d63a9de72ad53210209e7fd41dfb5c2f8dc72eb30358ac100ea8c72da18847befe06eade68cebfcb9210327da12b5c40200e9f65569476bbff2218da4f32548ff43b6387ec1416a231ee821026ce35b29147ad09e4afe4ec4a7319095f08198fa8babbe3c56e970b143528d2221038dddc06ce687677a53d54f096d2591ba2302068cf123c1f2d75c2dddc542557921039dafd8571a641058ccc832c5e2111ea39b09c0bde36050914384f7a48bce9bf955ae".HexToBytes().AsSerializable<Block>();
-        public static readonly RegisterTransaction AntShare = (RegisterTransaction)GenesisBlock.Transactions[1];
-        public static readonly RegisterTransaction AntCoin = new RegisterTransaction
-        {
-            AssetType = AssetType.AntCoin,
-#if TESTNET
-            Name = "[{'lang':'zh-CN','name':'小蚁币(测试)'},{'lang':'en','name':'AntCoin(TestNet)'}]",
-#else
-            Name = "[{'lang':'zh-CN','name':'小蚁币'},{'lang':'en','name':'AntCoin'}]",
-#endif
-            Amount = Fixed8.FromDecimal(100000000),
-            Issuer = ECCurve.Secp256r1.Infinity,
-            Admin = new UInt160(),
-            Attributes = new TransactionAttribute[0],
-            Inputs = new TransactionInput[0],
-            Outputs = new TransactionOutput[0],
-            Scripts = new Script[0]
-        };
-        protected static readonly Dictionary<UInt256, Transaction> MemoryPool = new Dictionary<UInt256, Transaction>();
+        public static readonly Block GenesisBlock = "000000000000000000000000000000000000000000000000000000000000000000000000db9d58cacbae76de3b1ff5eabb0ec099d6f0df05c1a1a6706f1782bd0a9efe8807f2f056000000001dac2b7c000000007c185b0a6ff4002b8670556429250ff73bfb100201000004001dac2b7c000000004000565b7b276c616e67273a277a682d434e272c276e616d65273a27e5b08fe89a81e882a128e6b58be8af9529277d2c7b276c616e67273a27656e272c276e616d65273a27416e74536861726528546573744e657429277d5d0000c16ff28623000327da12b5c40200e9f65569476bbff2218da4f32548ff43b6387ec1416a231ee87c185b0a6ff4002b8670556429250ff73bfb100200000002fd45014043e8effe4c2cdc8dcf3f73f3c0f3ec5c0e1d03ead26a388bde5ac4f73ef39b49f29b58aeee441893aca4f76f0b525b19c4182de0a01e57a7082779c08a43938e40d9352795311dd1ad64120bb80edead05a383db02e3439474d306dc12a30c20ed35eee81eaa9b32e514f4ac39b31316003c4e80bb1bc4d90fcbadd30f270f709a401a931ce4f2127ab35e64be4a1ad46636c142830da24032e5ec2974bb64c6da2d00e16ee637c11676e29e28b76eb15689d5e069729901749684f0df3c221d16fd40b877ca40cc979999685385465b1d57dc5364da338dc2bd267513d612e41d0a5103b63fb1f7729d80836e048c5dc2ae02107b752ecabf0c1780be8bf62285903640fbaeea240896815061f4d5081e7439e9c733da99ec31370a10df002b626796a1b9561834a0125c1f8c1a996c004448d5fc379e197d5ea5af3faa527932a3a61cad54210209e7fd41dfb5c2f8dc72eb30358ac100ea8c72da18847befe06eade68cebfcb9210327da12b5c40200e9f65569476bbff2218da4f32548ff43b6387ec1416a231ee821026ce35b29147ad09e4afe4ec4a7319095f08198fa8babbe3c56e970b143528d2221038dddc06ce687677a53d54f096d2591ba2302068cf123c1f2d75c2dddc542557921039dafd8571a641058ccc832c5e2111ea39b09c0bde36050914384f7a48bce9bf955ae41406fcf1c3927700a4928a39ae12439a3bc81c2bd02ac967bc677ffc25431c30f8a7557edd26c63b42607ccf55376199e12f9163fbb6e8b2bfc595804f2a3bf726823210327da12b5c40200e9f65569476bbff2218da4f32548ff43b6387ec1416a231ee8ac4001555b7b276c616e67273a277a682d434e272c276e616d65273a27e5b08fe89a81e5b88128e6b58be8af9529277d2c7b276c616e67273a27656e272c276e616d65273a27416e74436f696e28546573744e657429277d5d0000c16ff28623000000000000000000000000000000000000000000000000000001125bb95c0000013d2aac31e7dd5842cb1d68390c9664edafc5928263af7dbd0c6644a3c2453e2a0000c16ff28623007c185b0a6ff4002b8670556429250ff73bfb100201fd4501403626c28ba176f8e93167c82d635d17443c713aa3bfa9929d5a26e26126aa9bca72ea3a405e0eae069e554d8a6f42504f08832c64f948f500a8bdc3acdb958ef7408bf3731b28717c60d42f1bc02e87a113ad07c6c7fd6f3716c509046e69ba722fd76117a7c104c07ec766ef8feedf6939966a400c99bf3de5bbc4785b4550f89a40543f52389afccb8d9753278b26342dd438ae9c010fbb28b54118a7085aba58c6597d65499d5336cb8a294017dbb313f6c29c51eac4c09c5d05c74e4c291566d540182efab8b5ddcd839a4f348b63d2efb26a4379a94ed30ba1d072ee1c1cd70eba593ab5c0bfa4aefa579d78afae50411f8c5a04aef946f5c1ba8b4260e4d9326d404ba8283bf4f105874690345ec8523f5a183bd8935b37795a3c2754c1b23da46300a284ef780e6f7ec58faad510a03961c04ebf32542de1755fcf6280f75198d1ad54210209e7fd41dfb5c2f8dc72eb30358ac100ea8c72da18847befe06eade68cebfcb9210327da12b5c40200e9f65569476bbff2218da4f32548ff43b6387ec1416a231ee821026ce35b29147ad09e4afe4ec4a7319095f08198fa8babbe3c56e970b143528d2221038dddc06ce687677a53d54f096d2591ba2302068cf123c1f2d75c2dddc542557921039dafd8571a641058ccc832c5e2111ea39b09c0bde36050914384f7a48bce9bf955ae".HexToBytes().AsSerializable<Block>();
+        public static readonly RegisterTransaction AntShare = GenesisBlock.Transactions.OfType<RegisterTransaction>().First(p => p.AssetType == AssetType.AntShare);
+        public static readonly RegisterTransaction AntCoin = GenesisBlock.Transactions.OfType<RegisterTransaction>().First(p => p.AssetType == AssetType.AntCoin);
 
         public abstract BlockchainAbility Ability { get; }
         public abstract UInt256 CurrentBlockHash { get; }
@@ -59,21 +40,9 @@ namespace AntShares.Core
 
         protected internal abstract void AddHeaders(IEnumerable<Block> headers);
 
-        internal bool AddTransaction(Transaction tx)
-        {
-            lock (MemoryPool)
-            {
-                if (ContainsTransaction(tx.Hash)) return false;
-                if (IsDoubleSpend(tx)) return false;
-                if (!tx.Verify()) return false;
-                MemoryPool.Add(tx.Hash, tx);
-                return true;
-            }
-        }
-
         public virtual bool ContainsAsset(UInt256 hash)
         {
-            return hash == AntCoin.Hash || hash == AntShare.Hash;
+            return hash == AntShare.Hash || hash == AntCoin.Hash;
         }
 
         public virtual bool ContainsBlock(UInt256 hash)
@@ -83,7 +52,7 @@ namespace AntShares.Core
 
         public virtual bool ContainsTransaction(UInt256 hash)
         {
-            return hash == AntCoin.Hash || GenesisBlock.Transactions.Any(p => p.Hash == hash) || MemoryPool.ContainsKey(hash);
+            return GenesisBlock.Transactions.Any(p => p.Hash == hash);
         }
 
         public bool ContainsUnspent(TransactionInput input)
@@ -91,13 +60,7 @@ namespace AntShares.Core
             return ContainsUnspent(input.PrevHash, input.PrevIndex);
         }
 
-        public virtual bool ContainsUnspent(UInt256 hash, ushort index)
-        {
-            Transaction tx;
-            if (!MemoryPool.TryGetValue(hash, out tx))
-                return false;
-            return index < tx.Outputs.Length;
-        }
+        public abstract bool ContainsUnspent(UInt256 hash, ushort index);
 
         public abstract void Dispose();
 
@@ -128,6 +91,11 @@ namespace AntShares.Core
 
         public abstract IEnumerable<EnrollmentTransaction> GetEnrollments(IEnumerable<Transaction> others);
 
+        public virtual Block GetHeader(uint height)
+        {
+            return GetHeader(GetBlockHash(height));
+        }
+
         public virtual Block GetHeader(UInt256 hash)
         {
             return GetBlock(hash)?.Header;
@@ -135,14 +103,9 @@ namespace AntShares.Core
 
         public abstract UInt256[] GetLeafHeaderHashes();
 
-        public IEnumerable<Transaction> GetMemoryPool()
-        {
-            return MemoryPool.Values;
-        }
-
         public static UInt160 GetMinerAddress(ECPoint[] miners)
         {
-            return MultiSigContract.CreateMultiSigRedeemScript(miners.Length / 2 + 1, miners).ToScriptHash();
+            return MultiSigContract.CreateMultiSigRedeemScript(miners.Length - (miners.Length - 1) / 3, miners).ToScriptHash();
         }
 
         private List<ECPoint> _miners = new List<ECPoint>();
@@ -194,25 +157,34 @@ namespace AntShares.Core
 
         public abstract Fixed8 GetQuantityIssued(UInt256 asset_id);
 
-        public virtual Transaction GetTransaction(UInt256 hash)
+        public virtual long GetSysFeeAmount(uint height)
         {
-            if (hash == AntCoin.Hash)
-                return AntCoin;
-            Transaction tx;
-            if (MemoryPool.TryGetValue(hash, out tx))
+            return GetSysFeeAmount(GetBlockHash(height));
+        }
+
+        public abstract long GetSysFeeAmount(UInt256 hash);
+
+        public Transaction GetTransaction(UInt256 hash)
+        {
+            int height;
+            return GetTransaction(hash, out height);
+        }
+
+        public virtual Transaction GetTransaction(UInt256 hash, out int height)
+        {
+            Transaction tx = GenesisBlock.Transactions.FirstOrDefault(p => p.Hash == hash);
+            if (tx != null)
+            {
+                height = 0;
                 return tx;
-            return GenesisBlock.Transactions.FirstOrDefault(p => p.Hash == hash);
+            }
+            height = -1;
+            return null;
         }
 
-        public virtual TransactionOutput GetUnspent(UInt256 hash, ushort index)
-        {
-            Transaction tx;
-            if (!MemoryPool.TryGetValue(hash, out tx) || index >= tx.Outputs.Length)
-                return null;
-            return tx.Outputs[index];
-        }
+        public abstract Dictionary<ushort, Claimable> GetUnclaimed(UInt256 hash);
 
-        public abstract IEnumerable<TransactionOutput> GetUnspentAntShares();
+        public abstract TransactionOutput GetUnspent(UInt256 hash, ushort index);
 
         public IEnumerable<Vote> GetVotes()
         {
@@ -228,13 +200,6 @@ namespace AntShares.Core
             lock (_miners)
             {
                 _miners.Clear();
-            }
-            lock (MemoryPool)
-            {
-                foreach (Transaction tx in block.Transactions)
-                {
-                    MemoryPool.Remove(tx.Hash);
-                }
             }
             if (PersistCompleted != null) PersistCompleted(this, block);
         }

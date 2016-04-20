@@ -2,6 +2,7 @@
 using AntShares.IO.Json;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace AntShares.Core
 {
@@ -12,37 +13,30 @@ namespace AntShares.Core
 
         void ISerializable.Deserialize(BinaryReader reader)
         {
-            this.Usage = (TransactionAttributeUsage)reader.ReadByte();
-            if (!Enum.IsDefined(typeof(TransactionAttributeUsage), Usage))
+            Usage = (TransactionAttributeUsage)reader.ReadByte();
+            if (Usage == TransactionAttributeUsage.ContractHash || (Usage >= TransactionAttributeUsage.Hash1 && Usage <= TransactionAttributeUsage.Hash15))
+                Data = reader.ReadBytes(32);
+            else if (Usage == TransactionAttributeUsage.ECDH02 || Usage == TransactionAttributeUsage.ECDH03)
+                Data = new[] { (byte)Usage }.Concat(reader.ReadBytes(32)).ToArray();
+            else if (Usage == TransactionAttributeUsage.Script)
+                Data = reader.ReadVarBytes(ushort.MaxValue);
+            else if (Usage >= TransactionAttributeUsage.Remark)
+                Data = reader.ReadVarBytes(byte.MaxValue);
+            else
                 throw new FormatException();
-            int length;
-            switch (Usage)
-            {
-                case TransactionAttributeUsage.ContractHash:
-                case TransactionAttributeUsage.ECDH02:
-                case TransactionAttributeUsage.ECDH03:
-                    length = 32;
-                    break;
-                case TransactionAttributeUsage.LockAfter:
-                case TransactionAttributeUsage.LockBefore:
-                    length = 4;
-                    break;
-                default:
-                    if (Usage >= TransactionAttributeUsage.Remark)
-                        length = reader.ReadByte();
-                    else
-                        throw new FormatException();
-                    break;
-            }
-            this.Data = reader.ReadBytes(length);
         }
 
         void ISerializable.Serialize(BinaryWriter writer)
         {
             writer.Write((byte)Usage);
-            if (Usage >= TransactionAttributeUsage.Remark)
+            if (Usage == TransactionAttributeUsage.Script)
+                writer.WriteVarInt(Data.Length);
+            else if (Usage >= TransactionAttributeUsage.Remark)
                 writer.Write((byte)Data.Length);
-            writer.Write(Data);
+            if (Usage == TransactionAttributeUsage.ECDH02 || Usage == TransactionAttributeUsage.ECDH03)
+                writer.Write(Data, 1, 32);
+            else
+                writer.Write(Data);
         }
 
         public JObject ToJson()

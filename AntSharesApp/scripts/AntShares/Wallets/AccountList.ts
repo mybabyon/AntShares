@@ -1,8 +1,10 @@
-﻿class AccountList {
+﻿class AccountList
+{
     public static List = new Array<AccountItem>();
 }
 
-class AccountItem {
+class AccountItem
+{
     Name: String;
     PublicKeyHash: Uint8Array;
     PrivateKey: Uint8Array;

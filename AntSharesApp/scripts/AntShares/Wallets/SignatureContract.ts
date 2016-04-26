@@ -2,9 +2,9 @@
 {
     export class SignatureContract
     {
-        constructor(private publicKey: AntShares.Cryptography.ECPoint)
+        constructor(private publicKey: Cryptography.ECPoint)
         {
-            this.RedeemScript = SignatureContract.CreateSignatureRedeemScript(publicKey);
+            this.RedeemScript = this.CreateSignatureRedeemScript(publicKey);
             if (Account.PublicKeyHash)
             {
                 this.PublicKeyHash = Account.PublicKeyHash;
@@ -14,11 +14,11 @@
         PublicKeyHash: Uint8Array;
 
 
-        public static CreateSignatureRedeemScript(publicKey: AntShares.Cryptography.ECPoint): Uint8Array
+        public CreateSignatureRedeemScript(publicKey: Cryptography.ECPoint): Uint8Array
         {
-            let sb = new AntShares.Core.Scripts.ScriptBuilder()
+            let sb = new Core.Scripts.ScriptBuilder()
             sb.push(publicKey.encodePoint(true));
-            sb.add(AntShares.Core.Scripts.ScriptOp.OP_CHECKSIG);
+            sb.add(Core.Scripts.ScriptOp.OP_CHECKSIG);
             return sb.toArray();
         }
 

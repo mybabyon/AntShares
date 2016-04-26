@@ -42,25 +42,7 @@ function Equeal(x: Uint8Array, y: Uint8Array): boolean {
 }
 
 function ToPasswordKey(password: Uint8Array, callback: (key: Uint8Array) => any) {
-    window.crypto.subtle.digest(
-        {
-            name: "SHA-256",
-        },
-        password
-    )
-        .then(p => {
-            let hash = new Uint8Array(p);
-            return window.crypto.subtle.digest(
-                {
-                    name: "SHA-256",
-                },
-                hash
-            )
-        })
-        .then(p => {
-            let hash2 = new Uint8Array(p);
-            callback(hash2);
-        })
+    sha256Twice(password, (result) => { callback(result); });
 }
 
 function formIsValid(formId: string): boolean {
@@ -173,4 +155,52 @@ function getAllTransactions(transactions: Array<any>, i: number, callback)
         },
         (err) => { console.log(err.message); }
     );
+}
+
+function toAddress(scriptHash: Uint8Array, callback: (result: string) => any)
+{
+    let data = new Uint8Array(21);
+    data[0] = 0x17;
+    data.set(scriptHash, 1);
+    sha256Twice(data, (result) =>
+    {
+        let check = result.subarray(0, 4);
+        let add = new Uint8Array(25);
+        add.set(data);
+        add.set(check, 21);
+        let address = add.base58Encode();
+        callback(address);
+    });
+}
+
+function sha256Twice(data: Uint8Array, success: (result: Uint8Array) => any, error = null)
+{
+    window.crypto.subtle.digest(
+        {
+            name: "SHA-256",
+        },
+        data
+    )
+        .then((hash) =>
+        {
+            window.crypto.subtle.digest(
+                {
+                    name: "SHA-256",
+                },
+                hash
+            )
+                .then((hash2) =>
+                {
+                    let result = new Uint8Array(hash2);
+                    success(result);
+                })
+                .catch(function (err)
+                {
+                    error(err);
+                });
+        })
+        .catch(function (err)
+        {
+            error(err);
+        });
 }

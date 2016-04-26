@@ -47,13 +47,13 @@
                     <div class="account-name" style="font-weight: bold;">我常用的账户</div>
                     <div class="row">
                         <div class="col-xs-6">
-                            <span>PublicKeyHash</span><br />
+                            <span title="未压缩的公钥的16进制编码">公钥</span><br />
                             <pre id="public_key">04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235</pre>
                         </div>
                         <div class="col-xs-6">
                             <a href="#seckey" data-toggle="collapse" aria-expanded="false">显示/隐藏私钥</a>
                             <div id="seckey" class="collapse">
-                                <pre id="privatekey_export">L1tRSPTFbNrFaUHUtgfMY7GUXshdadtjPJhUXiTqoCnCW6BmiS4C</pre>
+                                <pre><span>HEX:</span><span id="privatekey_hex"></span><br /><span>WIF:</span><span id="privatekey_export"></span></pre>
                             </div>
                         </div>
                     </div>
@@ -73,13 +73,13 @@
                         <div class="form-group">
                             <label class="col-sm-4 control-label">输入私钥</label>
                             <div class="col-sm-6">
-                                <input class="form-control" type="text" placeholder="输入私钥，要求WIF格式" />
-                                <span class="text-danger"></span>
+                                <input class="form-control" id="import_prikey_input" name="import_prikey_input" type="text" placeholder="输入私钥，要求WIF格式" data-val="true" data-val-required="私钥不能为空！" data-val-length-max="52" data-val-length-min="52" data-val-length="WIF私钥必须是52位的Base58编码。" />
+                                <span class="text-danger" data-valmsg-for="import_prikey_input" data-valmsg-replace="true"></span>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="col-sm-4 col-md-push-4 col-sm-push-4">
-                                <button type="button" class="btn btn-primary">导入账户</button>
+                                <button id="import_prikey" type="button" class="btn btn-primary">导入账户</button>
                             </div>
                         </div>
                     </fieldset>
@@ -307,37 +307,38 @@
                     </div>
                 </div>
                 <div id="Tab_Contract_Index" class="tab-pane">
-                    <h2 class="page-header">合约管理</h2>
-                    <div class="row nomargin">
-                        <div class="col-md-12" style="padding: 0; margin-bottom: 10px;">
-                            <div class="btn-group">
-                                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true">
-                                    创建高级合约
-                                    <span class="caret"></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">多方签名合约</a></li>
-                                </ul>
+                    <form id="form_contract_list">
+                        <h2 class="page-header">合约管理</h2>
+                        <div class="row nomargin">
+                            <div class="col-md-12" style="padding: 0; margin-bottom: 10px;">
+                                <div class="btn-group">
+                                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true">
+                                        创建高级合约
+                                        <span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#">多方签名合约</a></li>
+                                    </ul>
+                                </div>
                             </div>
+                            <ul class="col-sm-12 account-list">
+                                <li style="display:none">
+                                    <span></span>
+                                    <a class="btn btn-primary">详情</a>
+                                </li>
+                            </ul>
                         </div>
-                        <ul class="col-sm-12 account-list">
-                            <li>
-                                <span>AbcdY4PwNoNtWFsezzoTBS8int3ZVAttQd</span>
-                                <a class="btn tab-trigger btn-primary" href="#Tab_Contract_Details">详情</a>
-                                <button class="btn btn-primary">导出</button>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="alert alert-info bottom" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        合约是一段规定某一笔钱如何支付的脚本，A可以约定必须由收款人B和担保人C同时签名才能支配某笔比特币（担保交易），
-                        也可以约定B、C、D中任意两人签名就能支配（联名账户）；
-                        A可以约定B必须在一年后才能动用某笔比特币（延时支付），
-                        也可以约定任何人都能支配（撒钱）或者都不能支配（烧钱）。
-                        通过这套内置的脚本编程语言，你可以灵活地编写出各种各样的约定从而实现智能合约。
-                    </div>
+                        <div class="alert alert-info bottom" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            合约是一段规定某一笔钱如何支付的脚本，A可以约定必须由收款人B和担保人C同时签名才能支配某笔比特币（担保交易），
+                            也可以约定B、C、D中任意两人签名就能支配（联名账户）；
+                            A可以约定B必须在一年后才能动用某笔比特币（延时支付），
+                            也可以约定任何人都能支配（撒钱）或者都不能支配（烧钱）。
+                            通过这套内置的脚本编程语言，你可以灵活地编写出各种各样的约定从而实现智能合约。
+                        </div>
+                    </form>
                 </div>
                 <div id="Tab_Wallet_ChangePassword" class="form-horizontal tab-pane">
                     <form id="form_change_password" autocomplete="off">
@@ -533,7 +534,7 @@
             </ul>
         </nav>
     </div>
-    
+
     <script src="lib/jQuery.mmenu/dist/core/js/hammer.js"></script>
     <script src="lib/jquery/dist/jquery.min.js"></script>
     <script src="lib/jquery-validation/dist/jquery.validate.min.js"></script>

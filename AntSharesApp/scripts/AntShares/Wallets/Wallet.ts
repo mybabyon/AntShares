@@ -122,7 +122,7 @@
          * 向钱包中添加Account
          * @param account 要添加的Account。
          */
-        public AddAccount(account: AccountStore) {
+        public AddAccount(account: AccountStore, callback = null) {
             try {
                 if (this.db) {
                     let transaction = this.db.transaction("Account", IDBTransaction.READ_WRITE); //针对Edge
@@ -131,6 +131,8 @@
                     let request = store.add(account);
                     request.onsuccess = (e: any) => {
                         console.log('add account success');
+                        if (callback)
+                            callback();
                     };
                     request.onerror = (e: any) => {
                         console.log(e.currentTarget.error.toString());
@@ -587,6 +589,43 @@
                 }
             );//GetDataByKey
         }//OpenWalletAndDecryptPrivateKey
+
+        public EncriptPrivateKeyAndSave(privateKey, publicKey, publicKeyHash, name, callback)
+        {
+            let encryptedPrivateKey = new Uint8Array(96);
+            encryptedPrivateKey.set(privateKey, 0);
+            encryptedPrivateKey.set(publicKey, 32);
+            window.crypto.subtle.importKey(
+                "raw",
+                Key.MasterKey,
+                "AES-CBC",
+                false,
+                ["encrypt", "decrypt"]
+            )
+                .then(importKey =>
+                {
+                    return window.crypto.subtle.encrypt(
+                        {
+                            name: "AES-CBC",
+                            iv: Key.IV
+                        },
+                        importKey,
+                        encryptedPrivateKey
+                    )
+                }, err =>
+                {
+                    console.error(err);
+                })
+                .then(result =>
+                {
+                    let account = new AccountStore(name, publicKeyHash, new Uint8Array(result));
+                    this.AddAccount(account);
+                    callback();
+                }, err =>
+                {
+                    console.error(err);
+                })
+        }
     }
 
     /**

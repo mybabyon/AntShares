@@ -51,6 +51,11 @@
                     }
                     console.log('IDB wallet version changed to ' + this.version);
                 };
+                request.onblocked = (e: any) =>
+                {
+                    console.log(e.currentTarget.error.toString());
+                    return;
+                };
             }
             catch (e) {
                 console.log("打开IDB wallet异常： " + e);

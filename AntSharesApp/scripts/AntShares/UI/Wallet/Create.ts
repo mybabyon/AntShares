@@ -44,6 +44,7 @@
                         }
                         else
                         {
+                            GlobalWallet.GetCurrentWallet().CloseDB();
                             for (let i = 0; i < walletNameList.length; i++)
                             {
                                 this.deleteWallet(walletNameList[i]);
@@ -64,6 +65,7 @@
                 wallet.ClearObjectStore(StoreName.Contract);
                 wallet.ClearObjectStore(StoreName.Account);
                 wallet.DeleteIndexdDB();
+                wallet.CloseDB();
             });
         }
 

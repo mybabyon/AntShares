@@ -46,7 +46,7 @@
         {
             TabBase.showTab("#Tab_Contract_Details", i);
         });
-        //生成合约地址有Bug
+
         toAddress(i.ScriptHash, (addr) => { span.text(addr) });
         
         ul.append(li);

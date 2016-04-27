@@ -132,7 +132,7 @@
                         {
                             let key = cursor.key;
                             let rowData = cursor.value;
-                            array.push(rowData);
+                            array.push(rowData.Name);
                             console.log(rowData);
                             cursor.continue();
                         }

@@ -53,7 +53,7 @@
         }
     }
 
-    function listWallet(walletNameList: Array<AntShares.Wallets.WalletStore>) {
+    function listWallet(walletNameList: Array<string>) {
         if (walletNameList.length == 0)
         {
             $("#list_wallet_name2").hide();
@@ -70,8 +70,8 @@
                 let liTemplet = ul.find("li:eq(0)");
                 let li = liTemplet.clone();
                 li.removeAttr("style");
-                li.find("input").val(walletNameList[i].Name);
-                li.find("span").text(walletNameList[i].Name);
+                li.find("input").val(walletNameList[i]);
+                li.find("span").text(walletNameList[i]);
                 if (i == 0) //第一个默认选中
                 {
                     li.find("input").attr("checked", 'checked');

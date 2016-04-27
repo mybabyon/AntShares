@@ -7,12 +7,12 @@
 
         protected onload(): void
         {
-            AntShares.Wallets.Master.GetInstance().OpenDB(() => { });
+            Wallets.Master.GetInstance().OpenDB(() => { });
         }
 
         private OnCreateButtonClick() {
             if (formIsValid("form_create_wallet")) {
-                let master = AntShares.Wallets.Master.GetInstance();
+                let master = Wallets.Master.GetInstance();
                 master.OpenDB(() =>
                 {
                     master.GetWalletNameList(createWallet);
@@ -24,11 +24,11 @@
         private OnDeleteButtonClick()
         {
             console.clear();
-            let master = AntShares.Wallets.Master.GetInstance();
+            let master = Wallets.Master.GetInstance();
             master.OpenDB(() =>
             {
                 master.GetWalletNameList(
-                    (walletNameList: Array<AntShares.Wallets.WalletStore>) =>
+                    (walletNameList: Array<string>) =>
                 {
                     if (walletNameList.length == 0)
                     {
@@ -38,8 +38,8 @@
                     {
                         for (let i = 0; i < walletNameList.length; i++)
                         {
-                            deleteWallet(walletNameList[i].Name);
-                            master.DeleteWalletName(walletNameList[i].Name);
+                            deleteWallet(walletNameList[i]);
+                            master.DeleteWalletName(walletNameList[i]);
                             alert("delete current wallet success.");
                         }
                     }
@@ -50,7 +50,7 @@
 
     function deleteWallet(waletName: string)
     {
-        let wallet = new AntShares.Wallets.Wallet();
+        let wallet = new Wallets.Wallet();
         wallet.OpenDB(waletName, () =>
         {
             wallet.ClearObjectStore(StoreName.Key);
@@ -79,7 +79,7 @@
         {
             let wallet = GlobalWallet.GetCurrentWallet();
             wallet.dbName = $("#wallet_name").val();
-            AntShares.Wallets.Master.GetInstance().AddWalletName(new AntShares.Wallets.WalletStore(wallet.dbName));
+            Wallets.Master.GetInstance().AddWalletName(new Wallets.WalletStore(wallet.dbName));
             wallet.OpenDB
             (
                 $("#wallet_name").val(),
@@ -113,22 +113,23 @@
             })
             .then(p =>
             {
-                AntShares.Wallets.Account.PrivateKey = p.d.base64UrlDecode();
-                AntShares.Wallets.Account.PublicECPoint = new Cryptography.ECPoint(
-                    new Cryptography.ECFieldElement(new BigInteger(p.x.base64UrlDecode()), Cryptography.ECCurve.secp256r1),
-                    new Cryptography.ECFieldElement(new AntShares.BigInteger(p.y.base64UrlDecode()), Cryptography.ECCurve.secp256r1),
-                    Cryptography.ECCurve.secp256r1);
+                Wallets.Account.PrivateKey = p.d.base64UrlDecode();
+                let publicKey = new Uint8Array(64);
+                publicKey.set(p.x.base64UrlDecode(), 0);
+                publicKey.set(p.y.base64UrlDecode(), 32);
+                Wallets.Account.PublicECPoint = Cryptography.ECPoint.fromUint8Array(publicKey, Cryptography.ECCurve.secp256r1);
                 
-                AntShares.Wallets.Account.PublicKey = AntShares.Wallets.Account.PublicECPoint.encodePoint(false).subarray(1, 65);
+                Wallets.Account.PublicKey = Wallets.Account.PublicECPoint.encodePoint(false).subarray(1, 65);
+                let test = Wallets.Account.PublicECPoint.encodePoint(true);
 
-                ToScriptHash(AntShares.Wallets.Account.PublicECPoint.encodePoint(true), createAccount);
+                ToScriptHash(Wallets.Account.PublicECPoint.encodePoint(true), createAccount);
             });
     }
     function createAccount(publicKeyHash: Uint8Array) {
-        AntShares.Wallets.Account.PublicKeyHash = publicKeyHash;
+        Wallets.Account.PublicKeyHash = publicKeyHash;
         GlobalWallet.GetCurrentWallet().EncriptPrivateKeyAndSave(
-            AntShares.Wallets.Account.PrivateKey,
-            AntShares.Wallets.Account.PublicKey,
+            Wallets.Account.PrivateKey,
+            Wallets.Account.PublicKey,
             publicKeyHash,
             "我的账户",
             CreateContract()
@@ -136,16 +137,16 @@
     }
 
     function CreateContract() {
-        let sc = new AntShares.Wallets.SignatureContract(AntShares.Wallets.Account.PublicECPoint);
+        let sc = new Wallets.SignatureContract(Wallets.Account.PublicECPoint);
         ToScriptHash(sc.RedeemScript, saveContract)
         
     }
 
     function saveContract(ScriptHash: Uint8Array) {
-        let sc = new AntShares.Wallets.SignatureContract(AntShares.Wallets.Account.PublicECPoint);
+        let sc = new Wallets.SignatureContract(Wallets.Account.PublicECPoint);
         let contract = new ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");
         let wallet = GlobalWallet.GetCurrentWallet();
-        AntShares.Wallets.Account.clear();
+        Wallets.Account.clear();
         wallet.AddContract(contract);
 
 

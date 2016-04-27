@@ -310,11 +310,9 @@
                             let key = cursor.key;
                             let rowData = cursor.value;
                             array.push(rowData);
-                            console.log(rowData);
                             cursor.continue();
                         }
                         else {
-                            console.log("遍历完毕");
                             callback(array);
                         }
                     }
@@ -545,7 +543,8 @@
          * 打开钱包并解密私钥
          * @param callback 成功后执行的方法
          */
-        public OpenWalletAndDecryptPrivateKey(callback) {
+        public OpenWalletAndDecryptPrivateKey(callback)
+        {
             this.GetDataByKey(StoreName.Key, "IV",
                 (iv: KeyStore) => {
                     Key.IV = iv.Value;

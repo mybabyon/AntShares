@@ -127,10 +127,16 @@ function syncWallet()
                                 });
                            
                         },
-                        (err) => { console.log(err.message); }
+                        (err) =>
+                        {
+                            console.log(err.message);
+                        }
                     );
                 },
-                (err) => { console.log(err.message); }
+                (err) =>
+                {
+                    console.log(err.message);
+                }
             );
         });
     

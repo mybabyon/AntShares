@@ -133,12 +133,10 @@
                             let key = cursor.key;
                             let rowData = cursor.value;
                             array.push(rowData.Name);
-                            console.log(rowData);
                             cursor.continue();
                         }
                         else
                         {
-                            console.log("遍历完毕");
                             callback(array);
                         }
                     }

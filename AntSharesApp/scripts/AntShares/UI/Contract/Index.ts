@@ -13,6 +13,8 @@
             wallet.TraversalData(StoreName.Contract,
                 (rawData: Array<ContractStore>) =>
                 {
+                    let ul = $("#form_contract_list").find("ul:eq(1)");
+                    ul.find("li:visible").remove();
                     for (let i = 0; i < rawData.length; i++)
                     {
                         addContractList(rawData[i])
@@ -35,20 +37,17 @@
     function addContractList(i: ContractStore)
     {
         let ul = $("#form_contract_list").find("ul:eq(1)");
-        ul.find("li:visible").remove();
         let liTemplet = ul.find("li:eq(0)");
         let li = liTemplet.clone(true);
         li.removeAttr("style");
         let span = li.find("span");
         let a = li.find("a");
-
         a.click(() =>
         {
             TabBase.showTab("#Tab_Contract_Details", i);
         });
 
-        toAddress(i.ScriptHash, (addr) => { span.text(addr) });
-        
+        toAddress(i.ScriptHash, (addr) => { span.text(addr) });        
         ul.append(li);
     }
 

@@ -151,7 +151,6 @@
             let sc = new Wallets.SignatureContract(Wallets.Account.PublicECPoint);
             ToScriptHash(sc.RedeemScript, (ScriptHash: Uint8Array) =>
             {
-                let sc = new Wallets.SignatureContract(Wallets.Account.PublicECPoint);
                 let contract = new ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");
                 let wallet = GlobalWallet.GetCurrentWallet();
                 Wallets.Account.clear();

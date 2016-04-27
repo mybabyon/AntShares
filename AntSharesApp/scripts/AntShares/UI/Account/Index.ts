@@ -7,7 +7,10 @@
         protected onload(): void {
             let wallet = GlobalWallet.GetCurrentWallet();
             wallet.TraversalData(StoreName.Account,
-                (rawData: Array<AccountStore>) => {
+                (rawData: Array<AccountStore>) =>
+                {
+                    let ul = $("#form_account_list").find("ul:eq(0)");
+                    ul.find("li :visible").remove();
                     for (let i = 0; i < rawData.length; i++) {
                         addAccountList(i)
                     }
@@ -29,7 +32,6 @@
     function addAccountList(i: number)
     {
         let ul = $("#form_account_list").find("ul:eq(0)");
-        ul.find("li:visible").remove();
         let liTemplet = ul.find("li:eq(0)");
         let li = liTemplet.clone(true);
         li.removeAttr("style");
@@ -38,7 +40,7 @@
         let btn = li.find("button:eq(0)");
         btn.click(() =>
         {
-            exportPrivateKey(AccountList.List[i].PrivateKey, (wif) =>
+            Export(AccountList.List[i].PrivateKey, (wif) =>
             {
                 alert("WIF格式的私钥为：" + wif);
             });

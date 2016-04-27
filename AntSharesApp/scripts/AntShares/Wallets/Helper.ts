@@ -193,7 +193,7 @@ function sha256Twice(data: Uint8Array, success: (result: Uint8Array) => any, err
                 {
                     name: "SHA-256",
                 },
-                hash
+                new Uint8Array(hash)
             )
                 .then((hash2) =>
                 {

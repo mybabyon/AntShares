@@ -19,14 +19,41 @@
                 let wif = $("#import_prikey_input").val()
                 checkPrivateKeyWIF(wif, (prikey) =>
                 {
-                    //用私钥生成Account，加密后存到IDB中
-                    let publicKey = Cryptography.ECPoint.multiply(Cryptography.ECCurve.secp256r1.G, prikey);
-                    
-                    //GlobalWallet.GetCurrentWallet().AddAccount(new AccountStore());
+                    for (let i = 0; i < AccountList.List.length; i++)
+                    {
+                        if (Equeal(AccountList.List[i].PrivateKey, prikey))
+                        {
+                            alert("该账户在钱包中已存在");
+                            return;
+                        }
+                    }
+                    //用私钥生成Account，加密后存到钱包中
+                    let publicPoint = Cryptography.ECPoint.multiply(Cryptography.ECCurve.secp256r1.G, prikey);
+                    ToScriptHash(publicPoint.encodePoint(true),
+                        (publicKeyHash: Uint8Array) =>
+                        {
+                            let wallet = GlobalWallet.GetCurrentWallet();
+                            let publicKey = publicPoint.encodePoint(false).subarray(1, 65);
+                            wallet.EncriptPrivateKeyAndSave(prikey, publicKey, publicKeyHash, "导入账户", () =>
+                            {
+                                let sc = new Wallets.SignatureContract(publicPoint);
+                                ToScriptHash(sc.RedeemScript, (ScriptHash: Uint8Array) =>
+                                {
+                                    let contract = new ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");
+                                    wallet.AddContract(contract);
+                                    wallet.OpenWalletAndDecryptPrivateKey(() =>
+                                    {
+                                        alert("账户导入成功");
+                                        TabBase.showTab("#Tab_Account_Index");
+                                    });
+                                    
+                                })
+                            });
+                        });
                 },
                 (msg) =>
                 {
-
+                    $("#import_error").text(msg);
                 });
                 
             }
@@ -38,8 +65,11 @@
     {
 
         let decode = wif.base58Decode();
-        if (decode[0] != 0x80 || decode[33] != 0x10)
+        if (decode[0] != 0x80 || decode[33] != 0x01)
+        {
             error("格式错误");
+            return;
+        }
         let checkA = decode.subarray(34, 38);
 
         let data = new Uint8Array(38);
@@ -53,7 +83,15 @@
                     let prikey = decode.subarray(1, 33);
                     success(prikey);
                 }
+                else
+                {
+                    error("未通过校验，请检查拼写");
+                }
+            },
+            (msg) => {
+                error(msg);
             })
+
     }
     
 }

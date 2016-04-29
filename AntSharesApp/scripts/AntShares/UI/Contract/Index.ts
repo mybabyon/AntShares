@@ -9,6 +9,11 @@
 
         protected onload(): void
         {
+            if (AccountList.List.length <= 0)
+            {
+                TabBase.showTab("#Tab_Wallet_Open");
+                return;
+            }
             let wallet = GlobalWallet.GetCurrentWallet();
             wallet.TraversalData(StoreName.Contract,
                 (rawData: Array<ContractStore>) =>

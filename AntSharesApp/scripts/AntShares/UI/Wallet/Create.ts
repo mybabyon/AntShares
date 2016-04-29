@@ -162,7 +162,8 @@
                     alert("创建钱包成功");
                     //打开成功后跳转账户管理页面
                     TabBase.showTab("#Tab_Account_Index");
-                    syncWallet();
+                    let sync = new AntShares.UI.Sync();
+                    sync.startSyncWallet();
                 });
             })
         }

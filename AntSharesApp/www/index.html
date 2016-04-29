@@ -568,7 +568,9 @@
             }]
         });
 
-        getblockcount();
+        var sync = new AntShares.UI.Sync();
+        sync.getblockcount();
+
         function alert(message)
         {
             $('.modal-body').text(message);

@@ -9,24 +9,19 @@
 
         protected onload(): void
         {
-            if (AccountList.List.length <= 0)
+            let wallet = GlobalWallet.GetCurrentWallet();
+            if (wallet.accounts.length <= 0)
             {
                 TabBase.showTab("#Tab_Wallet_Open");
                 return;
             }
-            let wallet = GlobalWallet.GetCurrentWallet();
-            wallet.TraversalData(StoreName.Contract,
-                (rawData: Array<ContractStore>) =>
-                {
-                    let ul = $("#form_contract_list").find("ul:eq(1)");
-                    ul.find("li:visible").remove();
-                    for (let i = 0; i < rawData.length; i++)
-                    {
-                        addContractList(rawData[i])
-                    }
-
-                }
-            );
+            let ul = $("#form_contract_list").find("ul:eq(1)");
+            ul.find("li:visible").remove();
+            for (let i = 0; i < wallet.contracts.length; i++)
+            {
+                this.addContractList(i);
+            }
+            
         }
 
         private OnCreateButtonClick()
@@ -37,23 +32,24 @@
             //}
         }
 
-    }
-
-    function addContractList(i: ContractStore)
-    {
-        let ul = $("#form_contract_list").find("ul:eq(1)");
-        let liTemplet = ul.find("li:eq(0)");
-        let li = liTemplet.clone(true);
-        li.removeAttr("style");
-        let span = li.find("span");
-        let a = li.find("a");
-        a.click(() =>
+        private addContractList(i: number)
         {
-            TabBase.showTab("#Tab_Contract_Details", i);
-        });
+            let ul = $("#form_contract_list").find("ul:eq(1)");
+            let liTemplet = ul.find("li:eq(0)");
+            let li = liTemplet.clone(true);
+            li.removeAttr("style");
+            let span = li.find("span");
+            let a = li.find("a");
+            a.click(() =>
+            {
+                TabBase.showTab("#Tab_Contract_Details", i);
+            });
+            span.text(GlobalWallet.GetCurrentWallet().contracts[i].Address);
+            ul.append(li);
+        }
 
-        toAddress(i.ScriptHash, (addr) => { span.text(addr) });        
-        ul.append(li);
     }
+
+    
 
 }

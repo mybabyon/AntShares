@@ -17,11 +17,12 @@
             if (formIsValid("form_create_wallet"))
             {
                 let wif = $("#import_prikey_input").val()
+                let wallet = GlobalWallet.GetCurrentWallet();
                 checkPrivateKeyWIF(wif, (prikey) =>
                 {
-                    for (let i = 0; i < AccountList.List.length; i++)
+                    for (let i = 0; i < wallet.accounts.length; i++)
                     {
-                        if (Equeal(AccountList.List[i].PrivateKey, prikey))
+                        if (Equeal(wallet.accounts[i].PrivateKey, prikey))
                         {
                             alert("该账户在钱包中已存在");
                             return;

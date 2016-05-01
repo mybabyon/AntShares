@@ -42,7 +42,7 @@
                 {
                     $("#local_height").text(height.Value - 1);
                     let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
-                    //根据指定的高度（索引），返回对应区块的散列值 
+                    //根据指定的高度（索引），返回对应区块的散列值
                     rpc.call("getblockhash", [height.Value as number],
                         (hash) =>
                         {
@@ -50,14 +50,13 @@
                             rpc.call("getblock", [hash],
                                 (block: Core.Block) =>
                                 {
-                                                                      
                                     if (block.tx.length <= 1)
                                     {
                                         GlobalWallet.GetCurrentWallet().HeightPlusOne(this.syncWallet());
                                     }
                                     else
                                     {
-                                        this.rocessNewBlock(block);
+                                        this.processNewBlock(block);
                                     }
                                 },
                                 (err) =>
@@ -76,12 +75,31 @@
                 });
         }
 
-
-        private rocessNewBlock = (block) =>
+        /**
+         * 参考项目中的 Wallet.cs 中的 ProcessNewBlock()
+         */
+        private processNewBlock = (block: Core.Block) =>
         {
-            
+            for (let i = 0; i < block.tx.length; i++)
+            {
+                for (let index = 0; index < block.tx[i].vout.length; index++)
+                {
+                    let out = block.tx[i].vout[index] as Core.TransactionOutput;
+                    let wallet = GlobalWallet.GetCurrentWallet();
+                    let contains = false;
+                    for (let c = 0; c < wallet.contracts.length; c++)
+                    {
+                        if (wallet.contracts[c].Address == out.address)
+                        {
+                            contains = true;
+                        }
+                    }
+                    if (contains)
+                    {
+                        //TODO:
+                    }
+                }
+            }
         }
-
     }
 }
-

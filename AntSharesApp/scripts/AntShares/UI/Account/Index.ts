@@ -6,23 +6,18 @@
         
         protected onload(): void
         {
-            if (AccountList.List.length <= 0)
+            let wallet = GlobalWallet.GetCurrentWallet();
+            if (wallet.accounts.length <= 0)
             {
                 TabBase.showTab("#Tab_Wallet_Open");
                 return;
             }
-            let wallet = GlobalWallet.GetCurrentWallet();
-            wallet.TraversalData(StoreName.Account,
-                (rawData: Array<AccountStore>) =>
-                {
-                    let ul = $("#form_account_list").find("ul:eq(0)");
-                    ul.find("li :visible").remove();
-                    for (let i = 0; i < rawData.length; i++) {
-                        addAccountList(i)
-                    }
-                    
-                }
-            );
+            let ul = $("#form_account_list").find("ul:eq(0)");
+            ul.find("li :visible").remove();
+            for (let i = 0; i < wallet.accounts.length; i++)
+            {
+                addAccountList(i)
+            }
         }
 
         private OnCreateButtonClick()
@@ -44,9 +39,10 @@
         let span = li.find("span");
         let a = li.find("a");
         let btn = li.find("button:eq(0)");
+        let wallet = GlobalWallet.GetCurrentWallet();
         btn.click(() =>
         {
-            Export(AccountList.List[i].PrivateKey, (wif) =>
+            Export(wallet.accounts[i].PrivateKey, (wif) =>
             {
                 alert("WIF格式的私钥为：" + wif);
             });
@@ -55,7 +51,7 @@
         {
             TabBase.showTab("#Tab_Account_Details", i);
         });
-        span.text(AccountList.List[i].Name + AccountList.List[i].PublicKeyHash.base58Encode().substr(0, 8));
+        span.text(wallet.accounts[i].Name + wallet.accounts[i].PublicKeyHash.base58Encode().substr(0, 8));
         ul.append(li);
     }
 

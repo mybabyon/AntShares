@@ -1,13 +1,13 @@
 ﻿namespace AntShares.Wallets
 {
-
-    export class Wallet 
+    export class Wallet
     {
         public db: IDBDatabase;
         public dbName = "wallet";
         private version = 6;
         public accounts = new Array<AccountItem>();
         public contracts = new Array<ContractItem>();
+        public coins = new Array<CoinItem>();
 
         /**
          * 打开钱包数据库
@@ -45,19 +45,21 @@
                     {
                         let objectStore = this.db.createObjectStore('Account', { keyPath: "Name" });
                         objectStore.createIndex("Account", "Name", { unique: true });
-
                     }
                     if (!this.db.objectStoreNames.contains('Contract'))
                     {
                         let objectStore = this.db.createObjectStore('Contract', { keyPath: "Name" });
                         objectStore.createIndex("Contract", "Name", { unique: true });
-
                     }
                     if (!this.db.objectStoreNames.contains('Key'))
                     {
                         let objectStore = this.db.createObjectStore('Key', { keyPath: "Name" });
                         objectStore.createIndex("Key", "Name", { unique: true });
-
+                    }
+                    if (!this.db.objectStoreNames.contains('Coin'))
+                    {
+                        let objectStore = this.db.createObjectStore('Key', { keyPath: "TxId" });
+                        objectStore.createIndex("Key", "AssetId", { unique: true });
                     }
                     console.log('IDB wallet version changed to ' + this.version);
                 };
@@ -137,97 +139,54 @@
 
                     callback(); //执行创建钱包后的回调函数
                 })
-
         }
 
         /**
          * 向钱包中添加Account
-         * @param account 要添加的Account。
          */
         public AddAccount(account: AccountStore, callback = null)
         {
-            try
-            {
-                if (this.db)
-                {
-                    let transaction = this.db.transaction("Account", IDBTransaction.READ_WRITE); //针对Edge
-                    transaction = this.db.transaction("Account", 'readwrite');//针对Chrome
-                    let store = transaction.objectStore("Account");
-                    let request = store.add(account);
-                    request.onsuccess = (e: any) =>
-                    {
-                        console.log('add account success');
-                        if (callback)
-                            callback();
-                    };
-                    request.onerror = (e: any) =>
-                    {
-                        console.log(e.currentTarget.error.toString());
-                    };
-                }
-                else
-                {
-                    console.log('db = null');
-                }
-            }
-            catch (e)
-            {
-                console.log(e);
-            }
+            this.AddData("Account", account, callback);
+        }
+
+        /**
+         * 向钱包中添加Coin
+         */
+        public AddCoin(coin: CoinStore, callback = null)
+        {
+            this.AddData("Coin", coin, callback);
         }
 
         /**
          * 向钱包中添加Contract
-         * @param contract 要添加的Contract。
          */
-        public AddContract(contract: ContractStore)
+        public AddContract(contract: ContractStore, callback = null)
         {
-            try
-            {
-                if (this.db)
-                {
-                    let transaction = this.db.transaction("Contract", IDBTransaction.READ_WRITE);
-                    transaction = this.db.transaction("Contract", 'readwrite');
-                    let store = transaction.objectStore("Contract");
-                    let request = store.add(contract);
-                    request.onsuccess = (e: any) =>
-                    {
-                        console.log('add contract success');
-                    };
-                    request.onerror = (e: any) =>
-                    {
-                        console.log(e.currentTarget.error.toString());
-                    };
-                }
-                else
-                {
-                    console.log('db = null');
-                }
-            }
-            catch (e)
-            {
-                console.log(e);
-            }
+            this.AddData("Contract", contract, callback);
         }
 
         /**
          * 向钱包中添加Key
-         * @param key 要添加的Key。
          */
         public AddKey(key: KeyStore, callback = null)
+        {
+            this.AddData("Key", key, callback);
+        }
+
+        private AddData(storeName: string, data: AccountStore | CoinStore | ContractStore | KeyStore, callback)
         {
             try
             {
                 if (this.db)
                 {
-                    let transaction = this.db.transaction("Key", IDBTransaction.READ_WRITE);
-                    transaction = this.db.transaction("Key", 'readwrite');
-                    let store = transaction.objectStore("Key");
-                    let request = store.add(key);
+                    let transaction = this.db.transaction(storeName, IDBTransaction.READ_WRITE);
+                    transaction = this.db.transaction(storeName, 'readwrite');
+                    let store = transaction.objectStore(storeName);
+                    let request = store.add(data);
                     request.onsuccess = (e: any) =>
                     {
-                        console.log('add key ' + key.Name + ' success');
-                        if (callback)
+                        console.log('add ' + storeName + ' success');
+                        if (callback != null)
                             callback();
                     };
                     request.onerror = (e: any) =>
@@ -245,6 +204,7 @@
                 console.log(e);
             }
         }
+
 
         public CloseDB()
         {
@@ -303,7 +263,6 @@
             {
                 console.log(e);
             }
-
         };
 
         /**
@@ -404,7 +363,7 @@
          * @param key 要更新的键。
          * @param object 更新的对象。
          */
-        public UpdateDataByKey(storeName: StoreName, key: string, object: AccountStore | ContractStore | KeyStore, callback = null)
+        public UpdateDataByKey(storeName: StoreName, key: string, object: AccountStore | ContractStore | KeyStore | CoinStore, callback = null)
         {
             let transaction = this.db.transaction(StoreName[storeName], IDBTransaction.READ_WRITE);
             transaction = this.db.transaction(StoreName[storeName], 'readwrite');
@@ -615,7 +574,6 @@
                                                                         });
                                                                 }
                                                             );//ToPasswordKey
-
                                                         })
                                                 }
                                             ); //ToPasswordKey
@@ -626,7 +584,6 @@
                     ); //GetDataByKey
                 }
             ); //GetDataByKey
-
         }
 
         /**
@@ -714,8 +671,37 @@
                 item.Address = addr;
                 this.contracts.push(item);
                 this.addToContracts(rawData, ++i, callback);
-            });  
+            });
         }
+
+        /**
+         * 从数据库中读取合约存到coins变量中
+         */
+        public LoadCoins = (callback) =>
+        {
+            this.TraversalData(StoreName.Contract, (rawData: Array<CoinStore>) =>
+            {
+                this.coins = new Array<CoinItem>();
+                this.addToCoins(rawData, 0, callback);
+            })
+        }
+
+        private addToCoins(rawData: Array<CoinStore>, i: number, callback)
+        {
+            if (i >= rawData.length)
+            {
+                callback();
+                return;
+            }
+            let item = new CoinItem();
+            item.Input = new Core.TransactionInput(rawData[i].TxId, rawData[i].Index);
+            item.ScriptHash = rawData[i].ScriptHash;
+            item.State = rawData[i].State;
+            item.Value = rawData[i].Value;
+            this.coins.push(item);
+            this.addToCoins(rawData, ++i, callback);
+        }
+
 
         public EncriptPrivateKeyAndSave = (privateKey, publicKey, publicKeyHash, name, callback) =>
         {
@@ -797,14 +783,10 @@
                     item.PublicKey = publicKey;
                     this.accounts.push(item);
                     this.decPriKey(rawDataArray, ++i, callback);
-
                 }, err =>
                 {
                     console.log("解密私钥失败");
                 });
         }
     }
-
-
-
 }

@@ -13,18 +13,20 @@
 
     export class TransactionInput
     {
-        public txid: string;
-        public vout: number;
+        constructor(public txid: Uint8Array, public vout: number)
+        {
+
+        }
     }
 
     export class TransactionOutput
     {
         public n: number;
-        public asset: number;
-        public value: string;
+        public asset: Uint8Array;
+        public value: number;
         public high: number;
         public low: number;
-        public address: string;
+        public address: Uint8Array;
     }
 
     export class TransactionAttribute

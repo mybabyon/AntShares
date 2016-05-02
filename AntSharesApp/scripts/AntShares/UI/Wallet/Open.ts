@@ -26,7 +26,8 @@
         }
 
         private OnOpenButtonClick() {
-            if (formIsValid("form_open_wallet")) {
+            if (formIsValid("form_open_wallet"))
+            {
                 let wallet = GlobalWallet.NewWallet();
 
                 let walletName = $('#list_wallet_name input[name="wallet"]:checked ').val(); 

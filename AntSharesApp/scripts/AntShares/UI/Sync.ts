@@ -85,21 +85,35 @@
                 for (let index = 0; index < block.tx[i].vout.length; index++)
                 {
                     let out = block.tx[i].vout[index] as Core.TransactionOutput;
+                    let input = block.tx[i].vin[index] as Core.TransactionInput;
                     let wallet = GlobalWallet.GetCurrentWallet();
                     let contains = false;
+                    let existed = false;
                     for (let c = 0; c < wallet.contracts.length; c++)
                     {
-                        if (wallet.contracts[c].Address == out.address)
+                        if (Equeal(wallet.contracts[c].ScriptHash, out.address))
                         {
                             contains = true;
                         }
                     }
                     if (contains)
                     {
-                        //TODO:
+                        for (let c = 0; c < wallet.coins.length; c++)
+                        {
+                            let coin = wallet.coins[c];
+                            if (coin.Input.txid == input.txid && coin.Input.vout == input.vout)
+                            {
+                                existed = true;
+                            }
+                        }
+                    }
+                    if (contains && !existed)
+                    {
+                        wallet.AddCoin(new CoinStore(input.txid, index, out.asset, out.value, out.address, Core.CoinState.Unspent));
                     }
                 }
             }
+            //尚未经过测试
         }
     }
 }

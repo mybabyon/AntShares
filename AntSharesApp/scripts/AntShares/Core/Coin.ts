@@ -9,7 +9,7 @@
         state: CoinState;
     }
 
-    enum CoinState
+    export enum CoinState
     {
         Unconfirmed,
         Unspent,

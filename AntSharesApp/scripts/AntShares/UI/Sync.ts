@@ -56,7 +56,10 @@
                                     }
                                     else
                                     {
-                                        this.processNewBlock(block);
+                                        this.processNewBlock(block, () =>
+                                        {
+                                            GlobalWallet.GetCurrentWallet().HeightPlusOne(this.syncWallet());
+                                        });
                                     }
                                 },
                                 (err) =>
@@ -78,22 +81,24 @@
         /**
          * 参考项目中的 Wallet.cs 中的 ProcessNewBlock()
          */
-        private processNewBlock = (block: Core.Block) =>
+        private processNewBlock = (block: Core.Block, callback) =>
         {
+            let wallet = GlobalWallet.GetCurrentWallet();
             for (let i = 0; i < block.tx.length; i++)
             {
                 for (let index = 0; index < block.tx[i].vout.length; index++)
                 {
                     let out = block.tx[i].vout[index] as Core.TransactionOutput;
-                    let input = block.tx[i].vin[index] as Core.TransactionInput;
-                    let wallet = GlobalWallet.GetCurrentWallet();
+                    let input = new Core.TransactionInput(block.tx[i].txid, index);
+                    
                     let contains = false;
                     let existed = false;
                     for (let c = 0; c < wallet.contracts.length; c++)
                     {
-                        if (Equeal(wallet.contracts[c].ScriptHash, out.address))
+                        if (wallet.contracts[c].Address == out.address)
                         {
                             contains = true;
+                            break;
                         }
                     }
                     if (contains)
@@ -101,19 +106,43 @@
                         for (let c = 0; c < wallet.coins.length; c++)
                         {
                             let coin = wallet.coins[c];
-                            if (coin.Input.txid == input.txid && coin.Input.vout == input.vout)
+                            if (InputEqueal(coin.Input, input))
                             {
                                 existed = true;
+                                break;
                             }
                         }
                     }
                     if (contains && !existed)
                     {
-                        wallet.AddCoin(new CoinStore(input.txid, index, out.asset, out.value, out.address, Core.CoinState.Unspent));
+                        wallet.AddCoin(new CoinStore(input.prevHash, index, out.asset, out.value, out.address, Core.CoinState.Unspent));
                     }
                 }
             }
-            //尚未经过测试
+            wallet.TraversalData(StoreName.Transaction, (transactions: TransactionStore[]) =>
+            {
+                let spent = false;
+                let inputs = new Array<Core.TransactionInput>();
+                for (let i = 0; i < transactions.length; i++)
+                {
+                    for (let j = 0; j < transactions[i].Inputs.length; j++)
+                    {
+                        inputs.push(transactions[i].Inputs[j]);
+                    }
+                }
+                for (let i = 0; i < inputs.length; i++)
+                {
+                    if (CoinsContains(wallet.coins, inputs[i]))
+                    {
+                        
+                    }
+                }
+
+                
+            });
+            
+
+            callback();
         }
     }
 }

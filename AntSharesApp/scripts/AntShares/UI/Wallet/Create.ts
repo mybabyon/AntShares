@@ -157,7 +157,7 @@
                 wallet.AddContract(contract);
                 wallet.AddKey(new Wallets.KeyStore("Height", this.CurrentHeight));
 
-                wallet.OpenWalletAndDecryptPrivateKey(() =>
+                wallet.LoadAccounts(() =>
                 {
                     alert("创建钱包成功");
                     //打开成功后跳转账户管理页面

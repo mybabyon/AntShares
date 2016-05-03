@@ -3,7 +3,7 @@
     export class CoinItem
     {
         Input: Core.TransactionInput;
-        ScriptHash: Uint8Array;
+        Address: string;
         State: AntShares.Core.CoinState;
         AssetId: Uint8Array;
         Value: number;

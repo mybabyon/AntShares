@@ -36,16 +36,20 @@
                     wallet.VerifyPassword(toUint8Array($("#open_password").val()),
                         () =>
                         {
-                            wallet.OpenWalletAndDecryptPrivateKey(() =>
+                            wallet.LoadAccounts(() =>
                             {
                                 wallet.LoadContracts(() =>
                                 {
-                                    alert("打开钱包成功");
-                                    $("#open_error").hide();
-                                    //打开成功后跳转账户管理页面
-                                    TabBase.showTab("#Tab_Account_Index");
-                                    let sync = new AntShares.UI.Sync();
-                                    sync.startSyncWallet();
+                                    wallet.LoadCoins(() =>
+                                    {
+                                        alert("打开钱包成功");
+                                        $("#open_error").hide();
+                                        //打开成功后跳转账户管理页面
+                                        TabBase.showTab("#Tab_Account_Index");
+                                        let sync = new AntShares.UI.Sync();
+                                        sync.startSyncWallet();
+                                    })
+                                    
                                 });
                             });
                         },

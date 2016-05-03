@@ -2,5 +2,7 @@
 {
     Account,
     Contract,
-    Key
+    Key,
+    Coin,
+    Transaction
 }

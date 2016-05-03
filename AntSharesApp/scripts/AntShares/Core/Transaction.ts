@@ -13,7 +13,7 @@
 
     export class TransactionInput
     {
-        constructor(public txid: Uint8Array, public vout: number)
+        constructor(public prevHash: string, public prevIndex: number)
         {
 
         }
@@ -26,7 +26,7 @@
         public value: number;
         public high: number;
         public low: number;
-        public address: Uint8Array;
+        public address: string;
     }
 
     export class TransactionAttribute

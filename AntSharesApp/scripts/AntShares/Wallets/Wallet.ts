@@ -61,6 +61,11 @@
                         let objectStore = this.db.createObjectStore('Key', { keyPath: "TxId" });
                         objectStore.createIndex("Key", "AssetId", { unique: true });
                     }
+                    if (!this.db.objectStoreNames.contains('Coin'))
+                    {
+                        let objectStore = this.db.createObjectStore('Transaction', { keyPath: "Hash" });
+                        objectStore.createIndex("Transaction", "Hash", { unique: true });
+                    }
                     console.log('IDB wallet version changed to ' + this.version);
                 };
                 request.onblocked = (e: any) =>
@@ -173,7 +178,15 @@
             this.AddData("Key", key, callback);
         }
 
-        private AddData(storeName: string, data: AccountStore | CoinStore | ContractStore | KeyStore, callback)
+        /**
+         * 向钱包中添加Transaction
+         */
+        public AddTransaction(tx: TransactionStore, callback = null)
+        {
+            this.AddData("Transaction", tx, callback);
+        }
+
+        private AddData(storeName: string, data: AccountStore | CoinStore | ContractStore | KeyStore | TransactionStore, callback)
         {
             try
             {
@@ -363,7 +376,7 @@
          * @param key 要更新的键。
          * @param object 更新的对象。
          */
-        public UpdateDataByKey(storeName: StoreName, key: string, object: AccountStore | ContractStore | KeyStore | CoinStore, callback = null)
+        public UpdateDataByKey(storeName: StoreName, key: string, object: AccountStore | ContractStore | KeyStore | CoinStore | TransactionStore, callback = null)
         {
             let transaction = this.db.transaction(StoreName[storeName], IDBTransaction.READ_WRITE);
             transaction = this.db.transaction(StoreName[storeName], 'readwrite');
@@ -590,7 +603,7 @@
          * 打开钱包并解密私钥
          * @param callback 成功后执行的方法
          */
-        public OpenWalletAndDecryptPrivateKey = (callback) =>
+        public LoadAccounts = (callback) =>
         {
             this.GetDataByKey(StoreName.Key, "IV",
                 (iv: KeyStore) =>
@@ -679,7 +692,7 @@
          */
         public LoadCoins = (callback) =>
         {
-            this.TraversalData(StoreName.Contract, (rawData: Array<CoinStore>) =>
+            this.TraversalData(StoreName.Coin, (rawData: Array<CoinStore>) =>
             {
                 this.coins = new Array<CoinItem>();
                 this.addToCoins(rawData, 0, callback);
@@ -695,13 +708,12 @@
             }
             let item = new CoinItem();
             item.Input = new Core.TransactionInput(rawData[i].TxId, rawData[i].Index);
-            item.ScriptHash = rawData[i].ScriptHash;
+            item.Address = rawData[i].Address;
             item.State = rawData[i].State;
             item.Value = rawData[i].Value;
             this.coins.push(item);
             this.addToCoins(rawData, ++i, callback);
         }
-
 
         public EncriptPrivateKeyAndSave = (privateKey, publicKey, publicKeyHash, name, callback) =>
         {

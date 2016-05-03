@@ -42,7 +42,7 @@
                                 {
                                     let contract = new ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");
                                     wallet.AddContract(contract);
-                                    wallet.OpenWalletAndDecryptPrivateKey(() =>
+                                    wallet.LoadAccounts(() =>
                                     {
                                         alert("账户导入成功");
                                         TabBase.showTab("#Tab_Account_Index");

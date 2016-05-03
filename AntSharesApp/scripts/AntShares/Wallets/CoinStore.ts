@@ -1,6 +1,7 @@
 ﻿class CoinStore
 {
-    constructor(public TxId: Uint8Array, public Index: number, public AssetId: Uint8Array, public Value: number, public ScriptHash: Uint8Array, public State: AntShares.Core.CoinState)
+    constructor(public TxId: string, public Index: number, public AssetId: Uint8Array,
+        public Value: number, public Address: string, public State: AntShares.Core.CoinState)
     {
 
     }

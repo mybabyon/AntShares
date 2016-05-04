@@ -84,18 +84,17 @@
         private processNewBlock = (block: Core.Block, callback) =>
         {
             let wallet = GlobalWallet.GetCurrentWallet();
-            for (let i = 0; i < block.tx.length; i++)
+            for (let tx of block.tx) //547
             {
-                for (let index = 0; index < block.tx[i].vout.length; index++)
+                for (let index = 0; index < tx.vout.length; index++) //549
                 {
-                    let out = block.tx[i].vout[index] as Core.TransactionOutput;
-                    let input = new Core.TransactionInput(block.tx[i].txid, index);
+                    let out = tx.vout[index] as Core.TransactionOutput;
+                    let input = new Core.TransactionInput(tx.txid, index);
                     
                     let contains = false;
-                    let existed = false;
-                    for (let c = 0; c < wallet.contracts.length; c++)
+                    for (let c of wallet.contracts) //552
                     {
-                        if (wallet.contracts[c].Address == out.address)
+                        if (c.Address == out.address)
                         {
                             contains = true;
                             break;
@@ -103,44 +102,54 @@
                     }
                     if (contains)
                     {
-                        for (let c = 0; c < wallet.coins.length; c++)
+                        for (let c = 0; c < wallet.coins.length; c++) //559
                         {
-                            let coin = wallet.coins[c];
-                            if (InputEqueal(coin.Input, input))
+                            if (InputEqueal(wallet.coins[c].Input, input))
                             {
-                                existed = true;
-                                break;
+                                wallet.coins[c].State = Core.CoinState.Unspent;
+                            }
+                            else
+                            {
+                                wallet.AddCoin(new CoinStore(input.prevHash, index, out.asset, out.value, out.address, Core.CoinState.Unspent));
                             }
                         }
                     }
-                    if (contains && !existed)
+                }
+            }
+            let allInputs = new Array<Core.TransactionInput>(); //573
+            for (let i = 0; i < block.tx.length; i++)
+            {
+                allInputs.concat(block.tx[i].vin);
+            }
+            for (let input of allInputs)
+            {
+                let i = CoinsIndexof(wallet.coins, input);
+                if (i > 0) //575
+                {
+                    //if (wallet.coins[i].AssetId == "")
                     {
-                        wallet.AddCoin(new CoinStore(input.prevHash, index, out.asset, out.value, out.address, Core.CoinState.Unspent));
+                        wallet.coins[i].State = Core.CoinState.Spent;
+                    }
+                    //else
+                    {
+                        wallet.coins.splice(i);
                     }
                 }
             }
-            wallet.TraversalData(StoreName.Transaction, (transactions: TransactionStore[]) =>
+            let claims = new Array<Core.TransactionInput>(); //573
+            for (let i = 0; i < block.tx.length; i++)
             {
-                let spent = false;
-                let inputs = new Array<Core.TransactionInput>();
-                for (let i = 0; i < transactions.length; i++)
+                if (block.tx[i].type == Core.TransactionType.ClaimTransaction)
+                    claims.concat(block.tx[i].vin);
+            }
+            for (let claim of claims)
+            {
+                let i = CoinsIndexof(wallet.coins, claim);
+                if (i > 0) //585
                 {
-                    for (let j = 0; j < transactions[i].Inputs.length; j++)
-                    {
-                        inputs.push(transactions[i].Inputs[j]);
-                    }
+                    wallet.coins.splice(i);
                 }
-                for (let i = 0; i < inputs.length; i++)
-                {
-                    if (CoinsContains(wallet.coins, inputs[i]))
-                    {
-                        
-                    }
-                }
-
-                
-            });
-            
+            }
 
             callback();
         }

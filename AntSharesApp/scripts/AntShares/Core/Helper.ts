@@ -3,12 +3,12 @@
     return x.prevHash == y.prevHash && x.prevIndex == y.prevIndex;
 }
 
-function CoinsContains(coins: AntShares.Wallets.CoinItem[], input: AntShares.Core.TransactionInput)
+function CoinsIndexof(coins: AntShares.Wallets.CoinItem[], input: AntShares.Core.TransactionInput): number
 {
     for (let i = 0; i < coins.length; i++)
     {
         if (InputEqueal(coins[i].Input, input))
-            return true;
+            return i;
     }
-    return false;
+    return -1;
 }

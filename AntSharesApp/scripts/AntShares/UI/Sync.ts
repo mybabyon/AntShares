@@ -126,11 +126,12 @@
                 let i = CoinsIndexof(wallet.coins, input);
                 if (i > 0) //575
                 {
-                    //if (wallet.coins[i].AssetId == "")
+                    //字符串为小蚁股的Hash，临时这么写，以后估计要改
+                    if (Equeal(wallet.coins[i].AssetId, "2a3e45c2a344660cbd7daf638292c5afed64960c39681dcb4258dde731ac2a3d".hexToBytes()))
                     {
                         wallet.coins[i].State = Core.CoinState.Spent;
                     }
-                    //else
+                    else
                     {
                         wallet.coins.splice(i);
                     }

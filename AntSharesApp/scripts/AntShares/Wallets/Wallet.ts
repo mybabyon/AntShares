@@ -58,8 +58,8 @@
                     }
                     if (!this.db.objectStoreNames.contains('Coin'))
                     {
-                        let objectStore = this.db.createObjectStore('Key', { keyPath: "TxId" });
-                        objectStore.createIndex("Key", "AssetId", { unique: true });
+                        let objectStore = this.db.createObjectStore('Coin', { keyPath: "TxId" });
+                        objectStore.createIndex("Coin", "AssetId", { unique: true });
                     }
                     if (!this.db.objectStoreNames.contains('Coin'))
                     {

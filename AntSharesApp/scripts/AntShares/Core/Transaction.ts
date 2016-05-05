@@ -1,6 +1,6 @@
 ﻿namespace AntShares.Core
 {
-    export class Transaction
+    export abstract  class Transaction
     {
         public txid: string;
         public hex: string;
@@ -9,31 +9,8 @@
         public vin: Array<TransactionInput>;
         public vout: Array<TransactionOutput>;
         public scripts: Array<Script>;
+
+        public abstract GetHashData(): Uint8Array;
     }
 
-    export class TransactionInput
-    {
-        constructor(public prevHash: string, public prevIndex: number)
-        {
-
-        }
-    }
-
-    export class TransactionOutput
-    {
-        public n: number;
-        public asset: Uint8Array;
-        public value: number;
-        public high: number;
-        public low: number;
-        public address: string;
-    }
-
-    export class TransactionAttribute
-    {
-        public usage: TransactionAttributeUsage;
-        public data: string;
-    }
-
-    
 }

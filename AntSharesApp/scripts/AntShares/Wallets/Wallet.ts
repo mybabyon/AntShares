@@ -218,7 +218,6 @@
             }
         }
 
-
         public CloseDB()
         {
             try
@@ -367,6 +366,7 @@
             catch (e)
             {
                 console.log(e);
+                callback(new Array<Uint8Array>());
             }
         }
 

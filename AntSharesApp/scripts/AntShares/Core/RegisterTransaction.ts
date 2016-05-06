@@ -1,6 +1,6 @@
 ﻿namespace AntShares.Core
 {
-    export class RegisterTransaction extends Transaction
+    export class RegisterTransaction
     {
         /*资产类型*/
         public AssetType: AssetType;

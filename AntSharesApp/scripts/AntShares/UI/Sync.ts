@@ -90,17 +90,7 @@
                 {
                     let out = tx.vout[index] as Core.TransactionOutput;
                     let input = new Core.TransactionInput(tx.txid, index);
-                    
-                    let contains = false;
-                    for (let c of wallet.contracts) //552
-                    {
-                        if (c.Address == out.address)
-                        {
-                            contains = true;
-                            break;
-                        }
-                    }
-                    if (contains)
+                    if (wallet.contracts.ToList<Wallets.ContractItem>().Select(p => p.Address).Contains(out.address)) //552
                     {
                         for (let c = 0; c < wallet.coins.length; c++) //559
                         {
@@ -137,7 +127,7 @@
                     }
                 }
             }
-            let claims = new Array<Core.TransactionInput>(); //573
+            let claims = new Array<Core.TransactionInput>(); //583
             for (let i = 0; i < block.tx.length; i++)
             {
                 if (block.tx[i].type == Core.TransactionType.ClaimTransaction)

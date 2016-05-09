@@ -693,6 +693,7 @@
             }
             let item = new CoinItem();
             item.Input = rawData[i].Input;
+            item.AssetId = rawData[i].AssetId;
             item.Address = rawData[i].Address;
             item.State = rawData[i].State;
             item.Value = rawData[i].Value;

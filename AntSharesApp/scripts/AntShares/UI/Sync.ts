@@ -67,7 +67,6 @@
                                     {
                                         if (height.Value as any < $("#remote_height").text())
                                         {
-                                            console.log(height.Value + "\t" + $("#remote_height").text());
                                             height.Value++;
                                             GlobalWallet.GetCurrentWallet().UpdateDataByKey(StoreName.Key, "Height", height, this.syncWallet);
                                         }
@@ -82,7 +81,6 @@
                                         {
                                             if (height.Value as any < $("#remote_height").text())
                                             {
-                                                console.log(height.Value + "\t" + $("#remote_height").text());
                                                 height.Value++;
                                                 GlobalWallet.GetCurrentWallet().UpdateDataByKey(StoreName.Key, "Height", height, this.syncWallet);
                                             }

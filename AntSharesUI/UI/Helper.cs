@@ -33,11 +33,21 @@ namespace AntShares.UI
                 MessageBox.Show("余额不足以支付系统费用。");
                 return;
             }
-            SignatureContext context = new SignatureContext(tx);
+            SignatureContext context;
+            try
+            {
+                context = new SignatureContext(tx);
+            }
+            catch (InvalidOperationException)
+            {
+                MessageBox.Show("钱包余额不足，或区块链未同步完成，无法发送该交易。");
+                return;
+            }
             Program.CurrentWallet.Sign(context);
             if (context.Completed)
             {
                 context.Signable.Scripts = context.GetScripts();
+                Program.CurrentWallet.SendTransaction(tx);
                 Program.LocalNode.Relay(tx);
                 InformationBox.Show(tx.Hash.ToString(), "交易已发送，这是交易编号(TXID)：", "交易成功");
             }

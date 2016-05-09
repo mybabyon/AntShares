@@ -22,6 +22,7 @@ namespace AntShares.Implementations.Blockchains.LevelDB
         private UInt256 current_header_hash = GenesisBlock.Hash;
         private uint current_block_height = 0;
         private uint stored_header_count = 0;
+        private AutoResetEvent new_block_event = new AutoResetEvent(false);
         private bool disposed = false;
 
         public override BlockchainAbility Ability => BlockchainAbility.All;
@@ -131,6 +132,8 @@ namespace AntShares.Implementations.Blockchains.LevelDB
                     header_chain.Add(block.Hash, block.Header, block.PrevBlock);
                     OnAddHeader(block);
                 }
+                if (header_chain.Nodes.ContainsKey(block.Hash))
+                    new_block_event.Set();
             }
             return true;
         }
@@ -191,9 +194,11 @@ namespace AntShares.Implementations.Blockchains.LevelDB
         public override void Dispose()
         {
             disposed = true;
+            new_block_event.Set();
             AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
             if (!thread_persistence.ThreadState.HasFlag(ThreadState.Unstarted))
                 thread_persistence.Join();
+            new_block_event.Dispose();
             if (db != null)
             {
                 db.Dispose();
@@ -635,6 +640,7 @@ namespace AntShares.Implementations.Blockchains.LevelDB
         {
             while (!disposed)
             {
+                new_block_event.WaitOne();
                 while (!disposed)
                 {
                     UInt256 hash;
@@ -656,10 +662,6 @@ namespace AntShares.Implementations.Blockchains.LevelDB
                     {
                         block_cache.Remove(hash);
                     }
-                }
-                for (int i = 0; i < 10 && !disposed; i++)
-                {
-                    Thread.Sleep(100);
                 }
             }
         }

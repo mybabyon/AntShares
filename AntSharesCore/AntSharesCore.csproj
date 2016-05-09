@@ -158,6 +158,7 @@
     <Compile Include="Implementations\Wallets\EntityFramework\Key.cs" />
     <Compile Include="Implementations\Wallets\EntityFramework\Transaction.cs" />
     <Compile Include="Implementations\Wallets\EntityFramework\Coin.cs" />
+    <Compile Include="Implementations\Wallets\EntityFramework\TransactionInfo.cs" />
     <Compile Include="Implementations\Wallets\EntityFramework\UserWallet.cs" />
     <Compile Include="Implementations\Wallets\EntityFramework\WalletDataContext.cs" />
     <Compile Include="IO\Caching\Cache.cs" />
@@ -218,7 +219,6 @@
     <Compile Include="Network\RemoteNode.cs" />
     <Compile Include="Network\UPnP.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Threading\Helper.cs" />
     <Compile Include="UInt160.cs" />
     <Compile Include="UInt256.cs" />
     <Compile Include="UIntBase.cs" />

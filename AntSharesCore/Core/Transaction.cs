@@ -10,7 +10,7 @@ using System.Text;
 
 namespace AntShares.Core
 {
-    public abstract class Transaction : Inventory, ISignable
+    public abstract class Transaction : Inventory, IEquatable<Transaction>, ISignable
     {
         public readonly TransactionType Type;
         public TransactionAttribute[] Attributes;
@@ -109,7 +109,7 @@ namespace AntShares.Core
         {
             DeserializeExclusiveData(reader);
             Attributes = reader.ReadSerializableArray<TransactionAttribute>();
-            if (Attributes.Count(p => p.Usage == TransactionAttributeUsage.Script) > 1)
+            if (Attributes.Select(p => p.Usage).Distinct().Count() != Attributes.Length)
                 throw new FormatException();
             Inputs = reader.ReadSerializableArray<TransactionInput>();
             TransactionInput[] inputs = GetAllInputs().ToArray();
@@ -126,9 +126,26 @@ namespace AntShares.Core
                         throw new FormatException();
         }
 
+        public bool Equals(Transaction other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Hash.Equals(other.Hash);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Transaction);
+        }
+
         public virtual IEnumerable<TransactionInput> GetAllInputs()
         {
             return Inputs;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.GetHashCode();
         }
 
         protected override byte[] GetHashData()

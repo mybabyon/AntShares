@@ -32,6 +32,7 @@ namespace AntShares.Wallets
         private bool isrunning = true;
 
         protected string DbPath => path;
+        protected object SyncRoot { get; } = new object();
         protected uint WalletHeight => current_height;
 
         private Wallet(string path, byte[] passwordKey, bool create)
@@ -266,6 +267,17 @@ namespace AntShares.Wallets
             using (new ProtectedMemoryContext(masterKey, MemoryProtectionScope.SameProcess))
             {
                 return decryptedPrivateKey.AesEncrypt(masterKey, iv);
+            }
+        }
+
+        public IEnumerable<Coin> FindCoins()
+        {
+            lock (coins)
+            {
+                foreach (var coin in coins.Where(p => p.State == CoinState.Unconfirmed || p.State == CoinState.Unspent))
+                {
+                    yield return coin;
+                }
             }
         }
 
@@ -520,7 +532,8 @@ namespace AntShares.Wallets
             return tx;
         }
 
-        protected abstract void OnProcessNewBlock(IEnumerable<Coin> added, IEnumerable<Coin> changed, IEnumerable<Coin> deleted);
+        protected abstract void OnProcessNewBlock(Block block, IEnumerable<Transaction> transactions, IEnumerable<Coin> added, IEnumerable<Coin> changed, IEnumerable<Coin> deleted);
+        protected abstract void OnSendTransaction(Transaction tx, IEnumerable<Coin> added, IEnumerable<Coin> changed);
 
         private void ProcessBlocks()
         {
@@ -528,8 +541,11 @@ namespace AntShares.Wallets
             {
                 while (current_height <= Blockchain.Default?.Height && isrunning)
                 {
-                    Block block = Blockchain.Default.GetBlock(current_height);
-                    if (block != null) ProcessNewBlock(block);
+                    lock (SyncRoot)
+                    {
+                        Block block = Blockchain.Default.GetBlock(current_height);
+                        if (block != null) ProcessNewBlock(block);
+                    }
                 }
                 for (int i = 0; i < 20 && isrunning; i++)
                 {
@@ -544,6 +560,7 @@ namespace AntShares.Wallets
             lock (contracts)
                 lock (coins)
                 {
+                    HashSet<Transaction> transactions = new HashSet<Transaction>();
                     foreach (Transaction tx in block.Transactions)
                     {
                         for (ushort index = 0; index < tx.Outputs.Length; index++)
@@ -567,46 +584,97 @@ namespace AntShares.Wallets
                                         ScriptHash = output.ScriptHash,
                                         State = CoinState.Unspent
                                     });
+                                transactions.Add(tx);
                             }
                         }
                     }
-                    foreach (TransactionInput input in block.Transactions.SelectMany(p => p.GetAllInputs()))
+                    foreach (Transaction tx in block.Transactions)
                     {
-                        if (coins.Contains(input))
+                        foreach (TransactionInput input in tx.GetAllInputs())
                         {
-                            if (coins[input].AssetId == Blockchain.AntShare.Hash)
-                                coins[input].State = CoinState.Spent;
-                            else
-                                coins.Remove(input);
+                            if (coins.Contains(input))
+                            {
+                                if (coins[input].AssetId == Blockchain.AntShare.Hash)
+                                    coins[input].State = CoinState.Spent;
+                                else
+                                    coins.Remove(input);
+                                transactions.Add(tx);
+                            }
                         }
                     }
-                    foreach (TransactionInput claim in block.Transactions.OfType<ClaimTransaction>().SelectMany(p => p.Claims))
+                    foreach (ClaimTransaction tx in block.Transactions.OfType<ClaimTransaction>())
                     {
-                        if (coins.Contains(claim))
-                            coins.Remove(claim);
+                        foreach (TransactionInput claim in tx.Claims)
+                        {
+                            if (coins.Contains(claim))
+                            {
+                                coins.Remove(claim);
+                                transactions.Add(tx);
+                            }
+                        }
                     }
                     current_height++;
                     changeset = coins.GetChangeSet();
                     if (changeset.Length > 0)
                     {
-                        OnProcessNewBlock(changeset.Where(p => ((ITrackable<TransactionInput>)p).TrackState == TrackState.Added), changeset.Where(p => ((ITrackable<TransactionInput>)p).TrackState == TrackState.Changed), changeset.Where(p => ((ITrackable<TransactionInput>)p).TrackState == TrackState.Deleted));
+                        OnProcessNewBlock(block, transactions, changeset.Where(p => ((ITrackable<TransactionInput>)p).TrackState == TrackState.Added), changeset.Where(p => ((ITrackable<TransactionInput>)p).TrackState == TrackState.Changed), changeset.Where(p => ((ITrackable<TransactionInput>)p).TrackState == TrackState.Deleted));
                         coins.Commit();
                     }
                 }
             if (changeset.Length > 0)
-                if (BalanceChanged != null) BalanceChanged(this, EventArgs.Empty);
+                BalanceChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public void Rebuild()
+        public virtual void Rebuild()
         {
-            //TODO: 重建钱包数据库中的交易数据
-            //1. 清空所有交易数据；
-            //2. 穷举所有的Unspent，找出钱包账户所持有的那部分；
-            //3. 写入数据库；
-            throw new NotImplementedException();
+            lock (SyncRoot)
+                lock (coins)
+                {
+                    coins.Clear();
+                    coins.Commit();
+                    current_height = 0;
+                }
         }
 
         protected abstract void SaveStoredData(string name, byte[] value);
+
+        public bool SendTransaction(Transaction tx)
+        {
+            Coin[] changeset;
+            lock (contracts)
+                lock (coins)
+                {
+                    if (tx.GetAllInputs().Any(p => !coins.Contains(p) || coins[p].State != CoinState.Unspent))
+                        return false;
+                    foreach (TransactionInput input in tx.GetAllInputs())
+                        coins[input].State = CoinState.Spending;
+                    for (ushort i = 0; i < tx.Outputs.Length; i++)
+                    {
+                        if (contracts.ContainsKey(tx.Outputs[i].ScriptHash))
+                            coins.Add(new Coin
+                            {
+                                Input = new TransactionInput
+                                {
+                                    PrevHash = tx.Hash,
+                                    PrevIndex = i
+                                },
+                                AssetId = tx.Outputs[i].AssetId,
+                                Value = tx.Outputs[i].Value,
+                                ScriptHash = tx.Outputs[i].ScriptHash,
+                                State = CoinState.Unconfirmed
+                            });
+                    }
+                    changeset = coins.GetChangeSet();
+                    if (changeset.Length > 0)
+                    {
+                        OnSendTransaction(tx, changeset.Where(p => ((ITrackable<TransactionInput>)p).TrackState == TrackState.Added), changeset.Where(p => ((ITrackable<TransactionInput>)p).TrackState == TrackState.Changed));
+                        coins.Commit();
+                    }
+                }
+            if (changeset.Length > 0)
+                BalanceChanged?.Invoke(this, EventArgs.Empty);
+            return true;
+        }
 
         public bool Sign(SignatureContext context)
         {

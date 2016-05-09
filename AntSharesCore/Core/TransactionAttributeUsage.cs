@@ -9,6 +9,10 @@
 
         Script = 0x20,
 
+        CertUrl = 0x80,
+        DescriptionUrl = 0x81,
+        Description = 0x90,
+
         Hash1 = 0xa1,
         Hash2 = 0xa2,
         Hash3 = 0xa3,

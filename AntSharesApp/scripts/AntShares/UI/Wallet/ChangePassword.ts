@@ -1,9 +1,12 @@
-﻿namespace AntShares.UI.Wallet {
-    export class ChangePassword extends TabBase {
-        protected oncreate(): void {
+﻿namespace AntShares.UI.Wallet
+{
+    export class ChangePassword extends TabBase
+    {
+        protected oncreate(): void
+        {
             $(this.target).find("button").click(this.OnChangePasswordButtonClick);
             $(this.target).find("#old_password").change(() => { this.vertifyPassword() });
-            $(this.target).find("#list_wallet_name2 input[name='wallet2']").change(()=>{ this.vertifyPassword() });
+            $(this.target).find("#list_wallet_name2 input[name='wallet2']").change(() => { this.vertifyPassword() });
         }
 
         private vertifyPassword()
@@ -25,35 +28,37 @@
             );
         }
 
-        private OnChangePasswordButtonClick() {
-            if (formIsValid("form_change_password")) {
+        private OnChangePasswordButtonClick()
+        {
+            if (formIsValid("form_change_password"))
+            {
                 let wallet = new AntShares.Wallets.Wallet();
-                let walletName = $('#list_wallet_name input[name="wallet"]:checked ').val();
+                let walletName = $('#list_wallet_name2 input[name="wallet"]:checked ').val();
                 wallet.OpenDB(walletName,
-                () =>
-                {
-                    wallet.VerifyPassword(toUint8Array($("#old_password").val()),
-                        () =>
-                        {
-                            $("#change_error").hide();
-                            wallet.ChangePassword(
-                                toUint8Array($("#old_password").val()),
-                                toUint8Array($("#new_password").val()),
-                                () => { alert("修改钱包密码成功"); }
-                            );
-                        },
-                        () =>
-                        {
-                            $("#change_error").show();
-                        }
-                    );
-                });
-                
+                    () =>
+                    {
+                        wallet.VerifyPassword(toUint8Array($("#old_password").val()),
+                            () =>
+                            {
+                                $("#change_error").hide();
+                                wallet.ChangePassword(
+                                    toUint8Array($("#old_password").val()),
+                                    toUint8Array($("#new_password").val()),
+                                    () => { alert("修改钱包密码成功"); }
+                                );
+                            },
+                            () =>
+                            {
+                                $("#change_error").show();
+                            }
+                        );
+                    });
             }
         }
     }
 
-    function listWallet(walletNameList: Array<string>) {
+    function listWallet(walletNameList: Array<string>)
+    {
         if (walletNameList.length == 0)
         {
             $("#list_wallet_name2").hide();
@@ -80,7 +85,4 @@
             }
         }
     }
-
 }
-
-

@@ -9,7 +9,6 @@
 
         protected onload(): void
         {
-
         }
 
         private OnImportButtonClick()
@@ -41,30 +40,28 @@
                                 ToScriptHash(sc.RedeemScript, (ScriptHash: Uint8Array) =>
                                 {
                                     let contract = new ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");
-                                    wallet.AddContract(contract);
-                                    wallet.LoadAccounts(() =>
+                                    wallet.AddContract(contract, () =>
                                     {
-                                        alert("账户导入成功");
-                                        TabBase.showTab("#Tab_Account_Index");
+                                        wallet.LoadAccounts(() =>
+                                        {
+                                            alert("账户导入成功");
+                                            TabBase.showTab("#Tab_Account_Index");
+                                        });
                                     });
-                                    
                                 })
                             });
                         });
                 },
-                (msg) =>
-                {
-                    $("#import_error").text(msg);
-                });
-                
+                    (msg) =>
+                    {
+                        $("#import_error").text(msg);
+                    });
             }
         }
-
     }
 
     export function checkPrivateKeyWIF(wif: string, success: (prikey: Uint8Array) => any, error: (msg: string) => any)
     {
-
         let decode = wif.base58Decode();
         if (decode[0] != 0x80 || decode[33] != 0x01)
         {
@@ -89,10 +86,9 @@
                     error("未通过校验，请检查拼写");
                 }
             },
-            (msg) => {
+            (msg) =>
+            {
                 error(msg);
             })
-
     }
-    
 }

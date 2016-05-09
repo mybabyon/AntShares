@@ -3,16 +3,17 @@
     export class Sync
     {
         private started = false;
+        private synced = false;
 
         public getblockcount = () =>
         {
             let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
 
             rpc.call("getblockcount", [],
-                (result) =>
+                (count) =>
                 {
-                    $("#remote_height").text(result - 1);
-
+                    let height = count - 1;
+                    $("#remote_height").text(height);
                     setTimeout(this.getblockcount, 5000);
                 },
                 (error) =>
@@ -26,12 +27,23 @@
          * 在线更新钱包中的未花费的币
          * 打开钱包后调用
          */
-        public startSyncWallet()
+        public startSyncWallet = () =>
         {
             if (!this.started)
             {
                 this.syncWallet();
                 this.started = true;
+                $('#testbutton1').show();
+                $('#testbutton1').click(() =>
+                {
+                    let wallet = GlobalWallet.GetCurrentWallet();
+                    wallet.UpdateDataByKey(StoreName.Key, "Height", new Wallets.KeyStore("Height", 108678));
+                    wallet.ClearObjectStore(StoreName.Coin);
+                    wallet.coins = new Array<Wallets.CoinItem>();
+                    console.log("reset success");
+
+                    this.syncWallet();
+                });
             }
         }
 
@@ -40,10 +52,11 @@
             GlobalWallet.GetCurrentWallet().GetDataByKey(StoreName.Key, "Height",
                 (height: AntShares.Wallets.KeyStore) =>
                 {
-                    $("#local_height").text(height.Value - 1);
+                    $("#local_height").text(height.Value);
+                    let remote_height = $("#remote_height").text();
                     let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
                     //根据指定的高度（索引），返回对应区块的散列值
-                    rpc.call("getblockhash", [height.Value as number],
+                    rpc.call("getblockhash", [height.Value],
                         (hash) =>
                         {
                             //根据指定的散列值，返回对应的区块信息
@@ -52,13 +65,31 @@
                                 {
                                     if (block.tx.length <= 1)
                                     {
-                                        GlobalWallet.GetCurrentWallet().HeightPlusOne(this.syncWallet());
+                                        if (height.Value as any < $("#remote_height").text())
+                                        {
+                                            console.log(height.Value + "\t" + $("#remote_height").text());
+                                            height.Value++;
+                                            GlobalWallet.GetCurrentWallet().UpdateDataByKey(StoreName.Key, "Height", height, this.syncWallet);
+                                        }
+                                        else
+                                        {
+                                            setTimeout(this.syncWallet, 5000);
+                                        }
                                     }
                                     else
                                     {
                                         this.processNewBlock(block, () =>
                                         {
-                                            GlobalWallet.GetCurrentWallet().HeightPlusOne(this.syncWallet());
+                                            if (height.Value as any < $("#remote_height").text())
+                                            {
+                                                console.log(height.Value + "\t" + $("#remote_height").text());
+                                                height.Value++;
+                                                GlobalWallet.GetCurrentWallet().UpdateDataByKey(StoreName.Key, "Height", height, this.syncWallet);
+                                            }
+                                            else
+                                            {
+                                                setTimeout(this.syncWallet, 5000);
+                                            }
                                         });
                                     }
                                 },
@@ -73,6 +104,7 @@
                         {
                             this.started = false;
                             console.log(err.message);
+                            setTimeout(this.syncWallet, 5000);
                         }
                     );
                 });
@@ -92,16 +124,19 @@
                     let input = new Core.TransactionInput(tx.txid, index);
                     if (wallet.contracts.ToList<Wallets.ContractItem>().Select(p => p.Address).Contains(out.address)) //552
                     {
-                        for (let c = 0; c < wallet.coins.length; c++) //559
+                        let c = CoinsIndexof(wallet.coins, input);
+                        if (c > 0)
                         {
-                            if (InputEqueal(wallet.coins[c].Input, input))
+                            wallet.coins[c].State = Core.CoinState.Unspent;
+                        }
+                        else
+                        {
+                            wallet.AddCoin(new CoinStore(input, out.asset, out.value, out.address, Core.CoinState.Unspent), () =>
                             {
-                                wallet.coins[c].State = Core.CoinState.Unspent;
-                            }
-                            else
-                            {
-                                wallet.AddCoin(new CoinStore(input.prevHash, index, out.asset, out.value, out.address, Core.CoinState.Unspent));
-                            }
+                                console.log("添加coin成功");
+                                //重新把coin加载到内存中
+                                wallet.LoadCoins(() => { });
+                            });
                         }
                     }
                 }

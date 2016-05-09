@@ -1,6 +1,9 @@
-﻿namespace AntShares.UI.Wallet {
-    export class Open extends TabBase {
-        protected oncreate(): void {
+﻿namespace AntShares.UI.Wallet
+{
+    export class Open extends TabBase
+    {
+        protected oncreate(): void
+        {
             $(this.target).find("button").click(this.OnOpenButtonClick);
             $(this.target).find("#open_password").change(() => { this.vertifyPassword() });
             $(this.target).find("#list_wallet_name input[name='wallet']").change(() => { this.vertifyPassword() }); //没有触发
@@ -23,14 +26,17 @@
                     master.GetWalletNameList(listWallet)
                 }
             );
+
+            console.clear();
         }
 
-        private OnOpenButtonClick() {
+        private OnOpenButtonClick()
+        {
             if (formIsValid("form_open_wallet"))
             {
                 let wallet = GlobalWallet.NewWallet();
 
-                let walletName = $('#list_wallet_name input[name="wallet"]:checked ').val(); 
+                let walletName = $('#list_wallet_name input[name="wallet"]:checked ').val();
                 wallet.OpenDB(walletName, () =>
                 {
                     wallet.VerifyPassword(toUint8Array($("#open_password").val()),
@@ -49,7 +55,6 @@
                                         let sync = new AntShares.UI.Sync();
                                         sync.startSyncWallet();
                                     })
-                                    
                                 });
                             });
                         },
@@ -59,7 +64,6 @@
                         }
                     );
                 })
-                
             }
         }
     }
@@ -91,8 +95,5 @@
                 ul.append(li);
             }
         }
-
     }
 }
-
- 

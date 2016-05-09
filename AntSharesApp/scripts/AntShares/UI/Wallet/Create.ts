@@ -13,7 +13,7 @@
         protected onload(): void
         {
             let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
-            rpc.call("getblockcount", [], (height) => { this.CurrentHeight = height as number; })
+            rpc.call("getblockcount", [], (height) => { this.CurrentHeight = height - 1; })
         }
 
         private OnCreateButtonClick = () =>
@@ -102,7 +102,6 @@
                             });
                     }
                     );
-
             }
         }
 
@@ -133,19 +132,19 @@
 
                     ToScriptHash(Wallets.Account.PublicECPoint.encodePoint(true),
                         (publicKeyHash: Uint8Array) =>
-                    {
-                        Wallets.Account.PublicKeyHash = publicKeyHash;
-                        GlobalWallet.GetCurrentWallet().EncriptPrivateKeyAndSave(
-                            Wallets.Account.PrivateKey,
-                            Wallets.Account.PublicKey,
-                            publicKeyHash,
-                            "我的账户",
-                            this.createContract
-                        );
-                    });
+                        {
+                            Wallets.Account.PublicKeyHash = publicKeyHash;
+                            GlobalWallet.GetCurrentWallet().EncriptPrivateKeyAndSave(
+                                Wallets.Account.PrivateKey,
+                                Wallets.Account.PublicKey,
+                                publicKeyHash,
+                                "我的账户",
+                                this.createContract
+                            );
+                        });
                 });
         }
-        
+
         private createContract = () =>
         {
             let sc = new Wallets.SignatureContract(Wallets.Account.PublicECPoint);
@@ -167,6 +166,5 @@
                 });
             })
         }
-
     }
 }

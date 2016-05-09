@@ -58,7 +58,7 @@
                     }
                     if (!this.db.objectStoreNames.contains('Coin'))
                     {
-                        let objectStore = this.db.createObjectStore('Coin', { keyPath: "TxId" });
+                        let objectStore = this.db.createObjectStore('Coin', { keyPath: "Name" });
                         objectStore.createIndex("Coin", "AssetId", { unique: true });
                     }
                     if (!this.db.objectStoreNames.contains('Coin'))
@@ -305,21 +305,6 @@
             {
                 console.log('读取' + key + '错误，因为db=null');
             }
-        }
-
-        /**
-         * 将钱包中Height字段（记录已同步到的区块高度）增加1
-         * @param callback 执行成功后的回调函数
-         */
-        public HeightPlusOne(callback)
-        {
-            this.GetDataByKey(StoreName.Key, "Height",
-                (height: KeyStore) =>
-                {
-                    height.Value++;
-                    this.UpdateDataByKey(StoreName.Key, "Height", height, callback);
-                }
-            )
         }
 
         /**
@@ -707,7 +692,7 @@
                 return;
             }
             let item = new CoinItem();
-            item.Input = new Core.TransactionInput(rawData[i].TxId, rawData[i].Index);
+            item.Input = rawData[i].Input;
             item.Address = rawData[i].Address;
             item.State = rawData[i].State;
             item.Value = rawData[i].Value;

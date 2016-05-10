@@ -204,7 +204,7 @@
                     };
                     request.onerror = (e: any) =>
                     {
-                        console.log(e.currentTarget.error.toString());
+                        console.log("向" + storeName + "添加数据错误：" + e.currentTarget.error.toString());
                     };
                 }
                 else
@@ -363,28 +363,35 @@
          */
         public UpdateDataByKey(storeName: StoreName, key: string, object: AccountStore | ContractStore | KeyStore | CoinStore | TransactionStore, callback = null)
         {
-            let transaction = this.db.transaction(StoreName[storeName], IDBTransaction.READ_WRITE);
-            transaction = this.db.transaction(StoreName[storeName], 'readwrite');
-            let store = transaction.objectStore(StoreName[storeName]);
-            let request = store.get(key);
-            request.onsuccess = (e: any) =>
+            if (this.db)
             {
-                let obj = e.target.result;
-                obj = object;
-                request = store.put(obj);
+                let transaction = this.db.transaction(StoreName[storeName], IDBTransaction.READ_WRITE);
+                transaction = this.db.transaction(StoreName[storeName], 'readwrite');
+                let store = transaction.objectStore(StoreName[storeName]);
+                let request = store.get(key);
                 request.onsuccess = (e: any) =>
                 {
-                    if (callback)
-                        callback();
+                    let obj = e.target.result;
+                    obj = object;
+                    request = store.put(obj);
+                    request.onsuccess = (e: any) =>
+                    {
+                        if (callback)
+                            callback();
+                    };
+                    request.onerror = (e: any) =>
+                    {
+                        console.log(e.currentTarget.error.toString());
+                    }
                 };
                 request.onerror = (e: any) =>
                 {
                     console.log(e.currentTarget.error.toString());
                 }
-            };
-            request.onerror = (e: any) =>
+            }
+            else
             {
-                console.log(e.currentTarget.error.toString());
+                console.log('db = null');
             }
         }
 

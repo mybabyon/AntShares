@@ -46,17 +46,18 @@
                     <h2 class="page-header">账户详情</h2>
                     <div class="account-name" style="font-weight: bold;">我常用的账户</div>
                     <div class="row">
-                        <div class="col-xs-6">
+                        <div class="col-xs-12">
                             <span title="未压缩的公钥的16进制编码">公钥</span><br />
                             <pre id="public_key">04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235</pre>
                         </div>
-                        <div class="col-xs-6">
+                        <div class="col-xs-12">
                             <a href="#seckey" data-toggle="collapse" aria-expanded="false">显示/隐藏私钥</a>
                             <div id="seckey" class="collapse">
                                 <pre><span>HEX:</span><span id="privatekey_hex"></span><br /><span>WIF:</span><span id="privatekey_export"></span></pre>
                             </div>
                         </div>
                     </div>
+                    <br />
                     <div>
                         <a class="tab-trigger" href="#Tab_Account_Index">返回账户列表</a>
                     </div>
@@ -205,10 +206,11 @@
                     </div>
                 </div>
                 <div id="Tab_Asset_Index" class="tab-pane">
+                    <h5 style="display:none; padding-top:50px; text-align:center">您目前还没有资产</h5>
                     <ul>
                         <li style="display:none">
                             <h2 class="page-header asset_name">资产名称</h2>
-                            <div>
+                            <div class="issuer">
                                 发行人：<span class="text-success asset_issuer">发行人</span>
                             </div>
                             <div class="row">
@@ -326,16 +328,7 @@
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">钱包名称</label>
                                 <div class="col-sm-6">
-                                    <input id="input_wallet_name2" class="form-control" type="text" placeholder="钱包名称" />
-                                    <span class="text-danger"></span>
-                                    <ul class="list_wallet_ul" id="list_wallet_name2">
-                                        <li style="display:none">
-                                            <label>
-                                                <input type="radio" name="wallet2" />
-                                                <span>钱包名称</span>
-                                            </label>
-                                        </li>
-                                    </ul>
+                                    <label class="change-wallet-name" id="change_wallet_name">钱包名称</label>
                                 </div>
                             </div>
 
@@ -444,7 +437,7 @@
                 </div>
             </div>
             <footer>
-                高度：<span id="local_height">0</span>/<span id="remote_height">0</span> 连接数：1
+                高度：<span id="local_height">0</span><span>/</span><span id="remote_height">0</span>
                 <button class="btn btn-sm" style="display:none" id="testbutton1">reset local height</button>
             </footer>
         </div>
@@ -524,7 +517,6 @@
     <!-- Cordova 引用，它在生成应用程序时添加到其中。 -->
     <script src="cordova.js"></script>
     <script src="scripts/platformOverrides.js"></script>
-    <script src="scripts/System/Collections/Generic/List.js"></script>
     <script src="scripts/appBundle.js"></script>
     <script type="text/javascript">
         //初始化侧边栏

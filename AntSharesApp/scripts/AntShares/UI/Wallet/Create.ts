@@ -40,6 +40,8 @@
         private OnDeleteButtonClick = () =>
         {
             console.clear();
+            let sync = new AntShares.UI.Sync();
+            sync.stopSyncWallet();
             let master = Wallets.Master.GetInstance();
             master.OpenDB(() =>
             {
@@ -57,6 +59,7 @@
                             {
                                 this.deleteWallet(walletNameList[i]);
                                 master.DeleteWalletName(walletNameList[i]);
+
                                 alert("delete current wallet success.");
                             }
                         }

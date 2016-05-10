@@ -2,9 +2,9 @@
 {
     export class Sync
     {
-        private started = false;
+        static started = false;
         static resetHeight = false;
-
+        static stop = true;
         public getblockcount = () =>
         {
             let rpc = new RpcClient("http://seed1.antshares.org:20332/");
@@ -29,13 +29,22 @@
          */
         public startSyncWallet = () =>
         {
-            if (!this.started)
+            if (!Sync.started)
             {
-                this.started = true;
+                Sync.started = true;
                 this.syncWallet();
                 $('#testbutton1').show();
                 //测试用，重新设置钱包本地同步的高度
                 $('#testbutton1').click(() => { Sync.resetHeight = true; });
+            }
+        }
+        public stopSyncWallet = () =>
+        {
+            if (Sync.started)
+            {
+                $('#testbutton1').hide();
+                $("#local_height").text(0);
+                Sync.started = false;
             }
         }
 
@@ -44,22 +53,24 @@
             let wallet = GlobalWallet.GetCurrentWallet();
             if (Sync.resetHeight)
             {
-                wallet.SetHeight(108678, () =>
+                wallet.SetHeight(108678, () =>  //108678
                 {
-                    //wallet.ClearObjectStore(StoreName.Coin);
+                    wallet.ClearObjectStore(StoreName.Coin);
                     wallet.coins = new Array<CoinItem>();
                     wallet.GetDataByKey(StoreName.Key, "Height",
                         (height: AntShares.Wallets.KeyStore) =>
                         {
+                            console.log("已从高度" + height.Value + "重建钱包");
                             $("#local_height").text(height.Value);
-                            console.log("reset success");
                             Sync.resetHeight = false;
-                            this.syncWallet();
                         });
                 });
+            }
+            if (!Sync.started)
+            {
+                console.log("钱包同步已停止");
                 return;
             }
-
             wallet.GetDataByKey(StoreName.Key, "Height",
                 (height: AntShares.Wallets.KeyStore) =>
                 {
@@ -102,14 +113,14 @@
                                 },
                                 (err) =>
                                 {
-                                    this.started = false;
+                                    Sync.started = false;
                                     console.log(err.message);
                                 }
                             );
                         },
                         (err) =>
                         {
-                            this.started = false;
+                            Sync.started = false;
                             console.log(err.message);
                             setTimeout(this.syncWallet, 5000);
                         }
@@ -129,7 +140,16 @@
                 {
                     let out = tx.vout[index] as Core.TransactionOutput;
                     let input = new Core.TransactionInput(tx.txid, index);
-                    if (wallet.contracts.ToList<Wallets.ContractItem>().Select(p => p.Address).Contains(out.address)) //552
+                    let contains = false;
+                    for (let c of wallet.contracts) //552
+                    {
+                        if (c.Address == out.address)
+                        {
+                            contains = true;
+                            break;
+                        }
+                    }
+                    if (contains)
                     {
                         let c = CoinsIndexof(wallet.coins, input);
                         if (c > 0)
@@ -140,7 +160,6 @@
                         {
                             wallet.AddCoin(new CoinStore(input, out.asset, out.value, out.address, Core.CoinState.Unspent), () =>
                             {
-                                console.log("添加coin成功");
                                 //重新把coin加载到内存中
                                 wallet.LoadCoins(() => { });
                             });

@@ -15,32 +15,45 @@
                 return;
             }
 
-            //TypescriptLinq的GroupBy貌似有Bug，只能自己写了
-
             let ul = $("#Tab_Asset_Index").find("ul:eq(0)");
             ul.find("li :visible").remove();
-
-            let order = wallet.coins.ToList().OrderBy((p: CoinItem) => p.AssetId);
-            let group = [].ToList();
-            for (let i of order.ToArray())
+            if (wallet.coins.length <= 0)
             {
-                let nameList = group.Select((p: CoinItem) => p.AssetId);
-                if (!nameList.Contains((i as CoinItem).AssetId))
+                $("h5").show();
+                return;
+            }
+            else
+            {
+                $("h5").hide();
+            }
+            let group = new Array<CoinItem>();
+            for (let i of wallet.coins)
+            {
+                let index = CoinsIndexof(group, i);
+                if (index < 0)
                 {
-                    group.Add(i);
+                    group.push(i);
                 }
                 else
                 {
-                    (group as any).array[nameList.IndexOf((i as CoinItem).AssetId)].value += (i as CoinItem).Value;
+                    group[index].Value += (i as CoinItem).Value;
                 }
             }
-            for (let item of group.ToArray())
+            for (let item of group)
             {
                 addAccountList(item as CoinItem);
             }
         }
     }
-
+    function CoinsIndexof(coins: CoinItem[], coin: CoinItem): number
+    {
+        for (let i = 0; i < coins.length; i++)
+        {
+            if (coins[i].AssetId == coin.AssetId)
+                return i;
+        }
+        return -1;
+    }
     function addAccountList(item: CoinItem)
     {
         let wallet = GlobalWallet.GetCurrentWallet();

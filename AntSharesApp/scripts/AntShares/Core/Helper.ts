@@ -1,6 +1,6 @@
 ﻿function InputEqueal(x: TransactionInput, y: TransactionInput)
 {
-    return x.prevHash == y.prevHash && x.prevIndex == y.prevIndex;
+    return x.txid == y.txid && x.vout == y.vout;
 }
 
 function CoinsIndexof(coins: CoinItem[], input: TransactionInput): number

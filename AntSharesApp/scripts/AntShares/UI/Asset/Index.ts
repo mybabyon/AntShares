@@ -26,17 +26,19 @@
             {
                 $("h5").hide();
             }
+            //BUG:已花费的币不应该统计到余额中
+
             let group = new Array<CoinItem>();
-            for (let i of wallet.coins)
+            for (let i = 0; i < wallet.coins.length; i++)
             {
-                let index = CoinsIndexof(group, i);
+                let index = CoinsIndexof(group, wallet.coins[i]);
                 if (index < 0)
                 {
-                    group.push(i);
+                    group.push(new CoinItem(wallet.coins[i].Input, wallet.coins[i].Address, wallet.coins[i].State, wallet.coins[i].AssetId, wallet.coins[i].Value));
                 }
                 else
                 {
-                    group[index].Value += (i as CoinItem).Value;
+                    group[index].Value = parseFloat(group[index].Value as any) + parseFloat(wallet.coins[i].Value as any);
                 }
             }
             for (let item of group)
@@ -74,7 +76,7 @@
         });
     }
 
-    function GetAssetName(assetId: Uint8Array, callback: (name: string) => any)
+    function GetAssetName(assetId: string, callback: (name: string) => any)
     {
         let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
         //根据指定的高度（索引），返回对应区块的散列值

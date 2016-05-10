@@ -2,12 +2,8 @@
 {
     export class TransactionInput
     {
-        constructor(public prevHash: string, public prevIndex: number)
+        constructor(public txid: string, public vout: number)
         {
-        }
-        public toString()
-        {
-            return "{ prevHash: '" + this.prevHash + "', PrevIndex: '" + this.prevIndex + "' }"
         }
     }
 }

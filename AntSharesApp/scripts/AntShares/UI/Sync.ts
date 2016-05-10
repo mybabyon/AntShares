@@ -53,10 +53,10 @@
             let wallet = GlobalWallet.GetCurrentWallet();
             if (Sync.resetHeight)
             {
-                wallet.SetHeight(108678, () =>  //108678
+                wallet.SetHeight(113415, () =>  //108678  113415   113480
                 {
-                    wallet.ClearObjectStore(StoreName.Coin);
-                    wallet.coins = new Array<CoinItem>();
+                    //wallet.ClearObjectStore(StoreName.Coin);
+                    //wallet.coins = new Array<CoinItem>();
                     wallet.GetDataByKey(StoreName.Key, "Height",
                         (height: AntShares.Wallets.KeyStore) =>
                         {
@@ -136,6 +136,18 @@
             let wallet = GlobalWallet.GetCurrentWallet();
             for (let tx of block.tx) //547
             {
+                if (tx.txid == "2b0ff191ff706aa07789b3abce6b913e3857edec7181088ebef667b1fba9d3f0")
+                {
+                    let add9200 = 0;
+                }
+                if (tx.txid == "1ea41b588bfa16931cbf945b2f619a778dafbe9ce3a1118586ab5537b32b0315")
+                {
+                    let sub100 = 0;
+                }
+                if (tx.txid == "e10cf5d60a089713b57469cda43806f17b5053cba4aa6fd3ca40bbd8aa9675f2")
+                {
+                    let sub100 = 0;
+                }
                 for (let index = 0; index < tx.vout.length; index++) //549
                 {
                     let out = tx.vout[index] as Core.TransactionOutput;
@@ -155,6 +167,8 @@
                         if (c > 0)
                         {
                             wallet.coins[c].State = Core.CoinState.Unspent;
+                            wallet.UpdateDataByKey();
+                            //BUG:未写入数据库，导致重启后数据错误
                         }
                         else
                         {
@@ -170,15 +184,15 @@
             let allInputs = new Array<Core.TransactionInput>(); //573
             for (let i = 0; i < block.tx.length; i++)
             {
-                allInputs.concat(block.tx[i].vin);
+                allInputs = allInputs.concat(block.tx[i].vin);
             }
             for (let input of allInputs)
             {
                 let i = CoinsIndexof(wallet.coins, input);
-                if (i > 0) //575
+                if (i >= 0) //575
                 {
                     //字符串为小蚁股的Hash，临时这么写，以后估计要改
-                    if (Equeal(wallet.coins[i].AssetId, "2a3e45c2a344660cbd7daf638292c5afed64960c39681dcb4258dde731ac2a3d".hexToBytes()))
+                    if (wallet.coins[i].AssetId == AntShare.AssetId)
                     {
                         wallet.coins[i].State = Core.CoinState.Spent;
                     }
@@ -192,7 +206,7 @@
             for (let i = 0; i < block.tx.length; i++)
             {
                 if (block.tx[i].type == Core.TransactionType.ClaimTransaction)
-                    claims.concat(block.tx[i].vin);
+                    claims = claims.concat(block.tx[i].vin);
             }
             for (let claim of claims)
             {

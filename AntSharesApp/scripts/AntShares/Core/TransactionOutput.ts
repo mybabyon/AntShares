@@ -3,7 +3,7 @@
     export class TransactionOutput
     {
         public n: number;
-        public asset: Uint8Array;
+        public asset: string;
         public value: number;
         public high: number;
         public low: number;

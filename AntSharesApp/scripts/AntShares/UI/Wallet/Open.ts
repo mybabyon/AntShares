@@ -72,8 +72,7 @@
     {
         if (walletNameList.length == 0)
         {
-            $("#list_wallet_name").hide();
-            $("#input_wallet_name").show();
+            TabBase.showTab("#Tab_Wallet_Create");
         }
         else
         {

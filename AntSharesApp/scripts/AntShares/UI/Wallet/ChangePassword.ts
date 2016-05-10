@@ -11,7 +11,7 @@
         private vertifyPassword()
         {
             verifyPassword(
-                $('#list_wallet_name2 input[name="wallet2"]:checked').val(),
+                GlobalWallet.GetCurrentWallet().dbName,
                 "old_password",
                 "change_error")
         }

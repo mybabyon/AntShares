@@ -498,7 +498,6 @@
                     this.GetDataByKey(StoreName.Key, "MasterKey",
                         (masterkey: KeyStore) =>
                         {
-                            Key.MasterKey = masterkey.Value;
                             //1.1 解密过程
                             ToPasswordKey(oldPassword,
                                 (passwordKey) =>
@@ -518,7 +517,7 @@
                                                     iv: Key.IV
                                                 },
                                                 keyImport,
-                                                Key.MasterKey //待解密的MasterKey
+                                                masterkey.Value //待解密的MasterKey
                                             )
                                         }, err =>
                                         {
@@ -554,8 +553,8 @@
                                                         })
                                                         .then(q =>
                                                         {
-                                                            Key.MasterKey = new Uint8Array(q); //重新加密后的masterKey
-
+                                                            let newMasterKey = new Uint8Array(q); //重新加密后的masterKey
+                                                            Key.PasswordKey = passwordKey;
                                                             //2、替换PasswordKeyHash
                                                             ToPasswordKey(newPassword,
                                                                 (passwordKey) =>
@@ -571,7 +570,7 @@
                                                                             let passwordHash = new Uint8Array(hash);
                                                                             Key.PasswordHash = passwordHash;
 
-                                                                            this.UpdatePassword(Key.PasswordHash, Key.MasterKey, callback);
+                                                                            this.UpdatePassword(Key.PasswordHash, newMasterKey, callback);
                                                                         })
                                                                         .catch(err =>
                                                                         {

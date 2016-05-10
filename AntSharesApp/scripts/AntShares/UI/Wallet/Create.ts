@@ -1,7 +1,15 @@
 ﻿namespace AntShares.UI.Wallet
 {
+    class Account
+    {
+        static PrivateKey: Uint8Array;
+        static PublicKey: Uint8Array;
+        static PublicECPoint: AntShares.Cryptography.ECPoint;
+        static PublicKeyHash: Uint8Array;
+    }
     export class Create extends TabBase
     {
+        private account: Account;
         protected oncreate(): void
         {
             $(this.target).find("#create_wallet").click(this.OnCreateButtonClick);
@@ -121,22 +129,22 @@
                 })
                 .then(p =>
                 {
-                    Wallets.Account.PrivateKey = p.d.base64UrlDecode();
+                    Account.PrivateKey = p.d.base64UrlDecode();
                     let publicKey = new Uint8Array(64);
                     publicKey.set(p.x.base64UrlDecode(), 0);
                     publicKey.set(p.y.base64UrlDecode(), 32);
-                    Wallets.Account.PublicECPoint = Cryptography.ECPoint.fromUint8Array(publicKey, Cryptography.ECCurve.secp256r1);
+                    Account.PublicECPoint = Cryptography.ECPoint.fromUint8Array(publicKey, Cryptography.ECCurve.secp256r1);
 
-                    Wallets.Account.PublicKey = Wallets.Account.PublicECPoint.encodePoint(false).subarray(1, 65);
-                    let test = Wallets.Account.PublicECPoint.encodePoint(true);
+                    Account.PublicKey = Account.PublicECPoint.encodePoint(false).subarray(1, 65);
+                    let test = Account.PublicECPoint.encodePoint(true);
 
-                    ToScriptHash(Wallets.Account.PublicECPoint.encodePoint(true),
+                    ToScriptHash(Account.PublicECPoint.encodePoint(true),
                         (publicKeyHash: Uint8Array) =>
                         {
-                            Wallets.Account.PublicKeyHash = publicKeyHash;
+                            Account.PublicKeyHash = publicKeyHash;
                             GlobalWallet.GetCurrentWallet().EncriptPrivateKeyAndSave(
-                                Wallets.Account.PrivateKey,
-                                Wallets.Account.PublicKey,
+                                Account.PrivateKey,
+                                Account.PublicKey,
                                 publicKeyHash,
                                 "我的账户",
                                 this.createContract
@@ -147,22 +155,25 @@
 
         private createContract = () =>
         {
-            let sc = new Wallets.SignatureContract(Wallets.Account.PublicECPoint);
+            let sc = new Wallets.SignatureContract(Account.PublicECPoint);
             ToScriptHash(sc.RedeemScript, (ScriptHash: Uint8Array) =>
             {
                 let contract = new ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");
                 let wallet = GlobalWallet.GetCurrentWallet();
-                Wallets.Account.clear();
+
                 wallet.AddContract(contract);
                 wallet.AddKey(new Wallets.KeyStore("Height", this.CurrentHeight));
 
                 wallet.LoadAccounts(() =>
                 {
-                    alert("创建钱包成功");
-                    //打开成功后跳转账户管理页面
-                    TabBase.showTab("#Tab_Account_Index");
-                    let sync = new AntShares.UI.Sync();
-                    sync.startSyncWallet();
+                    wallet.LoadContracts(() =>
+                    {
+                        alert("创建钱包成功");
+                        //打开成功后跳转账户管理页面
+                        TabBase.showTab("#Tab_Account_Index");
+                        let sync = new AntShares.UI.Sync();
+                        sync.startSyncWallet();
+                    })
                 });
             })
         }

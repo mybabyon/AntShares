@@ -44,8 +44,11 @@
                                     {
                                         wallet.LoadAccounts(() =>
                                         {
-                                            alert("账户导入成功");
-                                            TabBase.showTab("#Tab_Account_Index");
+                                            wallet.LoadContracts(() =>
+                                            {
+                                                alert("账户导入成功");
+                                                TabBase.showTab("#Tab_Account_Index");
+                                            })
                                         });
                                     });
                                 })

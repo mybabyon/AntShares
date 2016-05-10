@@ -2,18 +2,12 @@
 {
     export class SignatureContract
     {
+        public RedeemScript: Uint8Array;
+        public PublicKeyHash: Uint8Array;
         constructor(private publicKey: Cryptography.ECPoint)
         {
             this.RedeemScript = this.CreateSignatureRedeemScript(publicKey);
-            if (Account.PublicKeyHash)
-            {
-                this.PublicKeyHash = Account.PublicKeyHash;
-            }
         }
-        RedeemScript: Uint8Array;
-        PublicKeyHash: Uint8Array;
-
-
         public CreateSignatureRedeemScript(publicKey: Cryptography.ECPoint): Uint8Array
         {
             let sb = new Core.Scripts.ScriptBuilder()
@@ -21,7 +15,5 @@
             sb.add(Core.Scripts.ScriptOp.OP_CHECKSIG);
             return sb.toArray();
         }
-
-
     }
 }

@@ -1,9 +1,9 @@
-﻿function InputEqueal(x: AntShares.Core.TransactionInput, y: AntShares.Core.TransactionInput)
+﻿function InputEqueal(x: TransactionInput, y: TransactionInput)
 {
     return x.prevHash == y.prevHash && x.prevIndex == y.prevIndex;
 }
 
-function CoinsIndexof(coins: AntShares.Wallets.CoinItem[], input: AntShares.Core.TransactionInput): number
+function CoinsIndexof(coins: CoinItem[], input: TransactionInput): number
 {
     for (let i = 0; i < coins.length; i++)
     {

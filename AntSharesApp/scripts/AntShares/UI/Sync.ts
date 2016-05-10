@@ -7,7 +7,7 @@
 
         public getblockcount = () =>
         {
-            let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
+            let rpc = new RpcClient("http://seed1.antshares.org:20332/");
 
             rpc.call("getblockcount", [],
                 (count) =>
@@ -34,12 +34,13 @@
                 this.syncWallet();
                 this.started = true;
                 $('#testbutton1').show();
+                //测试用
                 $('#testbutton1').click(() =>
                 {
                     let wallet = GlobalWallet.GetCurrentWallet();
-                    wallet.UpdateDataByKey(StoreName.Key, "Height", new Wallets.KeyStore("Height", 108678));
+                    wallet.UpdateDataByKey(StoreName.Key, "Height", new Wallets.KeyStore("Height", 110000));
                     wallet.ClearObjectStore(StoreName.Coin);
-                    wallet.coins = new Array<Wallets.CoinItem>();
+                    wallet.coins = new Array<CoinItem>();
                     console.log("reset success");
 
                     this.syncWallet();
@@ -54,7 +55,7 @@
                 {
                     $("#local_height").text(height.Value);
                     let remote_height = $("#remote_height").text();
-                    let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
+                    let rpc = new RpcClient("http://seed1.antshares.org:20332/");
                     //根据指定的高度（索引），返回对应区块的散列值
                     rpc.call("getblockhash", [height.Value],
                         (hash) =>

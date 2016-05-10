@@ -82,7 +82,7 @@
                     let request = store.add(name);
                     request.onsuccess = (e: any) =>
                     {
-                        console.log('add wallet name ' + name + ' to master success');
+                        console.log('add wallet name ' + name.Name + ' to master success');
                     };
                     request.onerror = (e: any) =>
                     {

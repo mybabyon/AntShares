@@ -9,3 +9,4 @@
         Value: number;
     }
 }
+import CoinItem = AntShares.Wallets.CoinItem;

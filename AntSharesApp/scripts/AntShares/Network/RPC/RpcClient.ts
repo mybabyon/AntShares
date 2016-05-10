@@ -20,7 +20,7 @@
 
         public call(method: string, params: any[], callback: (result: any) => void, onerror?: (error: any) => void): void
         {
-            RpcClient.send(this.url, RpcClient.makeRequest(method, params), response=>
+            RpcClient.send(this.url, RpcClient.makeRequest(method, params), response =>
             {
                 if (response.error && onerror)
                     onerror(response.error);
@@ -34,7 +34,7 @@
             let request = [];
             for (let i = 0; i < batch.length; i++)
                 request.push(RpcClient.makeRequest(batch[i].method, batch[i].params));
-            RpcClient.send(this.url, request, response=>
+            RpcClient.send(this.url, request, response =>
             {
                 if (response.error && onerror)
                     onerror(response.error);
@@ -49,3 +49,4 @@
         }
     }
 }
+import RpcClient = AntShares.Network.RPC.RpcClient;

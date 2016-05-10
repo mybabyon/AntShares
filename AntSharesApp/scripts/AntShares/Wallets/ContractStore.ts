@@ -1,16 +1,8 @@
 ﻿class ContractStore
 {
-    constructor(scriptHash: Uint8Array, rawData: any, publicKeyHash: Uint8Array, type: string)
+    Name: string; //作为Contract表的主键
+    constructor(public ScriptHash: Uint8Array, public RawData: any, public PublicKeyHash: Uint8Array, public Type: string)
     {
-        this.ScriptHash = scriptHash;
-        this.RawData = rawData;
-        this.PublicKeyHash = publicKeyHash;
-        this.Type = type;
-        this.Name = scriptHash.base58Encode();
+        this.Name = ScriptHash.base58Encode();
     }
-    Name: string;
-    ScriptHash: Uint8Array;
-    RawData: Uint8Array;
-    PublicKeyHash: Uint8Array;
-    Type: string;
 }

@@ -661,12 +661,7 @@
             }
             toAddress(rawData[i].ScriptHash, (addr) =>
             {
-                let item = new ContractItem();
-                item.PublicKeyHash = rawData[i].PublicKeyHash;
-                item.RawData = rawData[i].RawData;
-                item.ScriptHash = rawData[i].ScriptHash;
-                item.Type = rawData[i].Type;
-                item.Address = addr;
+                let item = new ContractItem(rawData[i].ScriptHash, rawData[i].RawData, rawData[i].PublicKeyHash, rawData[i].Type, addr);
                 this.contracts.push(item);
                 this.addToContracts(rawData, ++i, callback);
             });
@@ -691,14 +686,18 @@
                 callback();
                 return;
             }
-            let item = new CoinItem();
-            item.Input = rawData[i].Input;
-            item.AssetId = rawData[i].AssetId;
-            item.Address = rawData[i].Address;
-            item.State = rawData[i].State;
-            item.Value = rawData[i].Value;
+            let item = new CoinItem(rawData[i].Input, rawData[i].Address, rawData[i].State, rawData[i].AssetId, rawData[i].Value);
             this.coins.push(item);
             this.addToCoins(rawData, ++i, callback);
+        }
+
+        public SetHeight(height: number, callback)
+        {
+            this.UpdateDataByKey(StoreName.Key, "Height", new Wallets.KeyStore("Height", height), () =>
+            {
+                if (callback)
+                    callback();
+            })
         }
 
         public EncriptPrivateKeyAndSave = (privateKey, publicKey, publicKeyHash, name, callback) =>
@@ -774,11 +773,7 @@
                     let privateKeyEncrypted = new Uint8Array(q);
                     let privateKey = privateKeyEncrypted.subarray(0, 32);
                     let publicKey = privateKeyEncrypted.subarray(32, 96);
-                    let item = new AccountItem();
-                    item.Name = rawDataArray[i].Name;
-                    item.PublicKeyHash = rawDataArray[i].PublicKeyHash;
-                    item.PrivateKey = privateKey;
-                    item.PublicKey = publicKey;
+                    let item = new AccountItem(rawDataArray[i].Name, rawDataArray[i].PublicKeyHash, privateKey, publicKey);
                     this.accounts.push(item);
                     this.decPriKey(rawDataArray, ++i, callback);
                 }, err =>

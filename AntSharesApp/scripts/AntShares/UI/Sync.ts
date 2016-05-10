@@ -3,7 +3,7 @@
     export class Sync
     {
         private started = false;
-        private synced = false;
+        static resetHeight = false;
 
         public getblockcount = () =>
         {
@@ -31,26 +31,36 @@
         {
             if (!this.started)
             {
-                this.syncWallet();
                 this.started = true;
+                this.syncWallet();
                 $('#testbutton1').show();
-                //测试用
-                $('#testbutton1').click(() =>
-                {
-                    let wallet = GlobalWallet.GetCurrentWallet();
-                    wallet.UpdateDataByKey(StoreName.Key, "Height", new Wallets.KeyStore("Height", 110000));
-                    wallet.ClearObjectStore(StoreName.Coin);
-                    wallet.coins = new Array<CoinItem>();
-                    console.log("reset success");
-
-                    this.syncWallet();
-                });
+                //测试用，重新设置钱包本地同步的高度
+                $('#testbutton1').click(() => { Sync.resetHeight = true; });
             }
         }
 
         private syncWallet = () =>
         {
-            GlobalWallet.GetCurrentWallet().GetDataByKey(StoreName.Key, "Height",
+            let wallet = GlobalWallet.GetCurrentWallet();
+            if (Sync.resetHeight)
+            {
+                wallet.SetHeight(108678, () =>
+                {
+                    //wallet.ClearObjectStore(StoreName.Coin);
+                    wallet.coins = new Array<CoinItem>();
+                    wallet.GetDataByKey(StoreName.Key, "Height",
+                        (height: AntShares.Wallets.KeyStore) =>
+                        {
+                            $("#local_height").text(height.Value);
+                            console.log("reset success");
+                            Sync.resetHeight = false;
+                            this.syncWallet();
+                        });
+                });
+                return;
+            }
+
+            wallet.GetDataByKey(StoreName.Key, "Height",
                 (height: AntShares.Wallets.KeyStore) =>
                 {
                     $("#local_height").text(height.Value);
@@ -68,8 +78,7 @@
                                     {
                                         if (height.Value as any < $("#remote_height").text())
                                         {
-                                            height.Value++;
-                                            GlobalWallet.GetCurrentWallet().UpdateDataByKey(StoreName.Key, "Height", height, this.syncWallet);
+                                            wallet.SetHeight(++height.Value, this.syncWallet);
                                         }
                                         else
                                         {
@@ -82,8 +91,7 @@
                                         {
                                             if (height.Value as any < $("#remote_height").text())
                                             {
-                                                height.Value++;
-                                                GlobalWallet.GetCurrentWallet().UpdateDataByKey(StoreName.Key, "Height", height, this.syncWallet);
+                                                wallet.SetHeight(++height.Value, this.syncWallet);
                                             }
                                             else
                                             {

@@ -2,11 +2,7 @@
 {
     export class CoinItem
     {
-        Input: Core.TransactionInput;
-        Address: string;
-        State: AntShares.Core.CoinState;
-        AssetId: Uint8Array;
-        Value: number;
+        constructor(public Input: Core.TransactionInput, public Address: string, public State: AntShares.Core.CoinState, public AssetId: Uint8Array, public Value: number) { }
     }
 }
 import CoinItem = AntShares.Wallets.CoinItem;

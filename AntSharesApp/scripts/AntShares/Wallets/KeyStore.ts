@@ -2,12 +2,6 @@
 {
     export class KeyStore
     {
-        constructor(name: string, value:any)
-        {
-            this.Name = name;
-            this.Value = value;
-        }
-        Name: string;
-        Value: any;
+        constructor(public Name: string, public Value: any) { }
     }
 }

@@ -2,10 +2,7 @@
 {
     export class ContractItem
     {
-        ScriptHash: Uint8Array;
-        RawData: Uint8Array;
-        PublicKeyHash: Uint8Array;
-        Type: string;
-        Address: string;
+        constructor(public ScriptHash: Uint8Array, public RawData: Uint8Array,
+            public PublicKeyHash: Uint8Array, public Type: string, public Address: string) { }
     }
 }

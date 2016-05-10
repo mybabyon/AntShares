@@ -2,8 +2,6 @@
 {
     export class TransactionItem
     {
-        Hash: String;
-        Type: Core.TransactionType;
-        RawData: Uint8Array;
+        constructor(public Hash: String, public Type: Core.TransactionType, public RawData: Uint8Array) { }
     }
 }

@@ -75,6 +75,7 @@
                 wallet.ClearObjectStore(StoreName.Key);
                 wallet.ClearObjectStore(StoreName.Contract);
                 wallet.ClearObjectStore(StoreName.Account);
+                wallet.ClearObjectStore(StoreName.Coin);
                 wallet.DeleteIndexdDB();
                 wallet.CloseDB();
             });
@@ -171,11 +172,14 @@
                 {
                     wallet.LoadContracts(() =>
                     {
-                        alert("创建钱包成功");
-                        //打开成功后跳转账户管理页面
-                        TabBase.showTab("#Tab_Account_Index");
-                        let sync = new AntShares.UI.Sync();
-                        sync.startSyncWallet();
+                        wallet.LoadCoins(() =>
+                        {
+                            alert("创建钱包成功");
+                            //打开成功后跳转账户管理页面
+                            TabBase.showTab("#Tab_Account_Index");
+                            let sync = new AntShares.UI.Sync();
+                            sync.startSyncWallet();
+                        })
                     })
                 });
             })

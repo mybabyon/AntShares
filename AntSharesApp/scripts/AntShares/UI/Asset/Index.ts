@@ -31,6 +31,8 @@
             let group = new Array<CoinItem>();
             for (let i = 0; i < wallet.coins.length; i++)
             {
+                if (wallet.coins[i].State != Core.CoinState.Unspent)
+                    continue;
                 let index = CoinsIndexof(group, wallet.coins[i]);
                 if (index < 0)
                 {

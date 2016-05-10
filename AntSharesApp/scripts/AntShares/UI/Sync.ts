@@ -167,16 +167,14 @@
                         if (c > 0)
                         {
                             wallet.coins[c].State = Core.CoinState.Unspent;
-                            wallet.UpdateDataByKey();
-                            //BUG:未写入数据库，导致重启后数据错误
+                            //将更新后的Coin的State写入数据库
+                            wallet.UpdateDataByKey(StoreName.Coin, wallet.coins[c].toKey(),
+                                new CoinStore(wallet.coins[c].Input, wallet.coins[c].AssetId, wallet.coins[c].Value, wallet.coins[c].Address, wallet.coins[c].State));
                         }
                         else
                         {
-                            wallet.AddCoin(new CoinStore(input, out.asset, out.value, out.address, Core.CoinState.Unspent), () =>
-                            {
-                                //重新把coin加载到内存中
-                                wallet.LoadCoins(() => { });
-                            });
+                            wallet.coins.push(new CoinItem(input, out.address, Core.CoinState.Unspent, out.asset, out.value));
+                            wallet.AddCoin(new CoinStore(input, out.asset, out.value, out.address, Core.CoinState.Unspent));
                         }
                     }
                 }
@@ -191,14 +189,17 @@
                 let i = CoinsIndexof(wallet.coins, input);
                 if (i >= 0) //575
                 {
-                    //字符串为小蚁股的Hash，临时这么写，以后估计要改
                     if (wallet.coins[i].AssetId == AntShare.AssetId)
                     {
                         wallet.coins[i].State = Core.CoinState.Spent;
+                        //将更新后的Coin的State写入数据库
+                        wallet.UpdateDataByKey(StoreName.Coin, wallet.coins[i].toKey(),
+                            new CoinStore(wallet.coins[i].Input, wallet.coins[i].AssetId, wallet.coins[i].Value, wallet.coins[i].Address, wallet.coins[i].State));
                     }
                     else
                     {
                         wallet.coins.splice(i);
+                        wallet.DeleteDataByKey(StoreName.Coin, wallet.coins[i].toKey());
                     }
                 }
             }
@@ -214,6 +215,7 @@
                 if (i > 0) //585
                 {
                     wallet.coins.splice(i);
+                    wallet.DeleteDataByKey(StoreName.Coin, wallet.coins[i].toKey());
                 }
             }
 

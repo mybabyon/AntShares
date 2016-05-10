@@ -376,6 +376,8 @@
                     request = store.put(obj);
                     request.onsuccess = (e: any) =>
                     {
+                        if (storeName == StoreName.Coin)
+                            console.log("更新Coin成功");
                         if (callback)
                             callback();
                     };

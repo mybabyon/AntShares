@@ -4,6 +4,7 @@
     {
         protected oncreate(): void
         {
+            $(this.target).find("#show_all_coin").click(this.showAllCoin);
         }
 
         protected onload(): void
@@ -45,7 +46,32 @@
             }
             for (let item of group)
             {
-                addAccountList(item as CoinItem);
+                addCoinList(item as CoinItem);
+            }
+        }
+
+        public showAllCoin()
+        {
+            let allcoin = $("#Tab_Asset_Index").find(".all-coin");
+            let a = $("#show_all_coin");
+            let str1 = "显示所有零钱";
+            let str2 = "隐藏所有零钱";
+            if (a.text() == str1)
+            {
+                allcoin.show("fast");
+                a.text(str2);
+                $("#all_coin").find("ul:eq(0)").find("li :visible").remove();
+                let wallet = GlobalWallet.GetCurrentWallet();
+                for (let item of wallet.coins)
+                {
+                    if (item.State == Core.CoinState.Unspent)
+                        addChangeList(item as CoinItem);
+                }
+            }
+            else
+            {
+                allcoin.hide("fast");
+                a.text(str1);
             }
         }
     }
@@ -58,22 +84,34 @@
         }
         return -1;
     }
-    function addAccountList(item: CoinItem)
+    function addCoinList(item: CoinItem)
     {
         let wallet = GlobalWallet.GetCurrentWallet();
         let ul = $("#Tab_Asset_Index").find("ul:eq(0)");
         let liTemplet = ul.find("li:eq(0)");
         let li = liTemplet.clone(true);
         li.removeAttr("style");
-        li.find("span");
         li.find(".asset_address").text(item.Address);
         li.find(".asset_value").text(item.Value);
         GetAssetName(item.AssetId, (name) =>
         {
             li.find(".asset_name").text(name);
             li.find(".asset_issuer").text("发行人"); //TODO:发行人
-            let a = li.find("a");
-            let btn = li.find("button:eq(0)");
+            ul.append(li);
+        });
+    }
+    function addChangeList(item: CoinItem)
+    {
+        let wallet = GlobalWallet.GetCurrentWallet();
+        let ul = $("#all_coin").find("ul:eq(0)");;
+        let liTemplet = ul.find("li:eq(0)");
+        let li = liTemplet.clone(true);
+        li.removeAttr("style");
+        li.find(".asset_address").text(item.Address);
+        li.find(".asset_value").text(item.Value);
+        GetAssetName(item.AssetId, (name) =>
+        {
+            li.find(".asset_name").text(name);
             ul.append(li);
         });
     }

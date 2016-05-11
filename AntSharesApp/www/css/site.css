@@ -63,3 +63,4 @@ pre { white-space: pre-line; }
 .change-wallet-name { padding-top: 7px; color: #337ab7; }
 footer span { font-family: "sourceCodePro"; }
 .issuer { margin-bottom: 10px; }
+.all-coin { height: 150px; margin-top: 10px; line-height: 1.5; display: none; }

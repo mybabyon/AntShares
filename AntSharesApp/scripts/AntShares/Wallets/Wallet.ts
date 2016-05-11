@@ -356,7 +356,7 @@
         }
 
         /**
-         * 更新数据库字段
+         * 更新数据库字段, 如果key存在，则更新，否则添加新的字段
          * @param storeName 表名称。
          * @param key 要更新的键。
          * @param object 更新的对象。

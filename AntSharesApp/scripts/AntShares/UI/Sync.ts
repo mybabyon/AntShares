@@ -166,10 +166,10 @@
                         let c = CoinsIndexof(wallet.coins, input);
                         if (c > 0)
                         {
-                            wallet.coins[c].State = Core.CoinState.Unspent;
                             //将更新后的Coin的State写入数据库
                             wallet.UpdateDataByKey(StoreName.Coin, wallet.coins[c].toKey(),
-                                new CoinStore(wallet.coins[c].Input, wallet.coins[c].AssetId, wallet.coins[c].Value, wallet.coins[c].Address, wallet.coins[c].State));
+                                new CoinStore(wallet.coins[c].Input, wallet.coins[c].AssetId, wallet.coins[c].Value, wallet.coins[c].Address, Core.CoinState.Unspent));
+                            wallet.coins[c].State = Core.CoinState.Unspent;
                         }
                         else
                         {
@@ -191,10 +191,10 @@
                 {
                     if (wallet.coins[i].AssetId == AntShare.AssetId)
                     {
-                        wallet.coins[i].State = Core.CoinState.Spent;
                         //将更新后的Coin的State写入数据库
                         wallet.UpdateDataByKey(StoreName.Coin, wallet.coins[i].toKey(),
-                            new CoinStore(wallet.coins[i].Input, wallet.coins[i].AssetId, wallet.coins[i].Value, wallet.coins[i].Address, wallet.coins[i].State));
+                            new CoinStore(wallet.coins[i].Input, wallet.coins[i].AssetId, wallet.coins[i].Value, wallet.coins[i].Address, Core.CoinState.Spent));
+                        wallet.coins[i].State = Core.CoinState.Spent;
                     }
                     else
                     {

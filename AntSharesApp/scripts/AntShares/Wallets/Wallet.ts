@@ -789,5 +789,12 @@
                     console.log("解密私钥失败");
                 });
         }
+
+        public calculateClaimAmount(inputs: Array<CoinItem>)
+        {
+            //TODO: wallet.cs里计算可提取小蚁币的数量这个方法，
+            //需要在区块链里查询每一个已花费小蚁股收到时的区块高度和花出去时的区块高度，
+            //这个在APP里没有区块链查询不了，这是个难题。
+        }
     }
 }

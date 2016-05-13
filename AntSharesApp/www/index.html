@@ -205,6 +205,33 @@
                         <a class="alert-link" href="javascript:">了解更多</a>
                     </div>
                 </div>
+                <div id="Tab_Advanced_Claim" class="form-horizontal tab-pane">
+                    <h2 class="page-header">提取小蚁币</h2>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">可提取</label>
+                        <div class="col-sm-6">
+                            <input class="form-control" readonly="readonly" type="number" value="3.78324" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">不可提取</label>
+                        <div class="col-sm-6">
+                            <input class="form-control" readonly="readonly" type="text" value="未知" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-4 col-md-push-4 col-sm-push-4">
+                            <button type="button" class="btn btn-primary">全部提取</button>
+                        </div>
+                    </div>
+                    <div class="alert alert-info bottom" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        持有小蚁股的用户可以提取小蚁币，小蚁币总量为1亿，可精确到10<sup>-8</sup>，代表小蚁协议的使用权。小蚁币按照一定分发曲线在每个区块中持续分配给小蚁股的持有者。小蚁币总量上限不可增加。
+                        <a class="alert-link" href="javascript:">了解更多</a>
+                    </div>
+                </div>
                 <div id="Tab_Asset_Index" class="tab-pane">
                     <h5 style="display:none; padding-top:50px; text-align:center">您目前还没有资产</h5>
                     <ul>
@@ -484,6 +511,7 @@
                 <li>
                     <span><i class="iconfont">&#xe609;</i>高级功能</span>
                     <ul>
+                        <li><a class="tab-trigger" href="#Tab_Advanced_Claim">提取小蚁币</a></li>
                         <li><a class="tab-trigger" href="#Tab_Advanced_Sign">签名</a></li>
                         <li><a class="tab-trigger" href="#Tab_Advanced_Register">注册资产</a></li>
                         <li><a class="tab-trigger" href="#Tab_Advanced_Issue">发行资产</a></li>

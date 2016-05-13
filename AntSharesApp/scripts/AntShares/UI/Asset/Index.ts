@@ -27,7 +27,6 @@
             {
                 $("h5").hide();
             }
-            //BUG:已花费的币不应该统计到余额中
 
             let group = new Array<CoinItem>();
             for (let i = 0; i < wallet.coins.length; i++)

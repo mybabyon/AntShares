@@ -793,7 +793,7 @@
                     console.log("解密私钥失败");
                 });
         }
-
+        //TODO:用异步的递归代替循环
         public sign(context: Core.SignatureContext): boolean
         {
             let fSuccess = false;
@@ -803,8 +803,11 @@
                 if (contract == null) continue;
                 let account = this.GetAccountByScriptHash(scriptHash);
                 if (account == null) continue;
-                let signature = context.Signable.Sign(account);
-                fSuccess = fSuccess || context.Add(contract, account.PublicKey, signature);
+                context.Signable.Sign(account, (signed) =>
+                {
+                    fSuccess = fSuccess || context.Add(contract, account.PublicKey, signed);
+                });
+                
             }
             return fSuccess;
         }

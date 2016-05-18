@@ -39,7 +39,7 @@
                 let walletName = $('#list_wallet_name input[name="wallet"]:checked ').val();
                 wallet.OpenDB(walletName, () =>
                 {
-                    wallet.VerifyPassword(toUint8Array($("#open_password").val()),
+                    wallet.VerifyPassword($("#open_password").val().toUint8Array(),
                         () =>
                         {
                             wallet.LoadAccounts(() =>

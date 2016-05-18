@@ -3,7 +3,7 @@
     export class TransactionAttribute
     {
         public usage: TransactionAttributeUsage;
-        public data: string;
+        public data: Uint8Array;
     }
 
 }

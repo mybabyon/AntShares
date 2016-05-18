@@ -106,7 +106,7 @@
                     $("#wallet_name").val(),
                     () =>
                     {
-                        ToPasswordKey(toUint8Array($("#create_password").val()),
+                        ToPasswordKey($("#create_password").val().toUint8Array(),
                             (passwordKey) =>
                             {
                                 Wallets.Key.PasswordKey = passwordKey;

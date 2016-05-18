@@ -42,9 +42,10 @@
             }
         }
     }
-
+    
     export class SignatureDictionary
     {
+        
         public Signatures: Signature[];
         public ContainsKey(PubKey: Cryptography.ECPoint): boolean
         {

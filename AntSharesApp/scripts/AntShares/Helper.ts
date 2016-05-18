@@ -6,6 +6,7 @@
 interface String
 {
     hexToBytes(): Uint8Array;
+    toUint8Array(): Uint8Array;
 }
 
 interface Uint8Array
@@ -57,6 +58,16 @@ namespace AntShares
         for (let i = 0; i < bytes.length; i++)
             bytes[i] = parseInt(this.substr(i * 2, 2), 16);
         return bytes;
+    }
+
+    String.prototype.toUint8Array = function (): Uint8Array
+    {
+        var uint8array = new Uint8Array(this.length);
+        for (var i = 0; i < this.length; i++)
+        {
+            uint8array[i] = this.charCodeAt(i);
+        }
+        return uint8array;
     }
 
     function reverseArray()

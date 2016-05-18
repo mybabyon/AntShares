@@ -6,17 +6,6 @@
     }
     return rs;
 }
-function toUint8Array(str: string): Uint8Array {
-    var uint8array = new Uint8Array(str.length);
-    for (var i = 0; i < str.length; i++) {
-        uint8array[i] = str.charCodeAt(i);
-    }
-    return uint8array;
-}
-
-function IsEven(array: Uint8Array): boolean {
-    return array[0] / 2 == 0;
-}
 
 //参照AntShares.Core.Scripts.Helper的对应方法
 function ToScriptHash(EncodedPoint: Uint8Array, callback: (scriptHash: ArrayBuffer) => any) {
@@ -70,7 +59,7 @@ function verifyPassword(walletName: string, inputID: string, errorID: string)
     wallet.OpenDB(walletName,
     ()=> {
         wallet.VerifyPassword(
-            toUint8Array($('#' + inputID).val()),
+            $('#' + inputID).val().toUint8Array(),
             () => { $('#' + errorID).hide(); },
             () => { $('#' + errorID).show(); }
         );

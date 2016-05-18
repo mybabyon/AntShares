@@ -32,13 +32,13 @@
             let wallet = GlobalWallet.GetCurrentWallet();
             if (formIsValid("form_change_password"))
             {
-                wallet.VerifyPassword(toUint8Array($("#old_password").val()),
+                wallet.VerifyPassword($("#old_password").val().toUint8Array(),
                     () =>
                     {
                         $("#change_error").hide();
                         wallet.ChangePassword(
-                            toUint8Array($("#old_password").val()),
-                            toUint8Array($("#new_password").val()),
+                            $("#old_password").val().toUintArray(),
+                            $("#new_password").val().toUint8Array(),
                             () => { alert("修改钱包密码成功"); }
                         );
                     },

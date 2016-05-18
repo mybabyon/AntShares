@@ -36,7 +36,7 @@
                             let publicKey = publicPoint.encodePoint(false).subarray(1, 65);
                             wallet.EncriptPrivateKeyAndSave(prikey, publicKey, publicKeyHash, "导入账户", () =>
                             {
-                                let sc = new Wallets.SignatureContract(publicPoint);
+                                let sc = new Wallets.SignatureContract(publicKeyHash, publicPoint);
                                 ToScriptHash(sc.RedeemScript, (ScriptHash: Uint8Array) =>
                                 {
                                     let contract = new ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");

@@ -667,10 +667,14 @@
                 callback();
                 return;
             }
-            toAddress(rawData[i].ScriptHash, (addr) =>
+            toAddress(rawData[i].ScriptHash, (addr: string) =>
             {
-                let item = new ContractItem(rawData[i].ScriptHash, rawData[i].RawData, rawData[i].PublicKeyHash, rawData[i].Type, addr);
-                this.contracts.push(item);
+                if (rawData[i].Type == "SignatureContract")
+                {
+                    let item = rawData[i].RawData as ContractItem;
+                    item.Address = addr;
+                    this.contracts.push(item);
+                }
                 this.addToContracts(rawData, ++i, callback);
             });
         }
@@ -788,6 +792,51 @@
                 {
                     console.log("解密私钥失败");
                 });
+        }
+
+        public sign(context: Core.SignatureContext): boolean
+        {
+            let fSuccess = false;
+            for (let scriptHash of context.ScriptHashes)
+            {
+                let contract = this.GetContract(scriptHash);
+                if (contract == null) continue;
+                let account = this.GetAccountByScriptHash(scriptHash);
+                if (account == null) continue;
+                let signature = context.Signable.Sign(account);
+                fSuccess = fSuccess || context.Add(contract, account.PublicKey, signature);
+            }
+            return fSuccess;
+        }
+
+        private GetAccountByScriptHash(scriptHash: Uint8Array): AccountItem
+        {
+            for (let c of this.contracts)
+            {
+                if (c.ScriptHash == scriptHash)
+                {
+                    for (let a of this.accounts)
+                    {
+                        if (a.PublicKeyHash == c.PublicKeyHash)
+                        {
+                            return a;
+                        } 
+                    }
+                } 
+            }
+            return null;
+        }
+
+        private GetContract(scriptHash: Uint8Array): ContractItem
+        {
+            for (let c of this.contracts)
+            {
+                if (c.ScriptHash == scriptHash)
+                {
+                    return c;
+                }
+            }
+            return null;
         }
     }
 }

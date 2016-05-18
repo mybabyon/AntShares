@@ -1,8 +1,12 @@
 ﻿namespace AntShares.Wallets
 {
-    export class ContractItem
+    export abstract class ContractItem
     {
-        constructor(public ScriptHash: Uint8Array, public RawData: Uint8Array,
-            public PublicKeyHash: Uint8Array, public Type: string, public Address: string) { }
+        public RedeemScript: Uint8Array;
+        public ScriptHash: Uint8Array;
+        public PublicKeyHash: Uint8Array;
+        public Type: string;
+        public Address: string;
+        public abstract IsCompleted(publicKeys: Array<Cryptography.ECPoint>): boolean
     }
 }

@@ -9,8 +9,5 @@
         public vin: Array<TransactionInput>;
         public vout: Array<TransactionOutput>;
         public scripts: Array<Script>;
-
-        public abstract GetHashData(): Uint8Array;
     }
-
 }

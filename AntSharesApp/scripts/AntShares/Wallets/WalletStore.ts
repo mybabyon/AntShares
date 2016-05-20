@@ -2,10 +2,10 @@
 {
     export class WalletStore
     {
+        Name: string;
         constructor(name: string)
         {
             this.Name = name;
         }
-        Name: string;
     }
 }

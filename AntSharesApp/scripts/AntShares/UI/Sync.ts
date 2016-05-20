@@ -1,5 +1,8 @@
 ﻿namespace AntShares.UI
 {
+    import CoinItem = AntShares.Wallets.CoinItem;
+    import CoinStore = AntShares.Wallets.CoinStore;
+
     export class Sync
     {
         static started = false;

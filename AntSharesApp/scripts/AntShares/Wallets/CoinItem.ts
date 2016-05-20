@@ -10,4 +10,3 @@
         }
     }
 }
-import CoinItem = AntShares.Wallets.CoinItem;

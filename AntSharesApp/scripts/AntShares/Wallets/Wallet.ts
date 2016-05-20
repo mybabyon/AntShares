@@ -85,7 +85,7 @@
          * @param passwordKey 钱包密码。
          * @param callback 查询结果的回调函数。
          */
-        CreateWallet(passwordKey: Uint8Array, callback: () => any)
+        public CreateWallet(passwordKey: Uint8Array, callback: () => any)
         {
             let IV = new Uint8Array(16);;
             window.crypto.getRandomValues(IV);

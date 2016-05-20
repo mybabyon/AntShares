@@ -26,6 +26,7 @@
             //if (formIsValid("form_account_list")) {
                 
             //}
+
         }
 
     }
@@ -36,9 +37,9 @@
         let liTemplet = ul.find("li:eq(0)");
         let li = liTemplet.clone(true);
         li.removeAttr("style");
-        let span = li.find("span");
-        let a = li.find("a");
-        let btn = li.find("button:eq(0)");
+        let span = li.find("span");//账户
+        let a = li.find("a");//详情
+        let btn = li.find("button:eq(0)");//导出
         let wallet = GlobalWallet.GetCurrentWallet();
         btn.click(() =>
         {

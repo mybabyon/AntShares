@@ -7,6 +7,12 @@ interface String
 {
     hexToBytes(): Uint8Array;
     toUint8Array(): Uint8Array;
+    serialize(): Uint8Array;
+}
+
+interface Number
+{
+    serialize(Byte: number): Uint8Array;
 }
 
 interface Uint8Array
@@ -60,12 +66,55 @@ namespace AntShares
         return bytes;
     }
 
+    String.prototype.serialize = function (): Uint8Array
+    {
+        if (this.length < 128)
+        {
+            let result = new Uint8Array(this.length + 1);
+            result[0] = this.length;
+            result.set(this.toUint8Array(), 1);
+        }
+        else
+        {
+            let result = new Uint8Array(this.length + 2);
+            result[1] = this.length / 128;
+            result[0] = this.length - (result[1] - 1) * 128;
+            result.set(this.toUint8Array(), 2);
+        }
+        return this.toUint8Array();
+    }
+
     String.prototype.toUint8Array = function (): Uint8Array
     {
         var uint8array = new Uint8Array(this.length);
         for (var i = 0; i < this.length; i++)
         {
             uint8array[i] = this.charCodeAt(i);
+        }
+        return uint8array;
+    }
+
+    Number.prototype.serialize = function (Byte: number): Uint8Array
+    {
+        var uint8array = new Uint8Array(Byte);
+        try
+        {
+            if (this < 256)
+            {
+                uint8array.set([this], 0)
+            }
+            else if (this < 65536)
+            {
+                uint8array.set([this % 256, this / 256], 0);
+            }
+            else
+            {
+                uint8array.set([this % 256, this / 256, this / 65536 % 256, this / 65536 / 256], 0);
+            }
+        }
+        catch (e)
+        {
+            console.error(e);
         }
         return uint8array;
     }

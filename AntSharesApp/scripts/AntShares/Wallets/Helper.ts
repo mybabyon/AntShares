@@ -115,3 +115,23 @@ function sha256Twice(data: Uint8Array, success: (result: Uint8Array) => any, err
             error(err);
         });
 }
+
+/**
+ * 用于序列化操作的方法，将Array<Uint8Array>转换为Uint8Array
+ */
+function ToUint8Array(array: Array<Uint8Array>): Uint8Array
+{
+    let length = 0;
+    for (let i of array)
+    {
+        length += i.length;
+    }
+    let result = new Uint8Array(length);
+    let p = 0;
+    for (let i of array)
+    {
+        result.set(i, p);
+        p += i.length;
+    }
+    return result;
+}

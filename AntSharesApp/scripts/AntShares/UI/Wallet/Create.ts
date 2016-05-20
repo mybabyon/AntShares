@@ -140,7 +140,6 @@
                     Account.PublicECPoint = Cryptography.ECPoint.fromUint8Array(publicKey, Cryptography.ECCurve.secp256r1);
 
                     Account.PublicKey = Account.PublicECPoint.encodePoint(false).subarray(1, 65);
-                    let test = Account.PublicECPoint.encodePoint(true);
 
                     ToScriptHash(Account.PublicECPoint.encodePoint(true),
                         (publicKeyHash: Uint8Array) =>

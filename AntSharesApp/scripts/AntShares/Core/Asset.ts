@@ -6,7 +6,7 @@
         public type: AssetType;
 
         /*资产名称*/
-        public name: AssetName[];
+        public name: string;
 
         /*发行总量*/
         public high: number;

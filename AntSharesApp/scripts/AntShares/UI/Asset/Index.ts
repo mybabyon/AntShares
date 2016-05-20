@@ -123,7 +123,7 @@
         rpc.call("getrawtransaction", [assetId],
             (tx: Core.RegisterTransaction) =>
             {
-                callback(tx.asset.name[0].name);
+                callback((tx.asset.name as any)[0].name);
             });
     }
 }

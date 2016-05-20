@@ -793,23 +793,29 @@
                     console.log("解密私钥失败");
                 });
         }
-        //TODO:用异步的递归代替循环
-        public sign(context: Core.SignatureContext): boolean
+
+        public sign(context: Core.SignatureContext, callback: (fSuccess: boolean) => any)
         {
-            let fSuccess = false;
-            for (let scriptHash of context.ScriptHashes)
+            this.signLoop(false, context, 0, callback);
+        }
+
+        private signLoop(fSuccess: boolean, context: Core.SignatureContext, i: number, callback: (fSuccess: boolean) => any)
+        {
+            if (i > context.ScriptHashes.length)
             {
-                let contract = this.GetContract(scriptHash);
-                if (contract == null) continue;
-                let account = this.GetAccountByScriptHash(scriptHash);
-                if (account == null) continue;
-                context.Signable.Sign(account, (signed) =>
-                {
-                    fSuccess = fSuccess || context.Add(contract, account.PublicKey, signed);
-                });
-                
+                callback(fSuccess);
+                return;
             }
-            return fSuccess;
+            let scriptHash = context.ScriptHashes[i];
+            let contract = this.GetContract(scriptHash);
+            if (contract == null) this.signLoop(fSuccess, context, ++i, callback);
+            let account = this.GetAccountByScriptHash(scriptHash);
+            if (account == null) this.signLoop(fSuccess, context, ++i, callback);
+            context.Signable.Sign(account, (signed) =>
+            {
+                fSuccess = fSuccess || context.Add(contract, account.PublicKey, signed);
+                this.signLoop(fSuccess, context, ++i, callback);
+            });
         }
 
         private GetAccountByScriptHash(scriptHash: Uint8Array): AccountItem

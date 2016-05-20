@@ -1,11 +1,11 @@
 ﻿//规范：Function文件中只存放全局函数
 
-function InputEqueal(x: TransactionInput, y: TransactionInput)
+function InputEqueal(x: AntShares.Core.TransactionInput, y: AntShares.Core.TransactionInput)
 {
     return x.txid == y.txid && x.vout == y.vout;
 }
 
-function CoinsIndexof(coins: AntShares.Wallets.CoinItem[], input: TransactionInput): number
+function CoinsIndexof(coins: AntShares.Wallets.CoinItem[], input: AntShares.Core.TransactionInput): number
 {
     for (let i = 0; i < coins.length; i++)
     {

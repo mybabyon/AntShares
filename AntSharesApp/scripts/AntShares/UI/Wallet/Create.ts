@@ -153,7 +153,7 @@
 
         private createContract = () =>
         {
-            let sc = new Wallets.SignatureContract(this.PublicKeyHash, this.account.publicECPoint);
+            let sc = new Wallets.SignatureContract(this.account.publicKeyHash, this.account.publicECPoint);
             ToScriptHash(sc.RedeemScript, (ScriptHash: Uint8Array) =>
             {
                 let contract = new Wallets.ContractStore(ScriptHash, sc, sc.PublicKeyHash, sc.Type);

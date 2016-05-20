@@ -39,7 +39,7 @@
                                 let sc = new Wallets.SignatureContract(publicKeyHash, publicPoint);
                                 ToScriptHash(sc.RedeemScript, (ScriptHash: Uint8Array) =>
                                 {
-                                    let contract = new ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");
+                                    let contract = new Wallets.ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");
                                     wallet.AddContract(contract, () =>
                                     {
                                         wallet.LoadAccounts(() =>

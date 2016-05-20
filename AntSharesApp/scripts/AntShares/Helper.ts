@@ -1,4 +1,5 @@
-﻿interface ArrayConstructor
+﻿//规范：Helper文件中只存放扩展方法
+interface ArrayConstructor
 {
     copy<T>(src: ArrayLike<T>, srcOffset: number, dst: ArrayLike<T>, dstOffset: number, count: number): void;
 }
@@ -156,6 +157,8 @@ namespace AntShares
         }
         return s;
     }
+
+    
 
     Int8Array.prototype.fill = Int8Array.prototype.fill || fillArray;
     Int16Array.prototype.fill = Int16Array.prototype.fill || fillArray;

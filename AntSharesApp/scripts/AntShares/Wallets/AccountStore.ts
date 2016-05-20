@@ -1,4 +1,5 @@
-﻿class AccountStore
-{
-    constructor(public Name: string, public PublicKeyHash: Uint8Array, public PrivateKeyEncrypted: Uint8Array) { }
+﻿namespace AntShares.Wallets {
+    export class AccountStore {
+        constructor(public Name: string, public PublicKeyHash: Uint8Array, public PrivateKeyEncrypted: Uint8Array) { }
+    }
 }

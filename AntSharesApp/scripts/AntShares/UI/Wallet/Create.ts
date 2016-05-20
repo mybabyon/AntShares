@@ -1,22 +1,17 @@
 ﻿namespace AntShares.UI.Wallet
 {
-    class Account
-    {
-        static PrivateKey: Uint8Array;
-        static PublicKey: Uint8Array;
-        static PublicECPoint: AntShares.Cryptography.ECPoint;
-        static PublicKeyHash: Uint8Array;
-    }
+    import Wallets = AntShares.Wallets;
+
     export class Create extends TabBase
     {
-        private account: Account;
+        private account: Wallets.Account;
+        private CurrentHeight: number;
+
         protected oncreate(): void
         {
             $(this.target).find("#create_wallet").click(this.OnCreateButtonClick);
             $(this.target).find("#delete_wallet").click(this.OnDeleteButtonClick);
         }
-
-        private CurrentHeight: number;
 
         protected onload(): void
         {
@@ -126,6 +121,7 @@
             )
                 .then(p =>
                 {
+                    
                     return window.crypto.subtle.exportKey("jwk", p.privateKey); //以jwk格式导出私钥
                 }, err =>
                 {
@@ -133,21 +129,20 @@
                 })
                 .then(p =>
                 {
-                    Account.PrivateKey = p.d.base64UrlDecode();
+                    this.account.privateKey = p.d.base64UrlDecode();
                     let publicKey = new Uint8Array(64);
                     publicKey.set(p.x.base64UrlDecode(), 0);
                     publicKey.set(p.y.base64UrlDecode(), 32);
-                    Account.PublicECPoint = Cryptography.ECPoint.fromUint8Array(publicKey, Cryptography.ECCurve.secp256r1);
+                    this.account.publicECPoint = Cryptography.ECPoint.fromUint8Array(publicKey, Cryptography.ECCurve.secp256r1);
+                    this.account.publicKey = this.account.publicECPoint.encodePoint(false).subarray(1, 65);
 
-                    Account.PublicKey = Account.PublicECPoint.encodePoint(false).subarray(1, 65);
-
-                    ToScriptHash(Account.PublicECPoint.encodePoint(true),
+                    ToScriptHash(this.account.publicECPoint.encodePoint(true),
                         (publicKeyHash: Uint8Array) =>
                         {
-                            Account.PublicKeyHash = publicKeyHash;
+                            this.account.publicKeyHash = publicKeyHash;
                             GlobalWallet.GetCurrentWallet().EncriptPrivateKeyAndSave(
-                                Account.PrivateKey,
-                                Account.PublicKey,
+                                this.account.privateKey,
+                                this.account.publicKey,
                                 publicKeyHash,
                                 "我的账户",
                                 this.createContract
@@ -158,10 +153,10 @@
 
         private createContract = () =>
         {
-            let sc = new Wallets.SignatureContract(Account.PublicKeyHash, Account.PublicECPoint);
+            let sc = new Wallets.SignatureContract(this.PublicKeyHash, this.account.publicECPoint);
             ToScriptHash(sc.RedeemScript, (ScriptHash: Uint8Array) =>
             {
-                let contract = new ContractStore(ScriptHash, sc, sc.PublicKeyHash, sc.Type);
+                let contract = new Wallets.ContractStore(ScriptHash, sc, sc.PublicKeyHash, sc.Type);
                 let wallet = GlobalWallet.GetCurrentWallet();
 
                 wallet.AddContract(contract);

@@ -192,7 +192,7 @@
                 let i = CoinsIndexof(wallet.coins, input);
                 if (i >= 0) //575
                 {
-                    if (wallet.coins[i].AssetId == AntShare.AssetId)
+                    if (wallet.coins[i].AssetId == AntShares.Core.AntShare.AssetId)
                     {
                         //将更新后的Coin的State写入数据库
                         wallet.UpdateDataByKey(StoreName.Coin, wallet.coins[i].toKey(),

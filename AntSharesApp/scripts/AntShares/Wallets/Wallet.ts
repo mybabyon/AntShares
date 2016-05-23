@@ -5,7 +5,7 @@
         public accounts = new Array<AccountItem>();
         public contracts = new Array<ContractItem>();
         public coins = new Array<CoinItem>();
-        public database: AntShares.DataBase.Database;
+        public database = new AntShares.DataBase.Database();
 
         /**
          * 打开钱包数据库

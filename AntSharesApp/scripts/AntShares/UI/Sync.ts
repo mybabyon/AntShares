@@ -61,7 +61,7 @@
                     //wallet.ClearObjectStore(StoreName.Coin);
                     //wallet.coins = new Array<CoinItem>();
                     wallet.GetDataByKey(StoreName.Key, "Height",
-                        (height: AntShares.Wallets.KeyStore) =>
+                        (height: Wallets.KeyStore) =>
                         {
                             console.log("已从高度" + height.Value + "重建钱包");
                             $("#local_height").text(height.Value);
@@ -75,7 +75,7 @@
                 return;
             }
             wallet.GetDataByKey(StoreName.Key, "Height",
-                (height: AntShares.Wallets.KeyStore) =>
+                (height: Wallets.KeyStore) =>
                 {
                     $("#local_height").text(height.Value);
                     let remote_height = $("#remote_height").text();
@@ -139,18 +139,6 @@
             let wallet = GlobalWallet.GetCurrentWallet();
             for (let tx of block.tx) //547
             {
-                if (tx.txid == "2b0ff191ff706aa07789b3abce6b913e3857edec7181088ebef667b1fba9d3f0")
-                {
-                    let add9200 = 0;
-                }
-                if (tx.txid == "1ea41b588bfa16931cbf945b2f619a778dafbe9ce3a1118586ab5537b32b0315")
-                {
-                    let sub100 = 0;
-                }
-                if (tx.txid == "e10cf5d60a089713b57469cda43806f17b5053cba4aa6fd3ca40bbd8aa9675f2")
-                {
-                    let sub100 = 0;
-                }
                 for (let index = 0; index < tx.vout.length; index++) //549
                 {
                     let out = tx.vout[index] as Core.TransactionOutput;
@@ -192,7 +180,7 @@
                 let i = CoinsIndexof(wallet.coins, input);
                 if (i >= 0) //575
                 {
-                    if (wallet.coins[i].AssetId == AntShares.Core.AntShare.AssetId)
+                    if (wallet.coins[i].AssetId == Core.AntShare.AssetId)
                     {
                         //将更新后的Coin的State写入数据库
                         wallet.UpdateDataByKey(StoreName.Coin, wallet.coins[i].toKey(),

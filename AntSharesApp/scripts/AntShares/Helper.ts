@@ -69,30 +69,59 @@ namespace AntShares
 
     String.prototype.serialize = function (): Uint8Array
     {
-        if (this.length < 128)
+        let text = this.toUint8Array();
+        if (text.length < 128)
         {
-            let result = new Uint8Array(this.length + 1);
-            result[0] = this.length;
-            result.set(this.toUint8Array(), 1);
+            let result = new Uint8Array(text.length + 1);
+            result[0] = text.length;
+            result.set(text, 1);
+            return result;
         }
         else
         {
-            let result = new Uint8Array(this.length + 2);
-            result[1] = this.length / 128;
-            result[0] = this.length - (result[1] - 1) * 128;
-            result.set(this.toUint8Array(), 2);
+            let result = new Uint8Array(text.length + 2);
+            result[1] = text.length / 128;
+            result[0] = text.length - (result[1] - 1) * 128;
+            result.set(text, 2);
+            return result;
         }
-        return this.toUint8Array();
     }
 
     String.prototype.toUint8Array = function (): Uint8Array
     {
-        var uint8array = new Uint8Array(this.length);
-        for (var i = 0; i < this.length; i++)
+        let w = window as any;
+        if (w.TextEncoder)
         {
-            uint8array[i] = this.charCodeAt(i);
+            let encoder = new w.TextEncoder('utf8');
+            return encoder.encode(this);
         }
-        return uint8array;
+        else
+        {
+            let encoder = encodeURI(this);
+            let list = new Array<number>();
+            for (let i = 0; i < encoder.length; i++)
+            {
+                if (encoder[i] != '%')
+                {
+                    list.push(encoder.charCodeAt(i));
+                }
+                else
+                {
+                    let high = encoder.charCodeAt(i + 1);
+                    let low = encoder.charCodeAt(i + 2);
+                    high = high < 65 ? high - 48 : high - 55;
+                    low = low < 65 ? low - 48 : low - 55;
+                    list.push(high * 16 + low);
+                    i += 2;
+                }
+            }
+            let array = new Uint8Array(list.length);
+            for (let i = 0; i < list.length; i++)
+            {
+                array[i] = list[i];
+            }
+            return array;
+        }
     }
 
     Number.prototype.serialize = function (Byte: number): Uint8Array

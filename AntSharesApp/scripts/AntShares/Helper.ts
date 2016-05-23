@@ -129,7 +129,31 @@ namespace AntShares
         var uint8array = new Uint8Array(Byte);
         try
         {
-            if (this < 256)
+            if (this < 0)
+            {
+                for (let i = 0; i < uint8array.length; i++)
+                    uint8array[i] = 255;
+                let tc = (this * -1);
+                if (tc < 256)
+                {
+                    let occ = tc ^ 255;
+                    let cc = occ + 1;
+                    uint8array.set([cc], 0)
+                }
+                else if (tc < 65536)
+                {
+                    let occ = tc ^ 65535;
+                    let cc = occ + 1;
+                    uint8array.set([cc % 256, cc / 256], 0);
+                }
+                else
+                {
+                    let occ = tc ^ 4294967295;
+                    let cc = occ + 1;
+                    uint8array.set([cc % 256, cc / 256, cc / 65536 % 256, cc / 65536 / 256], 0);
+                }
+            }
+            else if (this < 256)
             {
                 uint8array.set([this], 0)
             }

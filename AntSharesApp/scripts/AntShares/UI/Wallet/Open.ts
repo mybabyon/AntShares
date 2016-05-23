@@ -28,6 +28,10 @@
             );
 
             console.clear();
+
+            let a = -65533;
+            let s = a.serialize(4);
+            console.log(s);
         }
 
         private OnOpenButtonClick()

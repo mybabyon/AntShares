@@ -16,7 +16,7 @@
             array.push(name.serialize()); 
             array.push(this.asset.low.serialize(4));
             array.push(this.asset.high.serialize(4)); 
-            TODO: Issuer Admin
+            //TODO: Issuer Admin
             return ToUint8Array(array);
         }
     }

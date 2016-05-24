@@ -7,7 +7,7 @@
     <meta name="format-detection" content="telephone=no" />
 
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-eval' data: gap:; connect-src *; media-src *; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
-    <title>小蚁客户端</title>
+    <title>光大区块链</title>
 
     <!-- AntSharesApp 引用 -->
     <link href="lib/jQuery.mmenu/dist/core/css/jquery.mmenu.all.css" rel="stylesheet" />
@@ -19,7 +19,7 @@
         <div class="content">
             <header>
                 <a href="#menu" class="iconfont">&#xe60c;</a>
-                小蚁-AntShares
+                光大证券区块链积分系统
             </header>
             <div class="tab-content" style="width: 100%; height: 100%; padding: 40px 50px;">
                 <div id="Tab_Account_Create" class="form-horizontal tab-pane">
@@ -155,7 +155,8 @@
                         <select class="form-control">
                             <option value="1">股权</option>
                             <option value="2">货币</option>
-                            <option value="3">其它</option>
+                            <option value="3">积分</option>
+                            <option value="4">其它</option>
                         </select>
                         <h5>资产名称</h5>
                         <input class="form-control" placeholder="输入资产名称" />
@@ -174,14 +175,13 @@
                             <option value="2">ANttyFkVZxGh93TmjgkiFe1TgS3csGfhJD</option>
                             <option value="3">ANTiGwJG34ifXREByGufja75DF3b8Hzcdm</option>
                         </select>
-                        <div class="alert alert-danger" style="padding: 5px 10px; margin: 10px 0;">注册资产将消耗您10000小蚁币</div>
                         <button class="btn btn-raised btn-primary">确认注册</button>
                     </fieldset>
                     <div class="alert alert-info bottom" role="alert">
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
-                        注册资产用作注册一种新的用户发行资产。用户可以自己定义资产的类型、名称、总量等，并指定资产的管理员账户。创设资产需要消耗一定数量的小蚁币作为附加服务费。
+                        注册资产用作注册一种新的用户发行资产。用户可以自己定义资产的类型、名称、总量等，并指定资产的管理员账户。
                         <a class="alert-link" href="javascript:">了解更多</a>
                     </div>
                 </div>
@@ -241,8 +241,6 @@
                             <div class="col-md-6">
                                 <h5>选择资产类型</h5>
                                 <select class="form-control">
-                                    <option value="1">小蚁股</option>
-                                    <option value="2">小蚁币</option>
                                     <option value="3">股权</option>
                                     <option value="4">货币</option>
                                     <option value="5">其它</option>
@@ -486,12 +484,12 @@
                     <ul>
                         <li><a class="tab-trigger" href="#Tab_Advanced_Sign">签名</a></li>
                         <li><a class="tab-trigger" href="#Tab_Advanced_Register">注册资产</a></li>
-                        <li><a class="tab-trigger" href="#Tab_Advanced_Issue">发行资产</a></li>
+                        <li><a class="tab-trigger" href="#Tab_Advanced_Issue">分配资产</a></li>
                         <li><a href="javascript:void(0)">开发人员工具</a></li>
                     </ul>
                 </li>
                 <li>
-                    <span><i class="iconfont">&#xe60a;</i>小蚁区块链</span>
+                    <span><i class="iconfont">&#xe60a;</i>光大区块链</span>
                     <ul>
                         <li><a href="javascript:void(0)">区块查询</a></li>
                         <li><a href="javascript:void(0)">交易查询</a></li>
@@ -509,7 +507,7 @@
                     <span><i class="iconfont">&#xe607;</i>帮助</span>
                     <ul>
                         <li><a href="javascript:void(0)">帮助</a></li>
-                        <li><a target="_blank" href="https://www.antshares.com/">官网</a></li>
+                        <li><a target="_blank" href="http://www.ebscn.com/">官网</a></li>
                         <li><a href="javascript:void(0)">关于</a></li>
                     </ul>
                 </li>
@@ -545,7 +543,7 @@
                 content: ['title']
             }, {
                 position: 'bottom',
-                content: ['<a target="blank" href="https://www.antshares.com/">www.antshares.com</a>']
+                content: ['<img src="/images/ebs.png" style="margin:auto; height:40px; padding:5px 0 0 0" />']
             }]
         });
 

@@ -7,4 +7,3 @@
         }
     }
 }
-import TransactionInput = AntShares.Core.TransactionInput;

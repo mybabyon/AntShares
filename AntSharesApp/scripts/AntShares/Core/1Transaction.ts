@@ -15,6 +15,11 @@ namespace AntShares.Core
         public vout: Array<TransactionOutput>;
         public scripts: Array<Script>;
 
+        public constructor(type: TransactionType)
+        {
+            this.type = type;
+        }
+
         public Sign(account: Wallets.AccountItem, callback: (signed: Uint8Array) => any)
         {
             let point = Cryptography.ECPoint.fromUint8Array(account.PublicKey, Cryptography.ECCurve.secp256r1);
@@ -49,24 +54,10 @@ namespace AntShares.Core
             for (let i of this.vin)
             {
                 array.push(i.txid.hexToBytes());
-                //little-endian
-                array.push(new Uint8Array[i.vout % 256]); 
-                array.push(new Uint8Array[i.vout / 256]); 
+                array.push(i.vout.serialize(2)); 
             }
 
-            let length = 0;
-            for (let i of array)
-            {
-                length += i.length;
-            }
-            let result = new Uint8Array(length);
-            let p = 0;
-            for (let i of array)
-            {
-                result.set(i, p);
-                p += i.length;
-            }
-            return result;
+            return ToUint8Array(array);
         }
         abstract SerializeExclusiveData(): Uint8Array
     }

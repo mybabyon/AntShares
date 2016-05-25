@@ -1,4 +1,5 @@
-﻿interface ArrayConstructor
+﻿//规范：Helper文件中只存放扩展方法
+interface ArrayConstructor
 {
     copy<T>(src: ArrayLike<T>, srcOffset: number, dst: ArrayLike<T>, dstOffset: number, count: number): void;
 }
@@ -68,30 +69,59 @@ namespace AntShares
 
     String.prototype.serialize = function (): Uint8Array
     {
-        if (this.length < 128)
+        let text = this.toUint8Array();
+        if (text.length < 128)
         {
-            let result = new Uint8Array(this.length + 1);
-            result[0] = this.length;
-            result.set(this.toUint8Array(), 1);
+            let result = new Uint8Array(text.length + 1);
+            result[0] = text.length;
+            result.set(text, 1);
+            return result;
         }
         else
         {
-            let result = new Uint8Array(this.length + 2);
-            result[1] = this.length / 128;
-            result[0] = this.length - (result[1] - 1) * 128;
-            result.set(this.toUint8Array(), 2);
+            let result = new Uint8Array(text.length + 2);
+            result[1] = text.length / 128;
+            result[0] = text.length - (result[1] - 1) * 128;
+            result.set(text, 2);
+            return result;
         }
-        return this.toUint8Array();
     }
 
     String.prototype.toUint8Array = function (): Uint8Array
     {
-        var uint8array = new Uint8Array(this.length);
-        for (var i = 0; i < this.length; i++)
+        let w = window as any;
+        if (w.TextEncoder)
         {
-            uint8array[i] = this.charCodeAt(i);
+            let encoder = new w.TextEncoder('utf8');
+            return encoder.encode(this);
         }
-        return uint8array;
+        else
+        {
+            let encoder = encodeURI(this);
+            let list = new Array<number>();
+            for (let i = 0; i < encoder.length; i++)
+            {
+                if (encoder[i] != '%')
+                {
+                    list.push(encoder.charCodeAt(i));
+                }
+                else
+                {
+                    let high = encoder.charCodeAt(i + 1);
+                    let low = encoder.charCodeAt(i + 2);
+                    high = high < 65 ? high - 48 : high - 55;
+                    low = low < 65 ? low - 48 : low - 55;
+                    list.push(high * 16 + low);
+                    i += 2;
+                }
+            }
+            let array = new Uint8Array(list.length);
+            for (let i = 0; i < list.length; i++)
+            {
+                array[i] = list[i];
+            }
+            return array;
+        }
     }
 
     Number.prototype.serialize = function (Byte: number): Uint8Array
@@ -99,7 +129,31 @@ namespace AntShares
         var uint8array = new Uint8Array(Byte);
         try
         {
-            if (this < 256)
+            if (this < 0)
+            {
+                for (let i = 0; i < uint8array.length; i++)
+                    uint8array[i] = 255;
+                let tc = (this * -1);
+                if (tc < 256)
+                {
+                    let occ = tc ^ 255;
+                    let cc = occ + 1;
+                    uint8array.set([cc], 0)
+                }
+                else if (tc < 65536)
+                {
+                    let occ = tc ^ 65535;
+                    let cc = occ + 1;
+                    uint8array.set([cc % 256, cc / 256], 0);
+                }
+                else
+                {
+                    let occ = tc ^ 4294967295;
+                    let cc = occ + 1;
+                    uint8array.set([cc % 256, cc / 256, cc / 65536 % 256, cc / 65536 / 256], 0);
+                }
+            }
+            else if (this < 256)
             {
                 uint8array.set([this], 0)
             }
@@ -156,6 +210,8 @@ namespace AntShares
         }
         return s;
     }
+
+    
 
     Int8Array.prototype.fill = Int8Array.prototype.fill || fillArray;
     Int16Array.prototype.fill = Int16Array.prototype.fill || fillArray;

@@ -1,5 +1,7 @@
 ﻿namespace AntShares.UI.Asset
 {
+    import CoinItem = AntShares.Wallets.CoinItem;
+
     export class Index extends TabBase
     {
         protected oncreate(): void

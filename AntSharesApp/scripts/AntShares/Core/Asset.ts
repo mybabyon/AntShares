@@ -12,11 +12,11 @@
         public high: number;
         public low: number;
 
-        /*发行者的公钥(33位的压缩公钥的16进制表示)*/
-        public issuer: string;
+        /*发行者的公钥*/
+        public issuer: Cryptography.ECPoint;
 
-        /*管理员白地址*/
-        public admin: string;
+        /*管理员的地址*/
+        public admin: UintVariable;
     }
 
     export class AssetName

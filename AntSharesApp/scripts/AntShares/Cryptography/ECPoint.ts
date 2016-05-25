@@ -252,6 +252,11 @@
             return new ECPoint(this.x, this.y.negate(), this.curve);
         }
 
+        public serialize(): Uint8Array
+        {
+            return this.encodePoint(true);
+        }
+
         public static subtract(x: ECPoint, y: ECPoint): ECPoint
         {
             if (y.isInfinity()) return x;

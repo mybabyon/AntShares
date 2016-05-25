@@ -140,6 +140,11 @@
             return new UintVariable(bits);
         }
 
+        public serialize(): Uint8Array
+        {
+            return new Uint8Array(this.bits.buffer, this.bits.byteOffset, this.bits.byteLength);
+        }
+
         public toInt32(): number
         {
             return this._bits[0] | 0;

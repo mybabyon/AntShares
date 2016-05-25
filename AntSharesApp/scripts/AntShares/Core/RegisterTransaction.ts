@@ -15,7 +15,9 @@
             let name = JSON.stringify(this.asset.name);
             array.push(name.serialize()); 
             array.push(this.asset.low.serialize(4));
-            array.push(this.asset.high.serialize(4)); 
+            array.push(this.asset.high.serialize(4));
+            array.push(this.asset.issuer.serialize());
+            array.push(this.asset.admin.serialize());
             return ToUint8Array(array);
         }
     }

@@ -129,6 +129,7 @@
                 })
                 .then(p =>
                 {
+                    this.account = new Wallets.Account();
                     this.account.privateKey = p.d.base64UrlDecode();
                     let publicKey = new Uint8Array(64);
                     publicKey.set(p.x.base64UrlDecode(), 0);

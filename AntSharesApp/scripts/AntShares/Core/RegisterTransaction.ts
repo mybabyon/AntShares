@@ -2,22 +2,35 @@
 {
     export class RegisterTransaction extends Transaction
     {
-        public asset: Asset
+        /*资产类型*/
+        public assetType: AssetType;
+
+        /*资产名称*/
+        public name: string;
+
+        /*发行总量*/
+        public amount: Fixed8;
+
+        /*发行者的公钥*/
+        public issuer: Cryptography.ECPoint;
+
+        /*管理员的地址 合约中的ScriptHash，160位的byte数组 */
+        public admin: Uint8Array;
+
         constructor()
         {
             super(TransactionType.RegisterTransaction);
-            this.asset = new Asset();
         }
-        public SerializeExclusiveData(): Uint8Array
+
+        public serializeExclusiveData(): Uint8Array
         {
             let array = new Array<Uint8Array>();
-            array.push(new Uint8Array([this.asset.type]));
-            let name = this.asset.name;
+            array.push(new Uint8Array([this.type]));
+            let name = this.name;
             array.push(name.serialize()); 
-            array.push(this.asset.low.serialize(4));
-            array.push(this.asset.high.serialize(4));
-            array.push(this.asset.issuer.serialize());
-            array.push(this.asset.admin.serialize());
+            array.push(this.amount.serialize());
+            array.push(this.issuer.serialize());
+            array.push(this.admin);
             return ToUint8Array(array);
         }
     }

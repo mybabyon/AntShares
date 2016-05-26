@@ -107,11 +107,7 @@ namespace AntShares
                 }
                 else
                 {
-                    let high = encoder.charCodeAt(i + 1);
-                    let low = encoder.charCodeAt(i + 2);
-                    high = high < 65 ? high - 48 : high - 55;
-                    low = low < 65 ? low - 48 : low - 55;
-                    list.push(high * 16 + low);
+                    list.push(parseInt("0x" + encoder.charCodeAt(i + 1) + encoder.charCodeAt(i + 2)));
                     i += 2;
                 }
             }

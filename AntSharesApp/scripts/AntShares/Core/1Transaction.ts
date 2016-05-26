@@ -5,7 +5,7 @@
  */
 namespace AntShares.Core
 {
-    export abstract class Transaction implements ISignable
+    export abstract class Transaction implements Signable, Serializable
     {
         public txid: string;
         public hex: string;
@@ -20,17 +20,16 @@ namespace AntShares.Core
             this.type = type;
         }
 
-        public Sign(account: Wallets.AccountItem, callback: (signed: Uint8Array) => any)
+        public sign(account: Wallets.AccountItem, callback: (signed: Uint8Array) => any)
         {
-            let point = Cryptography.ECPoint.fromUint8Array(account.PublicKey, Cryptography.ECCurve.secp256r1);
-            let key = new Cryptography.ECDsaCryptoKey(point);
+            let key = new Cryptography.ECDsaCryptoKey(account.PublicKeyPoint);
             let ecdsa = new Cryptography.ECDsa(key);
             //可签名对象序列化后的Hash
             window.crypto.subtle.digest(
                 {
                     name: "SHA-256",
                 },
-                this.Serialize()
+                this.serialize()
             )
                 .then(hash =>
                 {
@@ -41,11 +40,11 @@ namespace AntShares.Core
             
         }
 
-        private Serialize(): Uint8Array
+        public serialize(): Uint8Array
         {
             let array = new Array<Uint8Array>();
             array.push(new Uint8Array[this.type]);
-            array.push(this.SerializeExclusiveData());
+            array.push(this.serializeExclusiveData());
             for (let i of this.attributes)
             {
                 array.push(new Uint8Array[i.usage]);
@@ -59,6 +58,7 @@ namespace AntShares.Core
 
             return ToUint8Array(array);
         }
-        abstract SerializeExclusiveData(): Uint8Array
+
+        abstract serializeExclusiveData(): Uint8Array
     }
 }

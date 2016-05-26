@@ -9,8 +9,12 @@
 
         protected onload(args: any[]): void
         {
+            let wallet = GlobalWallet.GetCurrentWallet();
             let i = args[0] as number;
-            //$("#public_key").text(AccountList.List[i].PublicKeyHash.base58Encode());
+            $("#contract_type").text(wallet.contracts[i].Type);
+            $("#contract_content").text(wallet.contracts[i].RedeemScript.toHexString());
+            $("#contract_scripthash").text(wallet.contracts[i].ScriptHash.toHexString());
+            $("#contract_address").text(wallet.contracts[i].Address);
         }
     }
 }

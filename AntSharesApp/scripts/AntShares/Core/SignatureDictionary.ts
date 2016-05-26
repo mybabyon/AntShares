@@ -3,32 +3,32 @@
     export class SignatureDictionary
     {
 
-        public Signatures: Signature[];
-        public ContainsKey(PubKey: Cryptography.ECPoint): boolean
+        public signatures: Signature[];
+        public containsKey(PubKey: Cryptography.ECPoint): boolean
         {
-            for (let i of this.Signatures)
+            for (let i of this.signatures)
             {
                 if (i.PubKey === PubKey)
                     return true;
             }
             return false;
         }
-        public Set(key: Cryptography.ECPoint, value: Uint8Array)
+        public set(key: Cryptography.ECPoint, value: Uint8Array)
         {
-            for (let i = 0; i < this.Signatures.length; i++)
+            for (let i = 0; i < this.signatures.length; i++)
             {
-                if (this.Signatures[i].PubKey === key)
-                    this.Signatures[i].Signature = value;
+                if (this.signatures[i].PubKey === key)
+                    this.signatures[i].Signature = value;
             }
         }
-        public Add(key: Cryptography.ECPoint, value: Uint8Array)
+        public add(key: Cryptography.ECPoint, value: Uint8Array)
         {
-            this.Signatures.push(new Signature(key, value));
+            this.signatures.push(new Signature(key, value));
         }
-        public GetKeys(): Array<Cryptography.ECPoint>
+        public getKeys(): Array<Cryptography.ECPoint>
         {
             let keys = new Array<Cryptography.ECPoint>();
-            for (let i of this.Signatures)
+            for (let i of this.signatures)
             {
                 keys.push(i.PubKey);
             }

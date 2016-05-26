@@ -29,7 +29,6 @@
             {
                 $("h5").hide();
             }
-            //BUG:已花费的币不应该统计到余额中
 
             let group = new Array<CoinItem>();
             for (let i = 0; i < wallet.coins.length; i++)
@@ -123,7 +122,7 @@
         let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
         //根据指定的高度（索引），返回对应区块的散列值
         rpc.call("getrawtransaction", [assetId],
-            (tx: Core.RegisterTransaction) =>
+            (tx: any) =>
             {
                 callback((tx.asset.name as any)[0].name);
             });

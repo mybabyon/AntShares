@@ -26,7 +26,6 @@
                     master.GetWalletNameList(listWallet)
                 }
             );
-
             console.clear();
         }
 

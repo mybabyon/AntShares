@@ -673,6 +673,7 @@
                 {
                     let item = rawData[i].RawData as ContractItem;
                     item.Address = addr;
+                    item.ScriptHash = rawData[i].ScriptHash;
                     this.contracts.push(item);
                 }
                 this.addToContracts(rawData, ++i, callback);
@@ -785,7 +786,8 @@
                     let privateKeyEncrypted = new Uint8Array(q);
                     let privateKey = privateKeyEncrypted.subarray(0, 32);
                     let publicKey = privateKeyEncrypted.subarray(32, 96);
-                    let item = new AccountItem(rawDataArray[i].Name, rawDataArray[i].PublicKeyHash, privateKey, publicKey);
+                    let publicECPoint = Cryptography.ECPoint.fromUint8Array(publicKey, Cryptography.ECCurve.secp256r1);
+                    let item = new AccountItem(rawDataArray[i].Name, rawDataArray[i].PublicKeyHash, privateKey, publicECPoint);
                     this.accounts.push(item);
                     this.decPriKey(rawDataArray, ++i, callback);
                 }, err =>
@@ -801,19 +803,19 @@
 
         private signLoop(fSuccess: boolean, context: Core.SignatureContext, i: number, callback: (fSuccess: boolean) => any)
         {
-            if (i > context.ScriptHashes.length)
+            if (i > context.scriptHashes.length)
             {
                 callback(fSuccess);
                 return;
             }
-            let scriptHash = context.ScriptHashes[i];
+            let scriptHash = context.scriptHashes[i];
             let contract = this.GetContract(scriptHash);
             if (contract == null) this.signLoop(fSuccess, context, ++i, callback);
             let account = this.GetAccountByScriptHash(scriptHash);
             if (account == null) this.signLoop(fSuccess, context, ++i, callback);
-            context.Signable.Sign(account, (signed) =>
+            context.signable.sign(account, (signed) =>
             {
-                fSuccess = fSuccess || context.Add(contract, account.PublicKey, signed);
+                fSuccess = fSuccess || context.Add(contract, account.PublicKeyPoint, signed);
                 this.signLoop(fSuccess, context, ++i, callback);
             });
         }
@@ -846,6 +848,11 @@
                 }
             }
             return null;
+        }
+
+        private MakeTransaction(tx: Core.Transaction, fee: Fixed8)
+        {
+
         }
     }
 }

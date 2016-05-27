@@ -41,7 +41,7 @@
 
                     if (!this.database.db.objectStoreNames.contains('Account'))
                     {
-                        let objectStore = this.database.db.createObjectStore('Account', { keyPath: "Name" });
+                        let objectStore = this.database.db.createObjectStore('Account', { keyPath: "ID" });
                     }
                     if (!this.database.db.objectStoreNames.contains('Contract'))
                     {
@@ -556,7 +556,10 @@
                 {
                     let account = new AccountStore(accountName, publicKeyHash, new Uint8Array(result));
                     this.AddAccount(account);
-                    callback();
+                    console.log(16);
+                    if (typeof callback === "function") {
+                        callback();
+                    }
                 }, err =>
                 {
                     console.error(err);
@@ -673,11 +676,11 @@
                     console.log(11);
                     return window.crypto.subtle.exportKey("jwk", p.privateKey); //以jwk格式导出私钥
                 }, err => {
-                    console.log(15);
+                    console.log(12);
                     console.error(err);
                 })
                 .then(p => {
-                    console.log(12);
+                    console.log(13);
                     pAccount.privateKey = p.d.base64UrlDecode();
                     let publicKey = new Uint8Array(64);
                     publicKey.set(p.x.base64UrlDecode(), 0);
@@ -687,15 +690,18 @@
 
                     ToScriptHash(pAccount.publicECPoint.encodePoint(true),
                         (publicKeyHash: Uint8Array) => {
-                            console.log(13);
-                            pAccount.publicKeyHash = publicKeyHash;
+                            console.log(14);
+                            pAccount.PublicKeyHash = publicKeyHash;
                             GlobalWallet.GetCurrentWallet().EncriptPrivateKeyAndSave(
                                 pAccount.privateKey,
                                 pAccount.publicKey,
                                 publicKeyHash,
                                 pAccountName,
-                                null
+                                () => {
+                                    console.log(15);
+                                }
                             );
+                            console.log(16);
                             callback(pAccount);
                         }
                     );

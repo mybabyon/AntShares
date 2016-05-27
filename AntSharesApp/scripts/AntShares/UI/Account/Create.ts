@@ -15,12 +15,12 @@
             //if (formIsValid("form_create_account")) {
 
             //}
-
+            let accountName = $("#account_name").val();
             let account = new Wallets.Account();
             let wallet = GlobalWallet.GetCurrentWallet();
-            wallet.CreateECDSAKey('我的账户3', account, (pAccount) => {
+            wallet.CreateECDSAKey(accountName, account, (pAccount) => {
                 console.log(1);
-                wallet.CreateContract(pAccount.publicKeyHash, pAccount.publicECPoint, this.CurrentHeight, (pWallet) => {
+                wallet.CreateContract(pAccount.PublicKeyHash, pAccount.publicECPoint, this.CurrentHeight, (pWallet) => {
                     console.log(2);
                     pWallet.LoadAccounts(() => {
                         console.log(3);

@@ -1,5 +1,7 @@
 ﻿namespace AntShares.UI.Account {
     export class Index extends TabBase {
+        private CurrentHeight: number;
+
         protected oncreate(): void {
             $(this.target).find("#create_account").click(this.OnCreateButtonClick);
         }
@@ -18,17 +20,19 @@
             {
                 addAccountList(i)
             }
+
+            let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
+            rpc.call("getblockcount", [], (height) => { this.CurrentHeight = height - 1; });
+
         }
 
         private OnCreateButtonClick()
         {
-            TabBase.showTab("#Tab_Account_Details");
+            TabBase.showTab("#Tab_Account_Create");
             //if (formIsValid("form_account_list")) {
                 
             //}
-
         }
-
     }
 
     function addAccountList(i: number)

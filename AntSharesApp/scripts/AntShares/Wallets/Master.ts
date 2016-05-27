@@ -56,7 +56,6 @@
                     if (!this.db.objectStoreNames.contains(this.ObjectStore))
                     {
                         let objectStore = this.db.createObjectStore(this.ObjectStore, { keyPath: "Name" });
-                        objectStore.createIndex(this.ObjectStore, "Name", { unique: true });
                     }
                     console.log('IDB master version changed to ' + this.version);
                 };

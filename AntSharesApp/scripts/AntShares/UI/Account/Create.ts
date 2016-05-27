@@ -4,7 +4,6 @@
 
         protected oncreate(): void {
             $(this.target).find("#create_account_action").click(this.OnCreateButtonClick);
-            $(this.target).find("#test").click(this.OnTestClick);
         }
 
         protected onload(args: any[]): void {
@@ -35,48 +34,7 @@
 
         }
 
-        
-
-        private OnTestClick() {
-
-            function getUserInput(name, gender, callback) {
-                let x = name + " is " + gender;
-                if (typeof callback === "function") {
-                    callback(x);
-                }
-            }
-
-            var el = document.getElementById('contentssss');
-            var test = new Test(el);
-
-            getUserInput("Michael", "Man", (param1) => {
-                test.add(param1);
-                getUserInput("Michael", "Man", (param2) => {
-                    test.add(param2);
-                    getUserInput("Michael", "Man", (param3) => {
-                        test.add(param3);
-                        getUserInput("Michael", "Man", (param4) => {
-                            test.add(param4);
-                            getUserInput("Michael", "Man", (param5) => {
-                                test.add(param5);
-                            })
-                        })
-                    })
-                })
-            });
-        }
 
     }
 
-    export class Test {
-        element: HTMLElement;
-
-        constructor(element: HTMLElement) {
-            this.element = element;
-        }
-
-        add(str: string) {
-            this.element.innerHTML += str + "</br>";
-        }
-    }
 }

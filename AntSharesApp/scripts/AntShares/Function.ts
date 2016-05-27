@@ -29,7 +29,6 @@ function encodeUTF8(str: string): string
 //参照AntShares.Core.Scripts.Helper的对应方法
 function ToScriptHash(EncodedPoint: Uint8Array, callback: (scriptHash: ArrayBuffer) => any)
 {   
-    let aaaa = 111;
     window.crypto.subtle.digest(
         {
             name: "SHA-256",
@@ -38,7 +37,6 @@ function ToScriptHash(EncodedPoint: Uint8Array, callback: (scriptHash: ArrayBuff
     )
         .then(hash =>
         {
-            console.log(111);
             callback(AntShares.Cryptography.RIPEMD160.computeHash(new Uint8Array(hash)));
         }, err => {
             console.error(err);

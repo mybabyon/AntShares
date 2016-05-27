@@ -20,7 +20,8 @@
             wallet.CreateECDSAKey(accountName, account, (pAccount) => {
                 wallet.CreateContract(pAccount.PublicKeyHash, pAccount.publicECPoint, this.CurrentHeight, (pWallet) => {
                     pWallet.LoadAccounts(() => {
-                        pWallet.LoadContracts(() => {
+                        pWallet.LoadContracts(() =>
+                        {
                             pWallet.LoadCoins(() => {
                                 alert("创建账户成功");
                                 //新建账户成功后跳转至账户管理页面

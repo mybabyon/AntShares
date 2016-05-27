@@ -676,7 +676,8 @@
                 }, err => {
                     console.error(err);
                 })
-                .then(p => {
+                .then(p =>
+                {
                     pAccount.privateKey = p.d.base64UrlDecode();
                     let publicKey = new Uint8Array(64);
                     publicKey.set(p.x.base64UrlDecode(), 0);

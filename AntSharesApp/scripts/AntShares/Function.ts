@@ -1,4 +1,5 @@
-﻿//规范：Function文件中只存放全局函数
+﻿
+//规范：Function文件中只存放全局函数
 
 function InputEqueal(x: AntShares.Core.TransactionInput, y: AntShares.Core.TransactionInput)
 {
@@ -28,7 +29,7 @@ function encodeUTF8(str: string): string
 
 //参照AntShares.Core.Scripts.Helper的对应方法
 function ToScriptHash(EncodedPoint: Uint8Array, callback: (scriptHash: ArrayBuffer) => any)
-{   
+{
     window.crypto.subtle.digest(
         {
             name: "SHA-256",
@@ -38,7 +39,8 @@ function ToScriptHash(EncodedPoint: Uint8Array, callback: (scriptHash: ArrayBuff
         .then(hash =>
         {
             callback(AntShares.Cryptography.RIPEMD160.computeHash(new Uint8Array(hash)));
-        }, err => {
+        }, err =>
+        {
             console.error(err);
         })
 }
@@ -83,10 +85,10 @@ function formIsValid(formId: string): boolean
 function verifyPassword(walletName: string, inputID: string, errorID: string)
 {
     let wallet = new AntShares.Wallets.Wallet();
-    wallet.OpenDB(walletName,
+    wallet.openDB(walletName,
         () =>
         {
-            wallet.VerifyPassword(
+            wallet.verifyPassword(
                 $('#' + inputID).val().toUint8Array(),
                 () => { $('#' + errorID).hide(); },
                 () => { $('#' + errorID).show(); }
@@ -173,7 +175,7 @@ function convert_keyup(obj)
         return;
     let z = str[0].split('').reverse().join('');
     let z1 = "";
-    for (let i = 0; i < z.length; i ++)
+    for (let i = 0; i < z.length; i++)
     {
         z1 = z1 + z[i];
         if ((i + 1) % 3 == 0 && i < z.length - 1)

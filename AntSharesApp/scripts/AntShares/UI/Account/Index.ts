@@ -8,7 +8,8 @@
         
         protected onload(): void
         {
-            let wallet = GlobalWallet.GetCurrentWallet();
+            let wallet = GlobalWallet.getCurrentWallet();
+            $("#account_list_wallet").text(wallet.walletName);
             if (wallet.accounts.length <= 0)
             {
                 TabBase.showTab("#Tab_Wallet_Open");
@@ -29,9 +30,6 @@
         private OnCreateButtonClick()
         {
             TabBase.showTab("#Tab_Account_Create");
-            //if (formIsValid("form_account_list")) {
-                
-            //}
         }
     }
 
@@ -44,7 +42,7 @@
         let span = li.find("span");//账户
         let a = li.find("a");//详情
         let btn = li.find("button:eq(0)");//导出
-        let wallet = GlobalWallet.GetCurrentWallet();
+        let wallet = GlobalWallet.getCurrentWallet();
         btn.click(() =>
         {
             Export(wallet.accounts[i].PrivateKey, (wif) =>
@@ -56,7 +54,7 @@
         {
             TabBase.showTab("#Tab_Account_Details", i);
         });
-        span.text(wallet.accounts[i].Name + wallet.accounts[i].PublicKeyHash.base58Encode().substr(0, 8));
+        span.text(wallet.accounts[i].Name + "-" + wallet.accounts[i].PublicKeyHash.base58Encode().substr(0, 8));
         ul.append(li);
     }
 

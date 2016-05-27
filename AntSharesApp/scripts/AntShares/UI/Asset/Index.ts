@@ -11,7 +11,7 @@
 
         protected onload(): void
         {
-            let wallet = GlobalWallet.GetCurrentWallet();
+            let wallet = GlobalWallet.getCurrentWallet();
             if (wallet.accounts.length <= 0)
             {
                 TabBase.showTab("#Tab_Wallet_Open");
@@ -62,7 +62,7 @@
                 allcoin.show("fast");
                 a.text(str2);
                 $("#all_coin").find("ul:eq(0)").find("li :visible").remove();
-                let wallet = GlobalWallet.GetCurrentWallet();
+                let wallet = GlobalWallet.getCurrentWallet();
                 for (let item of wallet.coins)
                 {
                     if (item.State == Core.CoinState.Unspent)
@@ -87,7 +87,7 @@
     }
     function addCoinList(item: CoinItem)
     {
-        let wallet = GlobalWallet.GetCurrentWallet();
+        let wallet = GlobalWallet.getCurrentWallet();
         let ul = $("#Tab_Asset_Index").find("ul:eq(0)");
         let liTemplet = ul.find("li:eq(0)");
         let li = liTemplet.clone(true);
@@ -103,7 +103,7 @@
     }
     function addChangeList(item: CoinItem)
     {
-        let wallet = GlobalWallet.GetCurrentWallet();
+        let wallet = GlobalWallet.getCurrentWallet();
         let ul = $("#all_coin").find("ul:eq(0)");;
         let liTemplet = ul.find("li:eq(0)");
         let li = liTemplet.clone(true);

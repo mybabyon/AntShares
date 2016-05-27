@@ -1,7 +1,5 @@
 ﻿namespace AntShares.UI.Wallet
 {
-    import Wallets = AntShares.Wallets;
-
     export class Create extends TabBase
     {
         private account: Wallets.Account;
@@ -17,6 +15,7 @@
         {
             let rpc = new AntShares.Network.RPC.RpcClient("http://seed1.antshares.org:20332/");
             rpc.call("getblockcount", [], (height) => { this.CurrentHeight = height - 1; })
+            $("#wallet_name").focus();
         }
 
         private OnCreateButtonClick = () =>
@@ -49,7 +48,9 @@
                         }
                         else
                         {
-                            GlobalWallet.GetCurrentWallet().database.CloseDB();
+                            let wallet = GlobalWallet.getCurrentWallet();
+                            if (wallet.database)
+                                wallet.database.closeDB();
                             for (let i = 0; i < walletNameList.length; i++)
                             {
                                 this.deleteWallet(walletNameList[i]);
@@ -65,68 +66,62 @@
         private deleteWallet(waletName: string)
         {
             let wallet = new Wallets.Wallet();
-            wallet.OpenDB(waletName, () =>
+            wallet.openDB(waletName, () =>
             {
-                wallet.database.ClearObjectStore(StoreName.Key);
-                wallet.database.ClearObjectStore(StoreName.Contract);
-                wallet.database.ClearObjectStore(StoreName.Account);
-                wallet.database.ClearObjectStore(StoreName.Coin);
-                wallet.database.DeleteIndexdDB();
-                wallet.database.CloseDB();
+                wallet.database.clearObjectStore(StoreName.Key);
+                wallet.database.clearObjectStore(StoreName.Contract);
+                wallet.database.clearObjectStore(StoreName.Account);
+                wallet.database.clearObjectStore(StoreName.Coin);
+                wallet.database.deleteIndexdDB();
+                wallet.database.closeDB();
             });
         }
 
         private createWallet = (walletNameList: Array<string>) =>
         {
-            let alreadyExitWallet = false;
-            for (let i = 0; i < walletNameList.length; i++)
-            {
-                if (walletNameList[i] == $("#wallet_name").val())
-                {
-                    alreadyExitWallet = true;
-                    break;
-                }
-            }
-            if (alreadyExitWallet)
+            if (walletNameList.indexOf($("#wallet_name").val().trim()) >= 0)
             {
                 alert("已经存在重名的钱包文件，你可以打开钱包或者创建新的钱包。");
             }
             else
             {
-                let wallet = GlobalWallet.GetCurrentWallet();
-                let account = new Wallets.Account();
-                wallet.database.dbName = $("#wallet_name").val();
-                Wallets.Master.GetInstance().AddWalletName(new Wallets.WalletStore(wallet.database.dbName));
-                wallet.OpenDB($("#wallet_name").val(), () =>
+                let wallet = GlobalWallet.getCurrentWallet();
+                let walletName = $("#wallet_name").val().trim();
+                Wallets.Master.GetInstance().AddWalletName(new Wallets.WalletStore(walletName));
+                wallet.openDB(walletName, () =>
                 {
                     ToPasswordKey($("#create_password").val().toUint8Array(), (passwordKey) =>
-                    {
-                        Wallets.Key.PasswordKey = passwordKey;
-                        wallet.CreateWallet(passwordKey, () =>
                         {
-                            wallet.CreateECDSAKey("我的账户", account, (pAccount) =>
+                            Wallets.Key.PasswordKey = passwordKey;
+                            wallet.createWallet(passwordKey, () =>
                             {
-                                wallet.CreateContract(pAccount.PublicKeyHash, pAccount.publicECPoint, this.CurrentHeight, (pWallet) =>
+                                wallet.createECDSAKey("我的账户", new Wallets.Account(), (pAccount) =>
                                 {
-                                    pWallet.LoadAccounts(() =>
+                                    wallet.createContract(pAccount.PublicKeyHash, pAccount.publicECPoint, (pWallet) =>
                                     {
-                                        pWallet.LoadContracts(() =>
+                                        wallet.addKey(new Wallets.KeyStore("Height", this.CurrentHeight));
+                                        pWallet.loadSomething(() =>
                                         {
-                                            pWallet.LoadCoins(() =>
-                                            {
-                                                alert("创建钱包成功");
-                                                TabBase.showTab("#Tab_Account_Index");
-                                                let sync = new AntShares.UI.Sync();
-                                                sync.startSyncWallet();
-                                            })
-                                        })
+                                            alert("打开钱包成功");
+                                            this.clear();
+                                            //打开成功后跳转账户管理页面
+                                            TabBase.showTab("#Tab_Account_Index");
+                                            let sync = new AntShares.UI.Sync();
+                                            sync.startSyncWallet();
+                                        });
                                     });
-                                });
+                                });//createECDSAKey
                             });
-                        });
-                    });
-                });
+                        });//ToPasswordKey
+                });//openDB
             }
+        }
+
+        private clear()
+        {
+            $("#wallet_name").val("");
+            $("#create_password").val("");
+            $("#create_password_confirm").val("");
         }
     }
 }

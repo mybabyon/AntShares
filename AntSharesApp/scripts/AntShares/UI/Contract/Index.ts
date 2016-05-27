@@ -9,7 +9,8 @@
 
         protected onload(): void
         {
-            let wallet = GlobalWallet.GetCurrentWallet();
+            let wallet = GlobalWallet.getCurrentWallet();
+            $("#contract_list_wallet").text(wallet.walletName);
             if (wallet.accounts.length <= 0)
             {
                 TabBase.showTab("#Tab_Wallet_Open");
@@ -44,7 +45,7 @@
             {
                 TabBase.showTab("#Tab_Contract_Details", i);
             });
-            span.text(GlobalWallet.GetCurrentWallet().contracts[i].Address);
+            span.text(GlobalWallet.getCurrentWallet().contracts[i].Address);
             ul.append(li);
         }
 

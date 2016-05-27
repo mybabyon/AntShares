@@ -28,8 +28,8 @@
                         <div class="form-group">
                             <label class="col-sm-4 control-label">输入账户名称</label>
                             <div class="col-sm-6">
-                                <input id="account_name" name="account_name" class="form-control" type="text" placeholder="如：个人账户" />
-                                <span class="text-danger"></span>
+                                <input id="account_name" name="account_name" class="form-control" type="text" placeholder="如：个人账户" data-val="true" data-val-required="账户名称不能为空！" />
+                                <span class="text-danger" data-valmsg-for="account_name" data-valmsg-replace="true"></span>
                             </div>
                         </div>
                         <div class="form-group">
@@ -76,7 +76,6 @@
                             <div class="col-sm-6">
                                 <input class="form-control" id="import_prikey_input" name="import_prikey_input" type="text" placeholder="输入私钥，要求WIF格式" data-val="true" data-val-required="私钥不能为空！" data-val-length-max="52" data-val-length-min="52" data-val-length="WIF私钥必须是52位的Base58编码。" />
                                 <span class="text-danger" data-valmsg-for="import_prikey_input" data-valmsg-replace="true"></span>
-                                <span id="import_error" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-group">
@@ -94,7 +93,7 @@
                         <h2 class="page-header">账户管理</h2>
                         <div class="row nomargin">
                             <div class="col-sm-12 wallet-name" style="padding: 0; margin-bottom: 10px;">
-                                <div>钱包名称：wallet1.db3</div><br />
+                                <div>钱包名称：<span id="account_list_wallet"></span></div><br />
                                 <a class="btn tab-trigger btn-default" id="create_account" href="#Tab_Account_Create">创建账户</a>
                                 <a class="btn tab-trigger btn-default" href="#Tab_Account_Import">导入私钥</a>
                             </div>
@@ -304,6 +303,7 @@
                         <h2 class="page-header">合约管理</h2>
                         <div class="row nomargin">
                             <div class="col-md-12" style="padding: 0; margin-bottom: 10px;">
+                                <div>钱包名称：<span id="contract_list_wallet"></span></div><br />
                                 <div class="btn-group">
                                     <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true">
                                         创建高级合约

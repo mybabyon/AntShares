@@ -16,7 +16,7 @@
             if (formIsValid("form_create_wallet"))
             {
                 let wif = $("#import_prikey_input").val()
-                let wallet = GlobalWallet.GetCurrentWallet();
+                let wallet = GlobalWallet.getCurrentWallet();
                 checkPrivateKeyWIF(wif, (prikey) =>
                 {
                     for (let i = 0; i < wallet.accounts.length; i++)
@@ -32,19 +32,19 @@
                     ToScriptHash(publicPoint.encodePoint(true),
                         (publicKeyHash: Uint8Array) =>
                         {
-                            let wallet = GlobalWallet.GetCurrentWallet();
+                            let wallet = GlobalWallet.getCurrentWallet();
                             let publicKey = publicPoint.encodePoint(false).subarray(1, 65);
-                            wallet.EncriptPrivateKeyAndSave(prikey, publicKey, publicKeyHash, "导入账户", () =>
+                            wallet.encriptPrivateKeyAndSave(prikey, publicKey, publicKeyHash, "导入账户", () =>
                             {
                                 let sc = new Wallets.SignatureContract(publicKeyHash, publicPoint);
                                 ToScriptHash(sc.RedeemScript, (ScriptHash: Uint8Array) =>
                                 {
                                     let contract = new Wallets.ContractStore(ScriptHash, sc, sc.PublicKeyHash, "SignatureContract");
-                                    wallet.AddContract(contract, () =>
+                                    wallet.addContract(contract, () =>
                                     {
-                                        wallet.LoadAccounts(() =>
+                                        wallet.loadAccounts(() =>
                                         {
-                                            wallet.LoadContracts(() =>
+                                            wallet.loadContracts(() =>
                                             {
                                                 alert("账户导入成功");
                                                 TabBase.showTab("#Tab_Account_Index");

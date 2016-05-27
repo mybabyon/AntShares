@@ -26,6 +26,7 @@
                     master.GetWalletNameList(listWallet)
                 }
             );
+            $("#open_password").focus();
             console.clear();
         }
 
@@ -33,31 +34,22 @@
         {
             if (formIsValid("form_open_wallet"))
             {
-                let wallet = GlobalWallet.NewWallet();
-
+                let wallet = GlobalWallet.newWallet();
                 let walletName = $('#list_wallet_name input[name="wallet"]:checked ').val();
-                wallet.OpenDB(walletName, () =>
+                wallet.openDB(walletName, () =>
                 {
-                    wallet.VerifyPassword($("#open_password").val().toUint8Array(),
-                        () =>
+                    wallet.verifyPassword($("#open_password").val().toUint8Array(), () =>
+                    {
+                        wallet.loadSomething(() =>
                         {
-                            wallet.LoadAccounts(() =>
-                            {
-                                wallet.LoadContracts(() =>
-                                {
-                                    wallet.LoadCoins(() =>
-                                    {
-                                        alert("打开钱包成功");
-                                        $("#open_error").hide();
-                                        //打开成功后跳转账户管理页面
-                                        TabBase.showTab("#Tab_Account_Index");
-                                        //let sync = new AntShares.UI.Sync();
-                                        //sync.startSyncWallet();
-                                    })
-                                });
-                            });
-                        },
-                        () =>
+                            alert("打开钱包成功");
+                            $("#open_error").hide();
+                            //打开成功后跳转账户管理页面
+                            TabBase.showTab("#Tab_Account_Index");
+                            let sync = new AntShares.UI.Sync();
+                            sync.startSyncWallet();
+                        });
+                    }, () =>
                         {
                             $("#open_error").show();
                         }

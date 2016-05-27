@@ -32,6 +32,7 @@
          */
         public startSyncWallet = () =>
         {
+            let a = 11;
             if (!Sync.started)
             {
                 Sync.started = true;
@@ -53,14 +54,14 @@
 
         private syncWallet = () =>
         {
-            let wallet = GlobalWallet.GetCurrentWallet();
+            let wallet = GlobalWallet.getCurrentWallet();
             if (Sync.resetHeight)
             {
-                wallet.SetHeight(113415, () =>  //108678  113415   113480
+                wallet.setHeight(113415, () =>  //108678  113415   113480
                 {
                     //wallet.ClearObjectStore(StoreName.Coin);
                     //wallet.coins = new Array<CoinItem>();
-                    wallet.database.GetDataByKey(StoreName.Key, "Height",
+                    wallet.database.getDataByKey(StoreName.Key, "Height",
                         (height: Wallets.KeyStore) =>
                         {
                             console.log("已从高度" + height.Value + "重建钱包");
@@ -74,7 +75,7 @@
                 console.log("钱包同步已停止");
                 return;
             }
-            wallet.database.GetDataByKey(StoreName.Key, "Height",
+            wallet.database.getDataByKey(StoreName.Key, "Height",
                 (height: Wallets.KeyStore) =>
                 {
                     $("#local_height").text(height.Value);
@@ -92,7 +93,7 @@
                                     {
                                         if (height.Value as any < $("#remote_height").text())
                                         {
-                                            wallet.SetHeight(++height.Value, this.syncWallet);
+                                            wallet.setHeight(++height.Value, this.syncWallet);
                                         }
                                         else
                                         {
@@ -105,7 +106,7 @@
                                         {
                                             if (height.Value as any < $("#remote_height").text())
                                             {
-                                                wallet.SetHeight(++height.Value, this.syncWallet);
+                                                wallet.setHeight(++height.Value, this.syncWallet);
                                             }
                                             else
                                             {
@@ -136,7 +137,7 @@
          */
         private processNewBlock = (block: Core.Block, callback) =>
         {
-            let wallet = GlobalWallet.GetCurrentWallet();
+            let wallet = GlobalWallet.getCurrentWallet();
             for (let tx of block.tx) //547
             {
                 for (let index = 0; index < tx.vout.length; index++) //549
@@ -158,14 +159,14 @@
                         if (c > 0)
                         {
                             //将更新后的Coin的State写入数据库
-                            wallet.database.UpdateDataByKey(StoreName.Coin, wallet.coins[c].toKey(),
+                            wallet.database.updateDataByKey(StoreName.Coin, wallet.coins[c].toKey(),
                                 new CoinStore(wallet.coins[c].Input, wallet.coins[c].AssetId, wallet.coins[c].Value, wallet.coins[c].Address, Core.CoinState.Unspent));
                             wallet.coins[c].State = Core.CoinState.Unspent;
                         }
                         else
                         {
                             wallet.coins.push(new CoinItem(input, out.address, Core.CoinState.Unspent, out.asset, out.value));
-                            wallet.AddCoin(new CoinStore(input, out.asset, out.value, out.address, Core.CoinState.Unspent));
+                            wallet.addCoin(new CoinStore(input, out.asset, out.value, out.address, Core.CoinState.Unspent));
                         }
                     }
                 }
@@ -183,14 +184,14 @@
                     if (wallet.coins[i].AssetId == Core.AntShare.AssetId)
                     {
                         //将更新后的Coin的State写入数据库
-                        wallet.database.UpdateDataByKey(StoreName.Coin, wallet.coins[i].toKey(),
+                        wallet.database.updateDataByKey(StoreName.Coin, wallet.coins[i].toKey(),
                             new CoinStore(wallet.coins[i].Input, wallet.coins[i].AssetId, wallet.coins[i].Value, wallet.coins[i].Address, Core.CoinState.Spent));
                         wallet.coins[i].State = Core.CoinState.Spent;
                     }
                     else
                     {
                         wallet.coins.splice(i);
-                        wallet.database.DeleteDataByKey(StoreName.Coin, wallet.coins[i].toKey());
+                        wallet.database.deleteDataByKey(StoreName.Coin, wallet.coins[i].toKey());
                     }
                 }
             }
@@ -206,7 +207,7 @@
                 if (i > 0) //585
                 {
                     wallet.coins.splice(i);
-                    wallet.database.DeleteDataByKey(StoreName.Coin, wallet.coins[i].toKey());
+                    wallet.database.deleteDataByKey(StoreName.Coin, wallet.coins[i].toKey());
                 }
             }
 

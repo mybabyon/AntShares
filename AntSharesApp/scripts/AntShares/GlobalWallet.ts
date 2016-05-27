@@ -6,7 +6,7 @@
     /**
      * 获取当前钱包实例
      */
-    public static GetCurrentWallet(): AntShares.Wallets.Wallet
+    public static getCurrentWallet(): AntShares.Wallets.Wallet
     {
         if (this.wallets.length == 0 || this.wallets.length < this.currentWalletIndex)
         {
@@ -19,10 +19,10 @@
      * 每次打开一个新钱包时新建一个钱包实例
      *
      */
-    public static NewWallet(): AntShares.Wallets.Wallet
+    public static newWallet(): AntShares.Wallets.Wallet
     {
         if (this.wallets.length == 0)
-            return this.GetCurrentWallet();
+            return this.getCurrentWallet();
         this.wallets.push(new AntShares.Wallets.Wallet());
         this.currentWalletIndex++;
         return this.wallets[this.currentWalletIndex];

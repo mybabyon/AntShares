@@ -11,33 +11,33 @@
         private vertifyPassword()
         {
             verifyPassword(
-                GlobalWallet.GetCurrentWallet().database.dbName,
+                GlobalWallet.getCurrentWallet().walletName,
                 "old_password",
                 "change_error")
         }
 
         protected onload(): void
         {
-            let wallet = GlobalWallet.GetCurrentWallet();
+            let wallet = GlobalWallet.getCurrentWallet();
             if (wallet.accounts.length <= 0)
             {
                 TabBase.showTab("#Tab_Wallet_Open");
                 return;
             }
-            $("#change_wallet_name").text(wallet.database.dbName);
+            $("#change_wallet_name").text(wallet.walletName);
         }
 
         private OnChangePasswordButtonClick()
         {
-            let wallet = GlobalWallet.GetCurrentWallet();
+            let wallet = GlobalWallet.getCurrentWallet();
             if (formIsValid("form_change_password"))
             {
-                wallet.VerifyPassword($("#old_password").val().toUint8Array(),
+                wallet.verifyPassword($("#old_password").val().toUint8Array(),
                     () =>
                     {
                         $("#change_error").hide();
-                        wallet.ChangePassword(
-                            $("#old_password").val().toUintArray(),
+                        wallet.changePassword(
+                            $("#old_password").val().toUint8Array(),
                             $("#new_password").val().toUint8Array(),
                             () => { alert("修改钱包密码成功"); }
                         );

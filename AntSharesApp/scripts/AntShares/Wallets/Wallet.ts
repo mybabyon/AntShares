@@ -5,28 +5,28 @@
         public accounts = new Array<AccountItem>();
         public contracts = new Array<ContractItem>();
         public coins = new Array<CoinItem>();
-        public database = new AntShares.DataBase.Database();
+        public database: Database;
+        public walletName: string;
 
         /**
          * 打开钱包数据库
          * @param callback 查询结果的回调函数。
          */
-        public OpenDB = (walletName: string, callback) =>
+        public openDB = (walletName: string, callback) =>
         {
             if (!window.indexedDB)
             {
                 alert("Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available.")
-                //TODO:在config.xml中设置目标平台为Windows8.1时，在Windows10 mobile的手机中无法运行IndexedDB
+                //在config.xml中设置目标平台为Windows8.1时，在Windows10 mobile的手机中无法运行IndexedDB
                 return;
             }
             try
             {
-                this.database.dbName = walletName;
-                let request = window.indexedDB.open(this.database.dbName, this.database.Version);
-
+                let request = window.indexedDB.open(walletName);
                 request.onsuccess = (e: any) =>
                 {
-                    this.database.db = e.target.result;
+                    this.walletName = walletName;
+                    this.database = new Database(walletName, e.target.result);
                     callback();
                     return;
                 };
@@ -37,29 +37,13 @@
                 };
                 request.onupgradeneeded = (e: any) =>
                 {
-                    this.database.db = e.target.result;
-
-                    if (!this.database.db.objectStoreNames.contains('Account'))
-                    {
-                        let objectStore = this.database.db.createObjectStore('Account', { keyPath: "ID" });
-                    }
-                    if (!this.database.db.objectStoreNames.contains('Contract'))
-                    {
-                        let objectStore = this.database.db.createObjectStore('Contract', { keyPath: "Name" });
-                    }
-                    if (!this.database.db.objectStoreNames.contains('Key'))
-                    {
-                        let objectStore = this.database.db.createObjectStore('Key', { keyPath: "Name" });
-                    }
-                    if (!this.database.db.objectStoreNames.contains('Coin'))
-                    {
-                        let objectStore = this.database.db.createObjectStore('Coin', { keyPath: "Name" });
-                    }
-                    if (!this.database.db.objectStoreNames.contains('Coin'))
-                    {
-                        let objectStore = this.database.db.createObjectStore('Transaction', { keyPath: "Hash" });
-                    }
-                    console.log('IDB wallet version changed to ' + this.database.Version);
+                    let db = this.database = new Database(walletName, e.target.result);
+                    db.createObjectStore('Account', "ID");
+                    db.createObjectStore('Contract', "Name");
+                    db.createObjectStore('Key', "Name");
+                    db.createObjectStore('Coin', "Name");
+                    db.createObjectStore('Transaction', "Hash");
+                    console.log('IDB already rebuild');
                 };
                 request.onblocked = (e: any) =>
                 {
@@ -78,12 +62,12 @@
          * @param passwordKey 钱包密码。
          * @param callback 查询结果的回调函数。
          */
-        public CreateWallet(passwordKey: Uint8Array, callback: () => any)
+        public createWallet(passwordKey: Uint8Array, callback: () => any)
         {
             let IV = new Uint8Array(16);;
             window.crypto.getRandomValues(IV);
             Key.IV = IV;
-            this.AddKey(new KeyStore("IV", IV));
+            this.addKey(new KeyStore("IV", IV));
             let masterKey = new Uint8Array(32);
             window.crypto.getRandomValues(masterKey);
             Key.MasterKey = masterKey;
@@ -98,7 +82,7 @@
                 {
                     let passwordHash = new Uint8Array(hash);
                     Key.PasswordHash = passwordHash;
-                    this.AddKey(new KeyStore("PasswordHash", passwordHash));
+                    this.addKey(new KeyStore("PasswordHash", passwordHash));
                 })
                 .catch(err =>
                 {
@@ -129,11 +113,11 @@
                 .then(q =>
                 {
                     masterKey = new Uint8Array(q);
-                    this.AddKey(new KeyStore("MasterKey", masterKey));
+                    this.addKey(new KeyStore("MasterKey", masterKey));
 
                     let versionArray = new Uint8Array(1);
                     versionArray[0] = this.database.Version;
-                    this.AddKey(new KeyStore("Version", versionArray));
+                    this.addKey(new KeyStore("Version", versionArray));
 
                     callback(); //执行创建钱包后的回调函数
                 })
@@ -142,85 +126,53 @@
         /**
          * 向钱包中添加Account
          */
-        public AddAccount(account: AccountStore, callback = null)
+        public addAccount(account: AccountStore, callback = null)
         {
-            this.AddData("Account", account, callback);
+            this.database.addData(StoreName.Account, account, callback);
         }
 
         /**
          * 向钱包中添加Coin
          */
-        public AddCoin(coin: CoinStore, callback = null)
+        public addCoin(coin: CoinStore, callback = null)
         {
-            this.AddData("Coin", coin, callback);
+            this.database.addData(StoreName.Coin, coin, callback);
         }
 
         /**
          * 向钱包中添加Contract
          */
-        public AddContract(contract: ContractStore, callback = null)
+        public addContract(contract: ContractStore, callback = null)
         {
-            this.AddData("Contract", contract, callback);
+            this.database.addData(StoreName.Contract, contract, callback);
         }
 
         /**
          * 向钱包中添加Key
          */
-        public AddKey(key: KeyStore, callback = null)
+        public addKey(key: KeyStore, callback = null)
         {
-            this.AddData("Key", key, callback);
+            this.database.addData(StoreName.Key, key, callback);
         }
 
         /**
          * 向钱包中添加Transaction
          */
-        public AddTransaction(tx: TransactionStore, callback = null)
+        public addTransaction(tx: TransactionStore, callback = null)
         {
-            this.AddData("Transaction", tx, callback);
+            this.database.addData(StoreName.Transaction, tx, callback);
         }
 
-        private AddData(storeName: string, data: AccountStore | CoinStore | ContractStore | KeyStore | TransactionStore, callback)
-        {
-            try
-            {
-                if (this.database.db)
-                {
-                    let transaction = this.database.db.transaction(storeName, IDBTransaction.READ_WRITE);
-                    transaction = this.database.db.transaction(storeName, 'readwrite');
-                    let store = transaction.objectStore(storeName);
-                    let request = store.add(data);
-                    request.onsuccess = (e: any) =>
-                    {
-                        console.log('add ' + storeName + ' success');
-                        if (callback != null)
-                            callback();
-                    };
-                    request.onerror = (e: any) =>
-                    {
-                        console.log("向" + storeName + "添加数据错误：" + e.currentTarget.error.toString());
-                    };
-                }
-                else
-                {
-                    console.log('database.db = null');
-                }
-            }
-            catch (e)
-            {
-                console.log(e);
-            }
-        }
-        
+
         /**
          * 以事务的方式更新钱包密码
          * @param newPasswordKeyHash 新的钱包密码的Hash
          * @param newMasterKey 新的加密过的MasterKey
          * @param callback 同时修改PasswordKeyHash和MasterKey成功后的回调函数
          */
-        public UpdatePassword(newPasswordKeyHash: Uint8Array, newMasterKey: Uint8Array, callback)
+        private updatePassword(newPasswordKeyHash: Uint8Array, newMasterKey: Uint8Array, callback)
         {
-            let transaction = this.database.db.transaction("Key", IDBTransaction.READ_WRITE);
-            transaction = this.database.db.transaction("Key", 'readwrite');
+            let transaction = this.database.transaction(StoreName.Key, TransactionMode.READ_WRITE);
             let store = transaction.objectStore("Key");
             let pwdhRquest = store.get("PasswordHash");
 
@@ -259,9 +211,9 @@
          * @param verifySuccess 验证成功时调用的回调函数。
          * @param verifyFaild 验证失败时调用的回调函数。
          */
-        public VerifyPassword(password: Uint8Array, verifySuccess, verifyFaild)
+        public verifyPassword(password: Uint8Array, verifySuccess, verifyFaild)
         {
-            this.database.GetDataByKey(StoreName.Key, "PasswordHash",
+            this.database.getDataByKey(StoreName.Key, "PasswordHash",
                 (key) =>
                 {
                     Key.PasswordHash = key.Value;
@@ -303,15 +255,15 @@
          * @param newPassword 新的钱包密码
          * @param callback 成功后执行的方法
          */
-        public ChangePassword(oldPassword: Uint8Array, newPassword: Uint8Array, callback)
+        public changePassword(oldPassword: Uint8Array, newPassword: Uint8Array, callback)
         {
             let firstStep = false;
             //1、用旧的PasswordKey对MasterKey解密，再用新的PasswordKey对MasterKey重新加密
-            this.database.GetDataByKey(StoreName.Key, "IV",
+            this.database.getDataByKey(StoreName.Key, "IV",
                 (iv: KeyStore) =>
                 {
                     Key.IV = iv.Value;
-                    this.database.GetDataByKey(StoreName.Key, "MasterKey",
+                    this.database.getDataByKey(StoreName.Key, "MasterKey",
                         (masterkey: KeyStore) =>
                         {
                             //1.1 解密过程
@@ -386,7 +338,7 @@
                                                                             let passwordHash = new Uint8Array(hash);
                                                                             Key.PasswordHash = passwordHash;
 
-                                                                            this.UpdatePassword(Key.PasswordHash, newMasterKey, callback);
+                                                                            this.updatePassword(Key.PasswordHash, newMasterKey, callback);
                                                                         })
                                                                         .catch(err =>
                                                                         {
@@ -410,13 +362,13 @@
          * 打开钱包并解密私钥
          * @param callback 成功后执行的方法
          */
-        public LoadAccounts = (callback) =>
+        public loadAccounts = (callback) =>
         {
-            this.database.GetDataByKey(StoreName.Key, "IV",
+            this.database.getDataByKey(StoreName.Key, "IV",
                 (iv: KeyStore) =>
                 {
                     Key.IV = iv.Value;
-                    this.database.GetDataByKey(StoreName.Key, "MasterKey",
+                    this.database.getDataByKey(StoreName.Key, "MasterKey",
                         (masterkey: KeyStore) =>
                         {
                             Key.MasterKey = masterkey.Value;
@@ -444,7 +396,7 @@
                                 .then(q =>
                                 {
                                     Key.MasterKey = new Uint8Array(q);
-                                    this.database.TraversalData(StoreName.Account,
+                                    this.database.traversalData(StoreName.Account,
                                         (rawDataArray: Array<AccountStore>) =>
                                         {
                                             this.accounts = new Array<AccountItem>();
@@ -465,9 +417,9 @@
         /**
          * 从数据库中读取合约存到contracts变量中
          */
-        public LoadContracts = (callback) =>
+        public loadContracts = (callback) =>
         {
-            this.database.TraversalData(StoreName.Contract, (rawData: Array<ContractStore>) =>
+            this.database.traversalData(StoreName.Contract, (rawData: Array<ContractStore>) =>
             {
                 this.contracts = new Array<ContractItem>();
                 this.addToContracts(rawData, 0, callback);
@@ -497,9 +449,9 @@
         /**
          * 从数据库中读取合约存到coins变量中
          */
-        public LoadCoins = (callback) =>
+        public loadCoins = (callback) =>
         {
-            this.database.TraversalData(StoreName.Coin, (rawData: Array<CoinStore>) =>
+            this.database.traversalData(StoreName.Coin, (rawData: Array<CoinStore>) =>
             {
                 this.coins = new Array<CoinItem>();
                 this.addToCoins(rawData, 0, callback);
@@ -518,16 +470,16 @@
             this.addToCoins(rawData, ++i, callback);
         }
 
-        public SetHeight(height: number, callback)
+        public setHeight(height: number, callback)
         {
-            this.database.UpdateDataByKey(StoreName.Key, "Height", new Wallets.KeyStore("Height", height), () =>
+            this.database.updateDataByKey(StoreName.Key, "Height", new Wallets.KeyStore("Height", height), () =>
             {
                 if (callback)
                     callback();
             })
         }
 
-        public EncriptPrivateKeyAndSave = (privateKey, publicKey, publicKeyHash, accountName, callback) =>
+        public encriptPrivateKeyAndSave = (privateKey, publicKey, publicKeyHash, accountName, callback) =>
         {
             let encryptedPrivateKey = new Uint8Array(96);
             encryptedPrivateKey.set(privateKey, 0);
@@ -556,8 +508,9 @@
                 .then(result =>
                 {
                     let account = new AccountStore(accountName, publicKeyHash, new Uint8Array(result));
-                    this.AddAccount(account);
-                    if (typeof callback === "function") {
+                    this.addAccount(account);
+                    if (typeof callback === "function")
+                    {
                         callback();
                     }
                 }, err =>
@@ -626,9 +579,9 @@
                 return;
             }
             let scriptHash = context.scriptHashes[i];
-            let contract = this.GetContract(scriptHash);
+            let contract = this.getContract(scriptHash);
             if (contract == null) this.signLoop(fSuccess, context, ++i, callback);
-            let account = this.GetAccountByScriptHash(scriptHash);
+            let account = this.getAccountByScriptHash(scriptHash);
             if (account == null) this.signLoop(fSuccess, context, ++i, callback);
             context.signable.sign(account, (signed) =>
             {
@@ -637,7 +590,7 @@
             });
         }
 
-        private GetAccountByScriptHash(scriptHash: Uint8Array): AccountItem
+        private getAccountByScriptHash(scriptHash: Uint8Array): AccountItem
         {
             for (let c of this.contracts)
             {
@@ -648,14 +601,14 @@
                         if (a.PublicKeyHash == c.PublicKeyHash)
                         {
                             return a;
-                        } 
+                        }
                     }
-                } 
+                }
             }
             return null;
         }
 
-        private GetContract(scriptHash: Uint8Array): ContractItem
+        private getContract(scriptHash: Uint8Array): ContractItem
         {
             for (let c of this.contracts)
             {
@@ -666,16 +619,19 @@
             }
             return null;
         }
-        
-        public CreateECDSAKey = (pAccountName: string, pAccount: Wallets.Account, callback: (account: Wallets.Account) => any) => {
+
+        public createECDSAKey = (pAccountName: string, pAccount: Wallets.Account, callback: (account: Wallets.Account) => any) =>
+        {
             window.crypto.subtle.generateKey(
                 { name: "ECDSA", namedCurve: "P-256" },
                 true,
                 ["sign", "verify"]
             )
-                .then(p => {
+                .then(p =>
+                {
                     return window.crypto.subtle.exportKey("jwk", p.privateKey); //以jwk格式导出私钥
-                }, err => {
+                }, err =>
+                {
                     console.error(err);
                 })
                 .then(p =>
@@ -688,10 +644,10 @@
                     pAccount.publicKey = pAccount.publicECPoint.encodePoint(false).subarray(1, 65);
 
                     ToScriptHash(pAccount.publicECPoint.encodePoint(true),
-                        (publicKeyHash: Uint8Array) => 
+                        (publicKeyHash: Uint8Array) =>
                         {
                             pAccount.PublicKeyHash = publicKeyHash;
-                            GlobalWallet.GetCurrentWallet().EncriptPrivateKeyAndSave(
+                            GlobalWallet.getCurrentWallet().encriptPrivateKeyAndSave(
                                 pAccount.privateKey,
                                 pAccount.publicKey,
                                 publicKeyHash,
@@ -704,14 +660,31 @@
                 });
         }
 
-        public CreateContract = (pPublicKeyHash: Uint8Array, pPublicECPoint: AntShares.Cryptography.ECPoint, pCurrentHeight: number, callback: any) => {
+        public createContract = (pPublicKeyHash: Uint8Array, pPublicECPoint: AntShares.Cryptography.ECPoint, callback: any) =>
+        {
             let sc = new Wallets.SignatureContract(pPublicKeyHash, pPublicECPoint);
-            ToScriptHash(sc.RedeemScript, (pScriptHash: Uint8Array) => {
+            ToScriptHash(sc.RedeemScript, (pScriptHash: Uint8Array) =>
+            {
                 let contract = new Wallets.ContractStore(pScriptHash, sc, sc.PublicKeyHash, sc.Type);
-                let wallet = GlobalWallet.GetCurrentWallet();
-                wallet.AddContract(contract);
+                let wallet = GlobalWallet.getCurrentWallet();
+                wallet.addContract(contract);
                 callback(wallet);
             })
+        }
+
+        public loadSomething(callback)
+        {
+            this.loadAccounts(() =>
+            {
+                this.loadContracts(() =>
+                {
+                    this.loadCoins(() =>
+                    {
+                        if (callback)
+                            callback();
+                    })
+                });
+            });
         }
 
     }

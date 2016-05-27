@@ -706,13 +706,10 @@
             ToScriptHash(sc.RedeemScript, (pScriptHash: Uint8Array) => {
                 let contract = new Wallets.ContractStore(pScriptHash, sc, sc.PublicKeyHash, sc.Type);
                 let wallet = GlobalWallet.GetCurrentWallet();
-
                 wallet.AddContract(contract);
-                wallet.AddKey(new Wallets.KeyStore("Height", pCurrentHeight));
                 callback(wallet);
             })
         }
 
-        
     }
 }

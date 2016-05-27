@@ -19,13 +19,9 @@
             let account = new Wallets.Account();
             let wallet = GlobalWallet.GetCurrentWallet();
             wallet.CreateECDSAKey(accountName, account, (pAccount) => {
-                console.log(1);
                 wallet.CreateContract(pAccount.PublicKeyHash, pAccount.publicECPoint, this.CurrentHeight, (pWallet) => {
-                    console.log(2);
                     pWallet.LoadAccounts(() => {
-                        console.log(3);
                         pWallet.LoadContracts(() => {
-                            console.log(4);
                             pWallet.LoadCoins(() => {
                                 alert("创建账户成功");
                                 //新建账户成功后跳转至账户管理页面

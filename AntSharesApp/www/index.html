@@ -23,21 +23,21 @@
             </header>
             <div class="tab-content" style="width: 100%; height: 100%; padding: 40px 50px;">
                 <div id="Tab_Account_Create" class="form-horizontal tab-pane">
-                    <fieldset>
+                    <form id="form_create_account" autocomplete="off">
                         <h2 class="page-header">创建账户</h2>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">输入账户名称</label>
                             <div class="col-sm-6">
-                                <input class="form-control" type="text" placeholder="如：个人账户" />
+                                <input id="account_name" name="account_name" class="form-control" type="text" placeholder="如：个人账户" />
                                 <span class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="col-sm-4 col-md-push-4 col-sm-push-4">
-                                <button type="button" class="btn btn-primary">创建账户</button>
+                                <button id="create_account_action" type="submit" class="btn btn-primary"  onclick="event.preventDefault();">创建账户</button>
                             </div>
                         </div>
-                    </fieldset>
+                    </form>
                     <div>
                         <a class="tab-trigger" href="#Tab_Account_Index">返回账户列表</a>
                     </div>
@@ -447,6 +447,10 @@
                         </fieldset>
                     </form>
                 </div>
+                <div id="Tab_Test" class="form-horizontal tab-pane">
+                    <div id="contentssss"></div>
+                    <button id="test" class="btn btn-primary">test</button>
+                </div>
             </div>
             <footer>
                 高度：<span id="local_height">0</span><span>/</span><span id="remote_height">0</span>
@@ -513,6 +517,7 @@
                         <li><a href="javascript:void(0)">帮助</a></li>
                         <li><a target="_blank" href="https://www.antshares.com/">官网</a></li>
                         <li><a href="javascript:void(0)">关于</a></li>
+                        <li><a class="tab-trigger" href="#Tab_Test">测试</a></li>
                     </ul>
                 </li>
             </ul>

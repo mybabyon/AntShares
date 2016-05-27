@@ -41,28 +41,23 @@
 
                     if (!this.database.db.objectStoreNames.contains('Account'))
                     {
-                        let objectStore = this.database.db.createObjectStore('Account', { keyPath: "Name" });
-                        objectStore.createIndex("Account", "Name", { unique: true });
+                        let objectStore = this.database.db.createObjectStore('Account', { keyPath: "ID" });
                     }
                     if (!this.database.db.objectStoreNames.contains('Contract'))
                     {
                         let objectStore = this.database.db.createObjectStore('Contract', { keyPath: "Name" });
-                        objectStore.createIndex("Contract", "Name", { unique: true });
                     }
                     if (!this.database.db.objectStoreNames.contains('Key'))
                     {
                         let objectStore = this.database.db.createObjectStore('Key', { keyPath: "Name" });
-                        objectStore.createIndex("Key", "Name", { unique: true });
                     }
                     if (!this.database.db.objectStoreNames.contains('Coin'))
                     {
                         let objectStore = this.database.db.createObjectStore('Coin', { keyPath: "Name" });
-                        objectStore.createIndex("Coin", "Name", { unique: true });
                     }
                     if (!this.database.db.objectStoreNames.contains('Coin'))
                     {
                         let objectStore = this.database.db.createObjectStore('Transaction', { keyPath: "Hash" });
-                        objectStore.createIndex("Transaction", "Hash", { unique: true });
                     }
                     console.log('IDB wallet version changed to ' + this.database.Version);
                 };
@@ -532,7 +527,7 @@
             })
         }
 
-        public EncriptPrivateKeyAndSave = (privateKey, publicKey, publicKeyHash, name, callback) =>
+        public EncriptPrivateKeyAndSave = (privateKey, publicKey, publicKeyHash, accountName, callback) =>
         {
             let encryptedPrivateKey = new Uint8Array(96);
             encryptedPrivateKey.set(privateKey, 0);
@@ -560,9 +555,11 @@
                 })
                 .then(result =>
                 {
-                    let account = new AccountStore(name, publicKeyHash, new Uint8Array(result));
+                    let account = new AccountStore(accountName, publicKeyHash, new Uint8Array(result));
                     this.AddAccount(account);
-                    callback();
+                    if (typeof callback === "function") {
+                        callback();
+                    }
                 }, err =>
                 {
                     console.error(err);
@@ -669,8 +666,52 @@
             }
             return null;
         }
+        
+        public CreateECDSAKey = (pAccountName: string, pAccount: Wallets.Account, callback: (account: Wallets.Account) => any) => {
+            window.crypto.subtle.generateKey(
+                { name: "ECDSA", namedCurve: "P-256" },
+                true,
+                ["sign", "verify"]
+            )
+                .then(p => {
+                    return window.crypto.subtle.exportKey("jwk", p.privateKey); //以jwk格式导出私钥
+                }, err => {
+                    console.error(err);
+                })
+                .then(p =>
+                {
+                    pAccount.privateKey = p.d.base64UrlDecode();
+                    let publicKey = new Uint8Array(64);
+                    publicKey.set(p.x.base64UrlDecode(), 0);
+                    publicKey.set(p.y.base64UrlDecode(), 32);
+                    pAccount.publicECPoint = Cryptography.ECPoint.fromUint8Array(publicKey, Cryptography.ECCurve.secp256r1);
+                    pAccount.publicKey = pAccount.publicECPoint.encodePoint(false).subarray(1, 65);
 
+                    ToScriptHash(pAccount.publicECPoint.encodePoint(true),
+                        (publicKeyHash: Uint8Array) => {
+                            pAccount.PublicKeyHash = publicKeyHash;
+                            GlobalWallet.GetCurrentWallet().EncriptPrivateKeyAndSave(
+                                pAccount.privateKey,
+                                pAccount.publicKey,
+                                publicKeyHash,
+                                pAccountName,
+                                null
+                            );
+                            callback(pAccount);
+                        }
+                    );
+                });
+        }
 
+        public CreateContract = (pPublicKeyHash: Uint8Array, pPublicECPoint: AntShares.Cryptography.ECPoint, pCurrentHeight: number, callback: any) => {
+            let sc = new Wallets.SignatureContract(pPublicKeyHash, pPublicECPoint);
+            ToScriptHash(sc.RedeemScript, (pScriptHash: Uint8Array) => {
+                let contract = new Wallets.ContractStore(pScriptHash, sc, sc.PublicKeyHash, sc.Type);
+                let wallet = GlobalWallet.GetCurrentWallet();
+                wallet.AddContract(contract);
+                callback(wallet);
+            })
+        }
 
     }
 }

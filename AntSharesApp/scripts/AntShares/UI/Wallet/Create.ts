@@ -140,7 +140,7 @@
                     ToScriptHash(this.account.publicECPoint.encodePoint(true),
                         (publicKeyHash: Uint8Array) =>
                         {
-                            this.account.publicKeyHash = publicKeyHash;
+                            this.account.PublicKeyHash = publicKeyHash;
                             GlobalWallet.GetCurrentWallet().EncriptPrivateKeyAndSave(
                                 this.account.privateKey,
                                 this.account.publicKey,
@@ -154,7 +154,7 @@
 
         private createContract = () =>
         {
-            let sc = new Wallets.SignatureContract(this.account.publicKeyHash, this.account.publicECPoint);
+            let sc = new Wallets.SignatureContract(this.account.PublicKeyHash, this.account.publicECPoint);
             ToScriptHash(sc.RedeemScript, (ScriptHash: Uint8Array) =>
             {
                 let contract = new Wallets.ContractStore(ScriptHash, sc, sc.PublicKeyHash, sc.Type);

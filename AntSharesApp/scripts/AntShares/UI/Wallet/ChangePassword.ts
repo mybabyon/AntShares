@@ -11,7 +11,7 @@
         private vertifyPassword()
         {
             verifyPassword(
-                GlobalWallet.GetCurrentWallet().dbName,
+                GlobalWallet.GetCurrentWallet().database.dbName,
                 "old_password",
                 "change_error")
         }
@@ -24,7 +24,7 @@
                 TabBase.showTab("#Tab_Wallet_Open");
                 return;
             }
-            $("#change_wallet_name").text(wallet.dbName);
+            $("#change_wallet_name").text(wallet.database.dbName);
         }
 
         private OnChangePasswordButtonClick()

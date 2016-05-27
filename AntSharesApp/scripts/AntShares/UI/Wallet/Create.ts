@@ -49,7 +49,7 @@
                         }
                         else
                         {
-                            GlobalWallet.GetCurrentWallet().CloseDB();
+                            GlobalWallet.GetCurrentWallet().database.CloseDB();
                             for (let i = 0; i < walletNameList.length; i++)
                             {
                                 this.deleteWallet(walletNameList[i]);
@@ -67,12 +67,12 @@
             let wallet = new Wallets.Wallet();
             wallet.OpenDB(waletName, () =>
             {
-                wallet.ClearObjectStore(StoreName.Key);
-                wallet.ClearObjectStore(StoreName.Contract);
-                wallet.ClearObjectStore(StoreName.Account);
-                wallet.ClearObjectStore(StoreName.Coin);
-                wallet.DeleteIndexdDB();
-                wallet.CloseDB();
+                wallet.database.ClearObjectStore(StoreName.Key);
+                wallet.database.ClearObjectStore(StoreName.Contract);
+                wallet.database.ClearObjectStore(StoreName.Account);
+                wallet.database.ClearObjectStore(StoreName.Coin);
+                wallet.database.DeleteIndexdDB();
+                wallet.database.CloseDB();
             });
         }
 
@@ -94,8 +94,8 @@
             else
             {
                 let wallet = GlobalWallet.GetCurrentWallet();
-                wallet.dbName = $("#wallet_name").val();
-                Wallets.Master.GetInstance().AddWalletName(new Wallets.WalletStore(wallet.dbName));
+                wallet.database.dbName = $("#wallet_name").val();
+                Wallets.Master.GetInstance().AddWalletName(new Wallets.WalletStore(wallet.database.dbName));
                 wallet.OpenDB
                     (
                     $("#wallet_name").val(),

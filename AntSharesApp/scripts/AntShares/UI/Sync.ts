@@ -158,7 +158,7 @@
                         if (c > 0)
                         {
                             //将更新后的Coin的State写入数据库
-                            wallet.UpdateDataByKey(StoreName.Coin, wallet.coins[c].toKey(),
+                            wallet.database.UpdateDataByKey(StoreName.Coin, wallet.coins[c].toKey(),
                                 new CoinStore(wallet.coins[c].Input, wallet.coins[c].AssetId, wallet.coins[c].Value, wallet.coins[c].Address, Core.CoinState.Unspent));
                             wallet.coins[c].State = Core.CoinState.Unspent;
                         }
@@ -183,14 +183,14 @@
                     if (wallet.coins[i].AssetId == Core.AntShare.AssetId)
                     {
                         //将更新后的Coin的State写入数据库
-                        wallet.UpdateDataByKey(StoreName.Coin, wallet.coins[i].toKey(),
+                        wallet.database.UpdateDataByKey(StoreName.Coin, wallet.coins[i].toKey(),
                             new CoinStore(wallet.coins[i].Input, wallet.coins[i].AssetId, wallet.coins[i].Value, wallet.coins[i].Address, Core.CoinState.Spent));
                         wallet.coins[i].State = Core.CoinState.Spent;
                     }
                     else
                     {
                         wallet.coins.splice(i);
-                        wallet.DeleteDataByKey(StoreName.Coin, wallet.coins[i].toKey());
+                        wallet.database.DeleteDataByKey(StoreName.Coin, wallet.coins[i].toKey());
                     }
                 }
             }
@@ -206,7 +206,7 @@
                 if (i > 0) //585
                 {
                     wallet.coins.splice(i);
-                    wallet.DeleteDataByKey(StoreName.Coin, wallet.coins[i].toKey());
+                    wallet.database.DeleteDataByKey(StoreName.Coin, wallet.coins[i].toKey());
                 }
             }
 

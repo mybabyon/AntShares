@@ -60,7 +60,7 @@
                 {
                     //wallet.ClearObjectStore(StoreName.Coin);
                     //wallet.coins = new Array<CoinItem>();
-                    wallet.GetDataByKey(StoreName.Key, "Height",
+                    wallet.database.GetDataByKey(StoreName.Key, "Height",
                         (height: Wallets.KeyStore) =>
                         {
                             console.log("已从高度" + height.Value + "重建钱包");
@@ -74,7 +74,7 @@
                 console.log("钱包同步已停止");
                 return;
             }
-            wallet.GetDataByKey(StoreName.Key, "Height",
+            wallet.database.GetDataByKey(StoreName.Key, "Height",
                 (height: Wallets.KeyStore) =>
                 {
                     $("#local_height").text(height.Value);

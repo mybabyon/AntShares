@@ -688,7 +688,8 @@
                     pAccount.publicKey = pAccount.publicECPoint.encodePoint(false).subarray(1, 65);
 
                     ToScriptHash(pAccount.publicECPoint.encodePoint(true),
-                        (publicKeyHash: Uint8Array) => {
+                        (publicKeyHash: Uint8Array) => 
+                        {
                             pAccount.PublicKeyHash = publicKeyHash;
                             GlobalWallet.GetCurrentWallet().EncriptPrivateKeyAndSave(
                                 pAccount.privateKey,

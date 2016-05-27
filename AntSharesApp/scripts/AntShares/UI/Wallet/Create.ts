@@ -94,90 +94,39 @@
             else
             {
                 let wallet = GlobalWallet.GetCurrentWallet();
+                let account = new Wallets.Account();
                 wallet.database.dbName = $("#wallet_name").val();
                 Wallets.Master.GetInstance().AddWalletName(new Wallets.WalletStore(wallet.database.dbName));
-                wallet.OpenDB
-                    (
-                    $("#wallet_name").val(),
-                    () =>
+                wallet.OpenDB($("#wallet_name").val(), () =>
+                {
+                    ToPasswordKey($("#create_password").val().toUint8Array(), (passwordKey) =>
                     {
-                        ToPasswordKey($("#create_password").val().toUint8Array(),
-                            (passwordKey) =>
+                        Wallets.Key.PasswordKey = passwordKey;
+                        wallet.CreateWallet(passwordKey, () =>
+                        {
+                            wallet.CreateECDSAKey("我的账户", account, (pAccount) =>
                             {
-                                Wallets.Key.PasswordKey = passwordKey;
-                                wallet.CreateWallet(passwordKey, this.createECDSAKey)
+                                wallet.CreateContract(pAccount.PublicKeyHash, pAccount.publicECPoint, this.CurrentHeight, (pWallet) =>
+                                {
+                                    pWallet.LoadAccounts(() =>
+                                    {
+                                        pWallet.LoadContracts(() =>
+                                        {
+                                            pWallet.LoadCoins(() =>
+                                            {
+                                                alert("创建钱包成功");
+                                                TabBase.showTab("#Tab_Account_Index");
+                                                let sync = new AntShares.UI.Sync();
+                                                sync.startSyncWallet();
+                                            })
+                                        })
+                                    });
+                                });
                             });
-                    }
-                    );
-            }
-        }
-
-        private createECDSAKey = () =>
-        {
-            window.crypto.subtle.generateKey(
-                { name: "ECDSA", namedCurve: "P-256" },
-                true,
-                ["sign", "verify"]
-            )
-                .then(p =>
-                {
-                    
-                    return window.crypto.subtle.exportKey("jwk", p.privateKey); //以jwk格式导出私钥
-                }, err =>
-                {
-                    console.error(err);
-                })
-                .then(p =>
-                {
-                    this.account = new Wallets.Account();
-                    this.account.privateKey = p.d.base64UrlDecode();
-                    let publicKey = new Uint8Array(64);
-                    publicKey.set(p.x.base64UrlDecode(), 0);
-                    publicKey.set(p.y.base64UrlDecode(), 32);
-                    this.account.publicECPoint = Cryptography.ECPoint.fromUint8Array(publicKey, Cryptography.ECCurve.secp256r1);
-                    this.account.publicKey = this.account.publicECPoint.encodePoint(false).subarray(1, 65);
-
-                    ToScriptHash(this.account.publicECPoint.encodePoint(true),
-                        (publicKeyHash: Uint8Array) =>
-                        {
-                            this.account.PublicKeyHash = publicKeyHash;
-                            GlobalWallet.GetCurrentWallet().EncriptPrivateKeyAndSave(
-                                this.account.privateKey,
-                                this.account.publicKey,
-                                publicKeyHash,
-                                "我的账户",
-                                this.createContract
-                            );
                         });
+                    });
                 });
-        }
-
-        private createContract = () =>
-        {
-            let sc = new Wallets.SignatureContract(this.account.PublicKeyHash, this.account.publicECPoint);
-            ToScriptHash(sc.RedeemScript, (ScriptHash: Uint8Array) =>
-            {
-                let contract = new Wallets.ContractStore(ScriptHash, sc, sc.PublicKeyHash, sc.Type);
-                let wallet = GlobalWallet.GetCurrentWallet();
-
-                wallet.AddContract(contract);
-                wallet.AddKey(new Wallets.KeyStore("Height", this.CurrentHeight));
-
-                wallet.LoadAccounts(() =>
-                {
-                    wallet.LoadContracts(() =>
-                    {
-                        wallet.LoadCoins(() =>
-                        {
-                            alert("创建钱包成功");
-                            //打开成功后跳转账户管理页面
-                            TabBase.showTab("#Tab_Account_Index");
-                            let sync = new AntShares.UI.Sync();
-                            sync.startSyncWallet();
-                        })
-                    })
-                });
-            })
+            }
         }
     }
 }

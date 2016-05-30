@@ -9,7 +9,7 @@
         public name: string;
 
         /*发行总量*/
-        public amount: Fixed8;
+        public amount: UInt64;
 
         /*发行者的公钥*/
         public issuer: Cryptography.ECPoint;
